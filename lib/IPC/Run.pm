@@ -1,4 +1,5 @@
-package IPC::Run ;
+package IPC::Run;
+
 #
 # Copyright (c) 1999 by Barrie Slaymaker, barries@slaysys.com
 #
@@ -7,6 +8,8 @@ package IPC::Run ;
 #
 
 $VERSION = "0.80";
+
+=pod
 
 =head1 NAME
 
