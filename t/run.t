@@ -1,4 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+=pod
 
 =head1 NAME
 
@@ -7,11 +9,13 @@ run.t - Test suite for IPC::Run::run, etc.
 =cut
 
 BEGIN { 
-    if( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
+	$|  = 1;
+	$^W = 1;
+	if( $ENV{PERL_CORE} ) {
+		chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
+		unshift @INC, 'lib', '../..';
+		$^X = '../../../t/' . $^X;
+	}
 }
 
 
@@ -28,8 +32,6 @@ use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start filter_tests Win32_MODE ) ;
 
 sub run { IPC::Run::run( ref $_[0] ? ( noinherit => 1 ) : (), @_ ) }
-
-use UNIVERSAL qw( isa ) ;
 
 ## Test at least some of the win32 PATHEXT logic
 my $perl = $^X;
@@ -917,7 +919,7 @@ sub {
       [ @perl, '-pe', 'BEGIN { $| = 1 } print STDERR uc($_)' ],
       \$in, \$out, \$err,
    ) ;
-   ok( isa( $h, 'IPC::Run' ) ) ;
+   ok( $h->isa('IPC::Run') ) ;
 },
 sub { ok( $?, 99 ) },
 
@@ -967,7 +969,7 @@ sub {
       [ @perl, '-pe', 'binmode STDOUT ; binmode STDERR ; BEGIN { $| = 1 } print STDERR uc($_)' ],
 	 \$in, \$out, \$err,
    ) ;
-   ok( isa( $h, 'IPC::Run' ) ) ;
+   ok( $h->isa('IPC::Run') ) ;
 },
 
 sub { eok( $in, 'SHOULD BE UNCHANGED' ) },

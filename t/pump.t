@@ -1,4 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+=pod
 
 =head1 NAME
 
@@ -7,11 +9,13 @@ pump.t - Test suite for IPC::Run::run, etc.
 =cut
 
 BEGIN { 
-    if( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
+	$|  = 1;
+	$^W = 1;
+	if( $ENV{PERL_CORE} ) {
+		chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
+		unshift @INC, 'lib', '../..';
+		$^X = '../../../t/' . $^X;
+	}
 }
 
 use strict ;
@@ -20,7 +24,6 @@ use Test ;
 
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( start pump finish timeout ) ;
-use UNIVERSAL qw( isa ) ;
 
 ##
 ## $^X is the path to the perl binary.  This is used run all the subprocesses.
@@ -44,7 +47,7 @@ sub {
    $? = 99 ;
    $fd_map = _map_fds ;
    $h = start( \@echoer, \$in, \$out, timeout 5 ) ;
-   ok( isa( $h, 'IPC::Run' ) ) ;
+   ok( $h->isa('IPC::Run') ) ;
 },
 sub { ok( $?, 99 ) },
 

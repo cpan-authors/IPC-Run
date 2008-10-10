@@ -1,4 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+=pod
 
 =head1 NAME
 
@@ -7,11 +9,13 @@ timeout.t - Test suite for IPC::Run timeouts
 =cut
 
 BEGIN { 
-    if( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
+	$|  = 1;
+	$^W = 1;
+	if( $ENV{PERL_CORE} ) {
+		chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
+		unshift @INC, 'lib', '../..';
+		$^X = '../../../t/' . $^X;
+	}
 }
 
 
@@ -22,7 +26,6 @@ use strict ;
 use Test ;
 
 use IPC::Run qw( harness timeout ) ;
-use UNIVERSAL qw( isa ) ;
 
 my $h ;
 my $t ;
@@ -34,7 +37,7 @@ my @tests = (
 
 sub {
    $h = harness( [ $^X ], \$in, \$out, $t = timeout( 1 ) ) ;
-   ok( isa( $h, 'IPC::Run' ) ) ;
+   ok( $h->isa('IPC::Run') ) ;
 },
 sub { ok( !! $t->is_reset   ) },
 sub { ok( !  $t->is_running ) },

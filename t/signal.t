@@ -1,4 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+=pod
 
 =head1 NAME
 
@@ -7,11 +9,13 @@ signal.t - Test suite IPC::Run->signal
 =cut
 
 BEGIN { 
-    if( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
+	$|  = 1;
+	$^W = 1;
+	if( $ENV{PERL_CORE} ) {
+		chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
+		unshift @INC, 'lib', '../..';
+		$^X = '../../../t/' . $^X;
+	}
 }
 
 use strict ;

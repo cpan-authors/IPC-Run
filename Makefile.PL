@@ -1,11 +1,13 @@
 use ExtUtils::MakeMaker;
 
+# Calculate the dependencies
 my %PREREQ_PM;
 if ( $^O ne 'MSWin32' ) {
 	foreach ( eval { require IO::Pty; IO::Pty->VERSION } ) {
 		s/_//g if defined $_;
 		unless ( defined $_ ) {
-			pty_warn("IO::Pty not found", "will");
+			warn("WARNING: \"IO::Pty not found\".\nWARNING: '<pty<', '>pty>' will not work.\n\n");
+			last;
 		}
 		$PREREQ_PM{'IO::Pty'} = '1.00';
 	}
@@ -40,7 +42,10 @@ TOHERE
 WriteMakefile(
 	NAME         => 'IPC::Run',
 	VERSION_FROM => 'lib/IPC/Run.pm',
-	PREREQ_PM    => \%PREREQ_PM,
+	PREREQ_PM    => {
+		Test::More => '0.47',
+		%PREREQ_PM,
+	}
 );
 
 sub MY::libscan {
@@ -50,9 +55,4 @@ sub MY::libscan {
 	return '' if /\.sw[a-z]$/;
 	return '' unless length $self->SUPER::libscan($path);
 	return $path;
-}
-
-sub pty_warn {
-	warn "WARNING: $_[0].\nWARNING: '<pty<', '>pty>' $_[1] not work.\n\n";
-	last;
 }
