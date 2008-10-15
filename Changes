@@ -1,10 +1,14 @@
 Revision history for Perl extension IPC::Run
 
 0.81_01 Wed 15 Oct 2008
+	- This is the first in a series of refactoring test releases.
 	- Removed Makefile.PL message noisily asking users to do CPAN Testers
 	  dirty work.
 	- Simplfied the Makefile.PL code a little.
 	- Upgraded all tests to Test::More
+	- Added a $VERSION for all modules
+	- Adding some missing POD sections
+	- Various other clean ups
 
 0.80 (missing)
 	- IPC::Run::IO now retries on certain "temporarily unavailable" errors.
