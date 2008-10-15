@@ -8,6 +8,7 @@ timer.t - Test suite for IPC::Run::Timer
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -18,135 +19,109 @@ BEGIN {
 	}
 }
 
-use strict;
-
-use Test;
-
+use Test::More tests => 72;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
-use UNIVERSAL qw( isa );
 
 my $t;
 my $started;
 
-my @tests = (
+$t = timer(
+	# debug => 1,
+	1,
+);
+is( ref $t, 'IPC::Run::Timer' );
 
-sub {
-   $t = timer(
-#      debug => 1,
-      1,
-   );
-   ok( ref $t, 'IPC::Run::Timer' );
-},
+is( $t->interval, 1 );
 
-sub { ok( $t->interval, 1 ) },
+$t->interval(  0          );  is( $t->interval,      0 );
+$t->interval(  0.1        );  ok( $t->interval >     0 );
+$t->interval(  1          );  ok( $t->interval >=    1 );
+$t->interval( 30          );  ok( $t->interval >=   30 );
+$t->interval( 30.1        );  ok( $t->interval >    30 );
+$t->interval( 30.1        );  ok( $t->interval <=   31 );
 
-sub { $t->interval(  0          );  ok( $t->interval,      0 ) },
-sub { $t->interval(  0.1        );  ok( $t->interval >     0 ) },
-sub { $t->interval(  1          );  ok( $t->interval >=    1 ) },
-sub { $t->interval( 30          );  ok( $t->interval >=   30 ) },
-sub { $t->interval( 30.1        );  ok( $t->interval >    30 ) },
-sub { $t->interval( 30.1        );  ok( $t->interval <=   31 ) },
+$t->interval( "1:0"       );  is( $t->interval,     60 );
+$t->interval( "1:0:0"     );  is( $t->interval,   3600 );
+$t->interval( "1:1:1"     );  is( $t->interval,   3661 );
+$t->interval( "1:1:1.1"   );  ok( $t->interval >  3661 );
+$t->interval( "1:1:1.1"   );  ok( $t->interval <= 3662 );
+$t->interval( "1:1:1:1"   );  is( $t->interval,  90061 );
 
-sub { $t->interval( "1:0"       );  ok( $t->interval,     60 ) },
-sub { $t->interval( "1:0:0"     );  ok( $t->interval,   3600 ) },
-sub { $t->interval( "1:1:1"     );  ok( $t->interval,   3661 ) },
-sub { $t->interval( "1:1:1.1"   );  ok( $t->interval >  3661 ) },
-sub { $t->interval( "1:1:1.1"   );  ok( $t->interval <= 3662 ) },
-sub { $t->interval( "1:1:1:1"   );  ok( $t->interval,  90061 ) },
-
-sub {
-   $t->reset;
-   $t->interval( 5 );
-   $t->start( 1, 0 );
-   ok( ! $t->is_expired );
-},
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-
-sub { ok( !! $t->check( 0 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !! $t->check( 1 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 2 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 3 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
+$t->reset;
+$t->interval( 5 );
+$t->start( 1, 0 );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 0 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 1 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 2 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 3 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
 
 ## Restarting from the expired state.
-sub {
-   $t->start( undef, 0 );
-   ok( ! $t->is_expired );
-},
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
 
-sub { ok( !! $t->check( 0 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !! $t->check( 1 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 2 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 3 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
+$t->start( undef, 0 );
+ok( ! $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 0 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 1 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 2 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 3 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
 
 ## Restarting while running
-sub {
-   $t->start( 1, 0 );
-   $t->start( undef, 0 );
-   ok( ! $t->is_expired );
-},
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
 
-sub { ok( !! $t->check( 0 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !! $t->check( 1 ) ) },
-sub { ok( !  $t->is_expired ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 2 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->check( 3 ) ) },
-sub { ok( !! $t->is_expired ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_reset   ) },
+$t->start( 1, 0 );
+$t->start( undef, 0 );
+ok( ! $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 0 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !! $t->check( 1 ) );
+ok( !  $t->is_expired );
+ok( !! $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 2 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
+ok( !  $t->check( 3 ) );
+ok( !! $t->is_expired );
+ok( !  $t->is_running );
+ok( !  $t->is_reset   );
 
-sub {
-   my $got;
-   eval {
-      $got = "timeout fired";
-      run [$^X, '-e', 'sleep 3'], timeout 1;
-      $got = "timeout didn't fire";
-   };
-   ok $got, "timeout fired", "timer firing in run()";
-},
-
-);
-
-
-
-plan tests => scalar @tests;
-
-$_->() for ( @tests );
-
+my $got;
+eval {
+	$got = "timeout fired";
+	run [$^X, '-e', 'sleep 3'], timeout 1;
+	$got = "timeout didn't fire";
+};
+is $got, "timeout fired", "timer firing in run()";

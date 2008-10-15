@@ -8,6 +8,7 @@ parallel.t - Test suite for running multiple processes in parallel.
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -20,93 +21,29 @@ BEGIN {
 
 ## Handy to have when our output is intermingled with debugging output sent
 ## to the debugging fd.
-$| = 1 ;
-select STDERR ; $| = 1 ; select STDOUT ;
+select STDERR;
+select STDOUT;
 
-use strict ;
+use Test::More tests => 6;
+use IPC::Run qw( start pump finish );
 
-use Test ;
+my $text1 = "Hello world 1\n";
+my $text2 = "Hello world 2\n";
 
-use IPC::Run qw( start pump finish ) ;
-use UNIVERSAL qw( isa ) ;
+my @perl    = ( $^X );
+my @catter = ( @perl, '-pe1' );
 
-sub Win32_MODE() ;
-*Win32_MODE = \&IPC::Run::Win32_MODE ;
-
-## Win32 does not support a lot of things that Unix does.  These
-## skip_unless subs help that.
-##
-## TODO: There are also a few things that Win32 supports (passing Win32 OS
-## handles) that we should test for, conversely.
-sub skip_unless_subs(&) {
-   if ( Win32_MODE ) {
-      return sub {
-         skip "Can't spawn subroutines on $^O", 0 ;
-      } ;
-   }
-   shift ;
-}
-
-my $text1 = "Hello world 1\n" ;
-my $text2 = "Hello world 2\n" ;
-
-my @perl    = ( $^X ) ;
-
-my @catter = ( @perl, '-pe1' ) ;
-
-sub slurp($) {
-   my ( $f ) = @_ ;
-   open( S, "<$f" ) or return "$! $f" ;
-   my $r = join( '', <S> ) ;
-   close S ;
-   return $r ;
-}
-
-
-sub spit($$) {
-   my ( $f, $s ) = @_ ;
-   open( S, ">$f" ) or die "$! $f" ;
-   print S $s or die "$! $f" ;
-   close S or die "$! $f" ;
-}
-
-my ( $h1, $h2 ) ;
-my ( $out1, $out2 ) ;
-
-my @tests = (
-
-sub {
-   $h1 = start \@catter, "<", \$text1, ">", \$out1 ;
-   ok $h1 ;
-},
-
-sub {
-   $h2 = start \@catter, "<", \$text2, ">", \$out2 ;
-   ok $h2 ;
-},
-
-sub {
-   pump $h1 ;
-   ok 1 ;
-},
-
-sub {
-   pump $h2 ;
-   ok 1 ;
-},
-
-sub {
-   finish $h1 ;
-   ok 1 ;
-},
-
-sub {
-   finish $h2 ;
-   ok 1 ;
-},
-
-) ;
-
-plan tests => scalar @tests ;
-
-$_->() for ( @tests ) ;
+my ( $h1, $h2 );
+my ( $out1, $out2 );
+$h1 = start \@catter, "<", \$text1, ">", \$out1;
+ok( $h1 );
+$h2 = start \@catter, "<", \$text2, ">", \$out2;
+ok( $h2 );
+pump $h1;
+ok( 1 );
+pump $h2;
+ok( 1 );
+finish $h1;
+ok( 1 );
+finish $h2;
+ok( 1 );

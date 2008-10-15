@@ -4,6 +4,7 @@ Revision history for Perl extension IPC::Run
 	- Removed Makefile.PL message noisily asking users to do CPAN Testers
 	  dirty work.
 	- Simplfied the Makefile.PL code a little.
+	- Upgraded all tests to Test::More
 
 0.80 (missing)
 	- IPC::Run::IO now retries on certain "temporarily unavailable" errors.

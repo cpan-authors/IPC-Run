@@ -8,6 +8,7 @@ timeout.t - Test suite for IPC::Run timeouts
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -18,101 +19,69 @@ BEGIN {
 	}
 }
 
-
 ## Separate from run.t so run.t is not too slow.
+use Test::More tests => 25;
+use IPC::Run qw( harness timeout );
 
-use strict ;
+my $h;
+my $t;
+my $in;
+my $out;
+my $started;
 
-use Test ;
+$h = harness( [ $^X ], \$in, \$out, $t = timeout( 1 ) );
+ok( $h->isa('IPC::Run') );
+ok( !! $t->is_reset   );
+ok( !  $t->is_running );
+ok( !  $t->is_expired );
+$started = time;
+$h->start;
+ok( 1 );
+ok( !  $t->is_reset   );
+ok( !! $t->is_running );
+ok( !  $t->is_expired );
+$in = '';
+eval { $h->pump };
+# Older perls' Test.pms don't know what to do with qr//s
+$@ =~ /IPC::Run: timeout/ ? ok( 1 ) : is( $@, qr/IPC::Run: timeout/ );
 
-use IPC::Run qw( harness timeout ) ;
+SCOPE: {
+	my $elapsed = time - $started;
+	$elapsed >= 1 ? ok( 1 ) : is( $elapsed, ">= 1" );
+	is( $t->interval, 1 );
+	ok( !  $t->is_reset   );
+	ok( !  $t->is_running );
+	ok( !! $t->is_expired );
 
-my $h ;
-my $t ;
-my $in ;
-my $out ;
-my $started ;
+	##
+	## Starting from an expired state
+	##
+	$started = time;
+	$h->start;
+	ok( 1 );
+	ok( !  $t->is_reset   );
+	ok( !! $t->is_running );
+	ok( !  $t->is_expired );
+	$in = '';
+	eval { $h->pump };
+	$@ =~ /IPC::Run: timeout/ ? ok( 1 ) : is( $@, qr/IPC::Run: timeout/ );
+	ok( !  $t->is_reset   );
+	ok( !  $t->is_running );
+	ok( !! $t->is_expired );
+}
 
-my @tests = (
+SCOPE: {
+	my $elapsed = time - $started;
+	$elapsed >= 1 ? ok( 1 ) : is( $elapsed, ">= 1" );
+	$h = harness( [ $^X ], \$in, \$out, timeout( 1 ) );
+	$started = time;
+	$h->start;
+	$in = '';
+	eval { $h->pump };
+	$@ =~ /IPC::Run: timeout/ ? ok( 1 ) : is( $@, qr/IPC::Run: timeout/ );
+}
 
-sub {
-   $h = harness( [ $^X ], \$in, \$out, $t = timeout( 1 ) ) ;
-   ok( $h->isa('IPC::Run') ) ;
-},
-sub { ok( !! $t->is_reset   ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !  $t->is_expired ) },
-
-sub {
-   $started = time ;
-   $h->start ;
-   ok( 1 ) ;
-},
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_expired ) },
-
-sub {
-   $in = '' ;
-   eval { $h->pump };
-   # Older perls' Test.pms don't know what to do with qr//s
-   $@ =~ /IPC::Run: timeout/ ? ok( 1 ) : ok( $@, qr/IPC::Run: timeout/ ) ;
-},
-
-sub {
-   my $elapsed = time - $started ;
-   $elapsed >= 1 ? ok( 1 ) : ok( $elapsed, ">= 1" ) ;
-},
-
-sub { ok( $t->interval, 1 ) },
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !! $t->is_expired ) },
-
-##
-## Starting from an expired state
-##
-sub {
-   $started = time ;
-   $h->start ;
-   ok( 1 ) ;
-},
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !! $t->is_running ) },
-sub { ok( !  $t->is_expired ) },
-sub {
-   $in = '' ;
-   eval { $h->pump };
-   $@ =~ /IPC::Run: timeout/ ? ok( 1 ) : ok( $@, qr/IPC::Run: timeout/ ) ;
-},
-sub { ok( !  $t->is_reset   ) },
-sub { ok( !  $t->is_running ) },
-sub { ok( !! $t->is_expired ) },
-
-sub {
-   my $elapsed = time - $started ;
-   $elapsed >= 1 ? ok( 1 ) : ok( $elapsed, ">= 1" ) ;
-},
-
-sub {
-   $h = harness( [ $^X ], \$in, \$out, timeout( 1 ) ) ;
-   $started = time ;
-   $h->start ;
-   $in = '' ;
-   eval { $h->pump };
-   $@ =~ /IPC::Run: timeout/ ? ok( 1 ) : ok( $@, qr/IPC::Run: timeout/ ) ;
-},
-
-sub {
-   my $elapsed = time - $started ;
-   $elapsed >= 1 ? ok( 1 ) : ok( $elapsed, ">= 1" ) ;
-},
-
-) ;
-
-
-
-plan tests => scalar @tests ;
-
-$_->() for ( @tests ) ;
-
+SCOPE: {
+	my $elapsed = time - $started;
+	$elapsed >= 1 ? ok( 1 ) : is( $elapsed, ">= 1" );
+}

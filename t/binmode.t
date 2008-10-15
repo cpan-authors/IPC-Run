@@ -8,6 +8,7 @@ binary.t - Test suite for IPC::Run binary functionality
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -20,85 +21,76 @@ BEGIN {
 
 ## Handy to have when our output is intermingled with debugging output sent
 ## to the debugging fd.
-$| = 1 ;
-select STDERR ; $| = 1 ; select STDOUT ;
+select STDERR;
+select STDOUT;
 
-use strict ;
+use Test::More tests => 24;
+use IPC::Run qw( harness run binary );
 
-use Test ;
+sub Win32_MODE();
+*Win32_MODE = \&IPC::Run::Win32_MODE;
 
-use IPC::Run qw( harness run binary ) ;
+my $crlf_text = "Hello World\r\n";
 
-sub Win32_MODE() ;
-*Win32_MODE = \&IPC::Run::Win32_MODE ;
+my $text     = $crlf_text;
+$text =~ s/\r//g if Win32_MODE;
 
-my $crlf_text = "Hello World\r\n" ;
+my $nl_text  = $crlf_text;
+$nl_text =~ s/\r//g;
 
-my $text     = $crlf_text ;
-$text =~ s/\r//g if Win32_MODE ;
+my @perl    = ( $^X );
 
-my $nl_text  = $crlf_text ;
-$nl_text =~ s/\r//g ;
-
-my @perl    = ( $^X ) ;
-
-my $emitter_script = q{ binmode STDOUT ; print "Hello World\r\n" } ;
-my @emitter = ( @perl, '-e', $emitter_script ) ;
+my $emitter_script = q{ binmode STDOUT; print "Hello World\r\n" };
+my @emitter = ( @perl, '-e', $emitter_script );
 
 my $reporter_script =
-   q{ binmode STDIN ; $_ = join "", <>; s/([\000-\037])/sprintf "\\\\0x%02x", ord $1/ge; print } ;
-my @reporter = ( @perl, '-e', $reporter_script ) ;
+   q{ binmode STDIN; $_ = join "", <>; s/([\000-\037])/sprintf "\\\\0x%02x", ord $1/ge; print };
+my @reporter = ( @perl, '-e', $reporter_script );
 
-my $in ;
-my $out ;
-my $err ;
+my $in;
+my $out;
+my $err;
 
 sub f($) {
-   my $s = shift ;
-   $s =~ s/([\000-\027])/sprintf "\\0x%02x", ord $1/ge ;
+   my $s = shift;
+   $s =~ s/([\000-\027])/sprintf "\\0x%02x", ord $1/ge;
    $s
 }
 
-my @tests = (
 ## Parsing tests
-sub { ok eval { harness [], '>', binary, \$out } ? 1 : $@, 1 } ,
-sub { ok eval { harness [], '>', binary, "foo" } ? 1 : $@, 1 },
-sub { ok eval { harness [], '<', binary, \$in  } ? 1 : $@, 1 },
-sub { ok eval { harness [], '<', binary, "foo" } ? 1 : $@, 1 },
+is( eval { harness [], '>', binary, \$out } ? 1 : $@, 1 );
+is( eval { harness [], '>', binary, "foo" } ? 1 : $@, 1 );
+is( eval { harness [], '<', binary, \$in  } ? 1 : $@, 1 );
+is( eval { harness [], '<', binary, "foo" } ? 1 : $@, 1 );
 
 ## Testing from-kid now so we can use it to test stdin later
-sub { ok run \@emitter, ">", \$out },
-sub { ok f $out, f $text, "no binary" },
+ok( run( \@emitter, ">", \$out ) );
+is( f($out), f($text), "no binary" );
 
-sub { ok run \@emitter, ">", binary, \$out },
-sub { ok f $out, f $crlf_text, "out binary" },
+ok( run( \@emitter, ">", binary, \$out ) );
+is( f($out), f($crlf_text), "out binary" );
 
-sub { ok run \@emitter, ">", binary( 0 ), \$out },
-sub { ok f $out, f $text, "out binary 0" },
+ok( run( \@emitter, ">", binary( 0 ), \$out ) );
+is( f($out), f($text), "out binary 0" );
 
-sub { ok run \@emitter, ">", binary( 1 ), \$out },
-sub { ok f $out, f $crlf_text, "out binary 1" },
+ok( run( \@emitter, ">", binary( 1 ), \$out ) );
+is( f($out), f($crlf_text), "out binary 1" );
 
 ## Test to-kid
-sub { ok run \@reporter, "<", \$nl_text, ">", \$out },
-sub { ok $out, "Hello World" . ( Win32_MODE ? "\\0x0d" : "" ) . "\\0x0a", "reporter < \\n" },
+ok( run( \@reporter, "<", \$nl_text, ">", \$out ) );
+is( $out, "Hello World" . ( Win32_MODE ? "\\0x0d" : "" ) . "\\0x0a", "reporter < \\n" );
 
-sub { ok run \@reporter, "<", binary, \$nl_text, ">", \$out },
-sub { ok $out, "Hello World\\0x0a", "reporter < binary \\n" },
+ok( run( \@reporter, "<", binary, \$nl_text, ">", \$out ) );
+is( $out, "Hello World\\0x0a", "reporter < binary \\n" );
 
-sub { ok run \@reporter, "<", binary, \$crlf_text, ">", \$out },
-sub { ok $out, "Hello World\\0x0d\\0x0a", "reporter < binary \\r\\n" },
+ok( run( \@reporter, "<", binary, \$crlf_text, ">", \$out ) );
+is( $out, "Hello World\\0x0d\\0x0a", "reporter < binary \\r\\n" );
 
-sub { ok run \@reporter, "<", binary( 0 ), \$nl_text, ">", \$out },
-sub { ok $out, "Hello World" . ( Win32_MODE ? "\\0x0d" : "" ) . "\\0x0a", "reporter < binary(0) \\n" },
+ok( run( \@reporter, "<", binary( 0 ), \$nl_text, ">", \$out ) );
+is( $out, "Hello World" . ( Win32_MODE ? "\\0x0d" : "" ) . "\\0x0a", "reporter < binary(0) \\n" );
 
-sub { ok run \@reporter, "<", binary( 1 ), \$nl_text, ">", \$out },
-sub { ok $out, "Hello World\\0x0a", "reporter < binary(1) \\n" },
+ok( run( \@reporter, "<", binary( 1 ), \$nl_text, ">", \$out ) );
+is( $out, "Hello World\\0x0a", "reporter < binary(1) \\n" );
 
-sub { ok run \@reporter, "<", binary( 1 ), \$crlf_text, ">", \$out },
-sub { ok $out, "Hello World\\0x0d\\0x0a", "reporter < binary(1) \\r\\n" },
-) ;
-
-plan tests => scalar @tests ;
-
-$_->() for ( @tests ) ;
+ok( run( \@reporter, "<", binary( 1 ), \$crlf_text, ">", \$out ) );
+is( $out, "Hello World\\0x0d\\0x0a", "reporter < binary(1) \\r\\n" );

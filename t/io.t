@@ -8,6 +8,7 @@ io.t - Test suite excercising IPC::Run::IO with IPC::Run::run.
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -18,118 +19,96 @@ BEGIN {
 	}
 }
 
-use strict ;
-
-use Test ;
-
-use IPC::Run qw( :filters run io ) ;
+use Test::More tests => 14;
+use IPC::Run qw( :filters run io );
 use IPC::Run::Debug qw( _map_fds );
-use UNIVERSAL qw( isa ) ;
 
-sub skip_unless_select (&) {
-   if ( IPC::Run::Win32_MODE() ) {
-      return sub {
-         skip "$^O does not allow select() on non-sockets", 0 ;
-      } ;
-   }
-   shift ;
-}
-
-my $text    = "Hello World\n" ;
-
-my $emitter_script = qq{print '$text' ; print STDERR uc( '$text' )} ;
+my $text    = "Hello World\n";
+my $emitter_script = qq{print '$text'; print STDERR uc( '$text' )};
 ##
 ## $^X is the path to the perl binary.  This is used run all the subprocesses.
 ##
-my @perl    = ( $^X ) ;
-my @emitter = ( @perl, '-e', $emitter_script ) ;
+my @perl    = ( $^X );
+my @emitter = ( @perl, '-e', $emitter_script );
 
-my $recv ;
-my $send ;
+my $recv;
+my $send;
 
-my $in_file  = 'io.t.in' ;
-my $out_file = 'io.t.out' ;
-my $err_file = 'io.t.err' ;
+my $in_file  = 'io.t.in';
+my $out_file = 'io.t.out';
+my $err_file = 'io.t.err';
 
-my $io ;
-my $r ;
+my $io;
+my $r;
 
-my $fd_map ;
+my $fd_map;
 
 ## TODO: Test filters, etc.
 
 sub slurp($) {
-   my ( $f ) = @_ ;
-   open( S, "<$f" ) or return "$! '$f'" ;
-   my $r = join( '', <S> ) ;
+   my ( $f ) = @_;
+   open( S, "<$f" ) or return "$! '$f'";
+   my $r = join( '', <S> );
    close S or warn "$! closing '$f'";
-   return $r ;
+   return $r;
 }
 
-
 sub spit($$) {
-   my ( $f, $s ) = @_ ;
-   open( S, ">$f" ) or die "$! '$f'" ;
-   print S $s       or die "$! '$f'" ;
-   close S          or die "$! '$f'" ;
+   my ( $f, $s ) = @_;
+   open( S, ">$f" ) or die "$! '$f'";
+   print S $s       or die "$! '$f'";
+   close S          or die "$! '$f'";
 }
 
 sub wipe($) {
-   my ( $f ) = @_ ;
-   unlink $f or warn "$! unlinking '$f'" if -f $f ;
+   my ( $f ) = @_;
+   unlink $f or warn "$! unlinking '$f'" if -f $f;
 }
 
+$io = io( 'foo', '<', \$send );
+ok $io->isa('IPC::Run::IO');
 
+is( io( 'foo', '<',  \$send  )->mode, 'w'  );
+is( io( 'foo', '<<', \$send  )->mode, 'wa' );
+is( io( 'foo', '>',  \$recv  )->mode, 'r'  );
+is( io( 'foo', '>>', \$recv  )->mode, 'ra' );
 
-my @tests = (
-##
-## Parsing
-##
-sub {
-   $io = io( 'foo', '<', \$send ) ;
-   ok isa $io, 'IPC::Run::IO' ;
-},
+SKIP: {
+	if ( IPC::Run::Win32_MODE() ) {
+		skip( "$^O does not allow select() on non-sockets", 9 );
+	}
 
-sub { ok( io( 'foo', '<',  \$send  )->mode, 'w'  ) },
-sub { ok( io( 'foo', '<<', \$send  )->mode, 'wa' ) },
-sub { ok( io( 'foo', '>',  \$recv  )->mode, 'r'  ) },
-sub { ok( io( 'foo', '>>', \$recv  )->mode, 'ra' ) },
+	##
+	## Input from a file
+	##
+	SCOPE: {
+		spit $in_file, $text;
+		$recv = 'REPLACE ME';
+		$fd_map = _map_fds;
+		$r = run io( $in_file, '>', \$recv );
+		wipe $in_file;
+		ok( $r );
+	}
 
-##
-## Input from a file
-##
-skip_unless_select {
-   spit $in_file, $text ;
-   $recv = 'REPLACE ME' ;
-   $fd_map = _map_fds ;
-   $r = run io( $in_file, '>', \$recv ) ;
-   wipe $in_file ;
-   ok( $r ) ;
-},
-skip_unless_select { ok( ! $? ) },
-skip_unless_select { ok( _map_fds, $fd_map ) },
+	ok( ! $? );
+	is( _map_fds, $fd_map );
+	is( $recv, $text );
 
-skip_unless_select { ok( $recv, $text ) },
+	##
+	## Output to a file
+	##
+	SCOPE: {
+		wipe $out_file;
+		$send = $text;
+		$fd_map = _map_fds;
+		$r = run io( $out_file, '<', \$send );
+		$recv = slurp $out_file;
+		wipe $out_file;
+		ok( $r );
+	}
 
-##
-## Output to a file
-##
-skip_unless_select {
-   wipe $out_file ;
-   $send = $text ;
-   $fd_map = _map_fds ;
-   $r = run io( $out_file, '<', \$send ) ;
-   $recv = slurp $out_file ;
-   wipe $out_file ;
-   ok( $r ) ;
-},
-skip_unless_select { ok( ! $? ) },
-skip_unless_select { ok( _map_fds, $fd_map ) },
-
-skip_unless_select { ok( $send, $text ) },
-skip_unless_select { ok( $recv, $text ) },
-) ;
-
-plan tests => scalar @tests ;
-
-$_->() for ( @tests ) ;
+	ok( ! $? );
+	is( _map_fds, $fd_map );
+	is( $send, $text );
+	is( $recv, $text );
+}

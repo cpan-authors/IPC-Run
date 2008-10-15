@@ -8,6 +8,7 @@ adopt.t - Test suite for IPC::Run::adopt
 
 =cut
 
+use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
@@ -18,7 +19,6 @@ BEGIN {
 	}
 }
 
-use strict;
 use Test::More skip_all => 'adopt not implemented yet';
 # use Test::More tests => 29;
 use IPC::Run qw( start pump finish );

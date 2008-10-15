@@ -8,6 +8,7 @@ pump.t - Test suite for IPC::Run::run, etc.
 
 =cut
 
+use strict;
 BEGIN { 
 	$|  = 1;
 	$^W = 1;
@@ -18,103 +19,66 @@ BEGIN {
 	}
 }
 
-use strict ;
-
-use Test ;
-
+use Test::More tests => 27;
 use IPC::Run::Debug qw( _map_fds );
-use IPC::Run qw( start pump finish timeout ) ;
+use IPC::Run qw( start pump finish timeout );
 
 ##
 ## $^X is the path to the perl binary.  This is used run all the subprocesses.
 ##
-my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' ) ;
+my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' );
+my $in;
+my $out;
+my $h;
+my $fd_map;
 
-my $in ;
-my $out ;
-
-my $h ;
-
-my $fd_map ;
-
-my @tests = (
-##
-## harness, pump, run
-##
-sub {
-   $in  = 'SHOULD BE UNCHANGED' ;
-   $out = 'REPLACE ME' ;
-   $? = 99 ;
-   $fd_map = _map_fds ;
-   $h = start( \@echoer, \$in, \$out, timeout 5 ) ;
-   ok( $h->isa('IPC::Run') ) ;
-},
-sub { ok( $?, 99 ) },
-
-sub { ok( $in,  'SHOULD BE UNCHANGED' ) },
-sub { ok( $out, '' ) },
-sub { ok( $h->pumpable ) },
-
-sub {
-   $in  = '' ;
-   $? = 0 ;
-   pump_nb $h for ( 1..100 ) ;
-   ok( 1 ) ;
-},
-sub { ok( $in, '' ) },
-sub { ok( $out, '' ) },
-sub { ok( $h->pumpable ) },
-
-sub {
-   $in  = "hello\n" ;
-   $? = 0 ;
-   pump $h until $out =~ /hello/ ;
-   ok( 1 ) ;
-},
-sub { ok( ! $? ) },
-sub { ok( $in, '' ) },
-sub { ok( $out, "hello\n" ) },
-sub { ok( $h->pumpable ) },
-
-sub {
-   $in  = "world\n" ;
-   $? = 0 ;
-   pump $h until $out =~ /world/ ;
-   ok( 1 ) ;
-},
-sub { ok( ! $? ) },
-sub { ok( $in, '' ) },
-sub { ok( $out, "hello\nworld\n" ) },
-sub { ok( $h->pumpable ) },
+$in  = 'SHOULD BE UNCHANGED';
+$out = 'REPLACE ME';
+$? = 99;
+$fd_map = _map_fds;
+$h = start( \@echoer, \$in, \$out, timeout 5 );
+ok( $h->isa('IPC::Run') );
+is( $?, 99 );
+is( $in,  'SHOULD BE UNCHANGED' );
+is( $out, '' );
+ok( $h->pumpable );
+$in  = '';
+$? = 0;
+pump_nb $h for ( 1..100 );
+ok( 1 );
+is( $in, '' );
+is( $out, '' );
+ok( $h->pumpable );
+$in  = "hello\n";
+$? = 0;
+pump $h until $out =~ /hello/;
+ok( 1 );
+ok( ! $? );
+is( $in, '' );
+is( $out, "hello\n" );
+ok( $h->pumpable );
+$in  = "world\n";
+$? = 0;
+pump $h until $out =~ /world/;
+ok( 1 );
+ok( ! $? );
+is( $in, '' );
+is( $out, "hello\nworld\n" );
+ok( $h->pumpable );
 
 ## Test \G pos() restoral
-sub {
-   $in = "hello\n" ;
-   $out = "" ;
-   $? = 0 ;
-   pump $h until $out =~ /hello\n/g ;
-   ok( 1 ) ;
-},
-
-sub {
-   ok pos( $out ), 6, "pos\$out" ;
-},
-
-sub {
-   $in = "world\n" ;
-   $? = 0 ;
-   pump $h until $out =~ /\Gworld/gc ;
-   ok( 1 ) ;
-},
-
-
-sub { ok( $h->finish ) },
-sub { ok( ! $? ) },
-sub { ok( _map_fds, $fd_map ) },
-sub { ok( $out, "hello\nworld\n" ) },
-sub { ok( ! $h->pumpable ) },
-) ;
-
-plan tests => scalar @tests ;
-
-$_->() for ( @tests ) ;
+$in = "hello\n";
+$out = "";
+$? = 0;
+pump $h until $out =~ /hello\n/g;
+ok( 1 );
+is pos( $out ), 6, "pos\$out";
+$in = "world\n";
+$? = 0;
+pump $h until $out =~ /\Gworld/gc;
+ok( 1 );
+ok( $h->finish );
+ok( ! $? );
+is( _map_fds, $fd_map );
+is( $out, "hello\nworld\n" );
+ok( ! $h->pumpable );
