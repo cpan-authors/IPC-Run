@@ -65,7 +65,7 @@ Implement bidirectionality.
 
 Barrie Slaymaker <barries@slaysys.com>
 
-=cut;
+=cut
 
 ## This class is also used internally by IPC::Run in a very initimate way,
 ## since this is a partial factoring of code from IPC::Run plus some code
