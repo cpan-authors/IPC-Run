@@ -1401,6 +1401,7 @@ sub _write {
    return $r;
 }
 
+=pod
 
 =item run
 
@@ -1441,6 +1442,7 @@ sub run {
    return $r;
 }
 
+=pod
 
 =item signal
 
@@ -1508,6 +1510,7 @@ sub signal {
    return;
 }
 
+=pod
 
 =item kill_kill
 
@@ -1604,6 +1607,7 @@ sub kill_kill {
    return $have_killed_before;
 }
 
+=pod
 
 =item harness
 
@@ -2472,6 +2476,8 @@ sub _dup2_gently {
    _dup2_rudely( $fd1, $fd2 );
 }
 
+=pod
+
 =item close_terminal
 
 This is used as (or in) an init sub to cast off the bonds of a controlling
@@ -2618,7 +2624,7 @@ sub _do_kid_and_exit {
 	 }
 
 	 my @cmd = ( $kid->{PATH}, @{$kid->{VAL}}[1..$#{$kid->{VAL}}] );
-	 _debug 'execing ', join " ", map { /[\s"]/ ? "'$_'" : $_ } @cmd
+	 _debug 'execing ', join " ", map { /[\s\"]/ ? "'$_'" : $_ } @cmd
 	    if _debugging;
 
 	 die "exec failed: simulating exec() failure"
@@ -2657,6 +2663,7 @@ sub _do_kid_and_exit {
    POSIX::exit 0;
 }
 
+=pod
 
 =item start
 
@@ -3183,6 +3190,7 @@ sub _cleanup {
    $self->{DEBUG_FD} = undef;
 }
 
+=pod
 
 =item pump
 
@@ -3218,7 +3226,6 @@ each step of the script:
 
 =cut
 
-
 sub pump {
    die "pump() takes only a a single harness as a parameter"
       unless @_ == 1 && UNIVERSAL::isa( $_[0], __PACKAGE__ );
@@ -3249,6 +3256,7 @@ sub pump {
 #   return $r;
 }
 
+=pod
 
 =item pump_nb
 
@@ -3270,6 +3278,8 @@ sub pump_nb {
    die $@ if $@;
    return $r;
 }
+
+=pod
 
 =item pumpable
 
@@ -3323,6 +3333,7 @@ sub _running_kids {
       @{$self->{KIDS}};
 }
 
+=pod
 
 =item reap_nb
 
@@ -3401,6 +3412,7 @@ sub reap_nb {
    }
 }
 
+=pod
 
 =item finish
 
@@ -3425,7 +3437,6 @@ This differs from the behavior of L</run>.
 
 =cut
 
-
 sub finish {
    my IPC::Run $self = shift;
    my $options = @_ && ref $_[-1] eq 'HASH' ? pop : {};
@@ -3447,7 +3458,7 @@ sub finish {
    return ! $self->full_result;
 }
 
-
+=pod
 =item result
 
    $h->result;
@@ -3500,6 +3511,7 @@ sub result {
    }
 }
 
+=pod
 
 =item results
 
@@ -3518,6 +3530,7 @@ sub results {
    return map { (0+$_->{RESULT}) >> 8 } @{$self->{KIDS}};
 }
 
+=pod
 
 =item full_result
 
@@ -3553,6 +3566,7 @@ sub full_result {
    }
 }
 
+=pod
 
 =item full_results
 
@@ -3586,6 +3600,8 @@ use vars (
 ## A few filters and filter constructors
 ##
 
+=pod
+
 =back
 
 =head1 FILTERS
@@ -3615,6 +3631,8 @@ sub binary(;$) {
    my $enable = @_ ? shift : 1;
    return bless sub { $enable }, "IPC::Run::binmode_pseudo_filter";
 }
+
+=pod
 
 =item new_chunker
 
@@ -3687,6 +3705,7 @@ sub new_chunker(;$) {
    };
 }
 
+=pod
 
 =item new_appender
 
@@ -3855,6 +3874,8 @@ sub new_string_sink {
 #   ++$self->{TIMEOUT_END} if $self->{TIMEOUT};
 #}
 
+=pod
+
 =item io
 
 Takes a filename or filehandle, a redirection operator, optional filters,
@@ -3875,6 +3896,8 @@ sub io {
    require IPC::Run::IO;
    IPC::Run::IO->new( @_ );
 }
+
+=pod
 
 =item timer
 
@@ -3897,6 +3920,7 @@ See L<IPC::Run::Timer/timer> for details.
 sub timer;
 *timer = \&IPC::Run::Timer::timer;
 
+=pod
 
 =item timeout
 
@@ -3954,6 +3978,7 @@ See L<IPC::Run::Timer/timer> for details.
 sub timeout;
 *timeout = \&IPC::Run::Timer::timeout;
 
+=pod
 
 =back
 
@@ -4000,6 +4025,7 @@ sub input_avail() {
    length ${$filter_op->{FBUFS}->[$filter_num+1]} || get_more_input;
 }
 
+=pod
 
 =item get_more_input
 
@@ -4029,6 +4055,10 @@ sub get_more_input() {
    die $@ if $@;
    return $r;
 }
+
+1;
+
+=pod
 
 =back
 
@@ -4309,8 +4339,13 @@ Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 =head1 AUTHOR
 
-Barrie Slaymaker <barries@slaysys.com>, with numerous suggestions by p5p.
+Barrie Slaymaker <barries@slaysys.com>
+
+=head1 COPYRIGHT
+
+Copyright 1999 Barrie Slaymaker
+
+You may distribute under the terms of either the GNU General Public
+License or the Artistic License, as specified in the README file.
 
 =cut
-
-1;
