@@ -4337,6 +4337,14 @@ which included:
 
 Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
+=head1 SUPPORT
+
+Bugs should always be submitted via the CPAN bug tracker
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run>
+
+For other issues, contact the maintainer (the first listed author)
+
 =head1 AUTHORS
 
 Adam Kennedy <adamk@cpan.org>
