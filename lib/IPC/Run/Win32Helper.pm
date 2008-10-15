@@ -22,7 +22,7 @@ contact me at barries@slaysys.com, thanks!.
 use strict;
 use Carp;
 use IO::Handle;
-use vars qw{ $VERSION @ISA @EXPORT }
+use vars qw{ $VERSION @ISA @EXPORT };
 BEGIN {
 	$VERSION = '0.81_01';
 	@ISA = qw( Exporter );
