@@ -4337,13 +4337,17 @@ which included:
 
 Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
-=head1 AUTHOR
+=head1 AUTHORS
+
+Adam Kennedy <adamk@cpan.org>
 
 Barrie Slaymaker <barries@slaysys.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999 Barrie Slaymaker
+Some parts copyright 2008 Adam Kennedy.
+
+Copyright 1999 Barrie Slaymaker.
 
 You may distribute under the terms of either the GNU General Public
 License or the Artistic License, as specified in the README file.
