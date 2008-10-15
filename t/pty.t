@@ -39,7 +39,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( eval { require IO::Pty; } ) {
-		plan tests => 1;
+		plan tests => 32;
 	} else {
 		plan skip_all => "IO::Pty not installed";
 	}
@@ -118,18 +118,18 @@ SKIP: {
 	is( $out, "hello\n" );
 	$exp = qr/^HELLO\n(?!\n)$/;
 	$err =~ $exp ? ok( 1 ) : is( $err, $exp );
-	is( $in, '' )
+	is( $in, '' );
 	$in  = "world\n";
 	$? = 0;
 	pump $h until $out =~ /world/ && $err =~ /WORLD/;
 	is( $out, "hello\nworld\n" );
 	$exp = qr/^HELLO\nWORLD\n(?!\n)$/;
 	$err =~ $exp ? ok( 1 ) : is( $err, $exp );
-	is( $in, '' )
+	is( $in, '' );
 	$in = "quit\n";
 	ok( $h->finish );
-	ok( ! $? )
-	is( _map_fds, $fd_map )
+	ok( ! $? );
+	is( _map_fds, $fd_map );
 }
 
 ##
@@ -170,7 +170,7 @@ $exp = qr/^hello\r?\n(?!\n)$/;
 $out =~ $exp ? ok( 1 ) : is( $out, $exp );
 $exp = qr/^HELLO\n(?!\n)$/;
 $err =~ $exp ? ok( 1 ) : is( $err, $exp );
-ok( $in, '' );
+is( $in, '' );
 $in  = "world\n";
 $? = 0;
 pump $h until $out =~ /world/ && $err =~ /WORLD/;

@@ -26,7 +26,7 @@ BEGIN {
 	if ( IPC::Run::Win32_MODE() ) {
 		plan skip_all => 'Skipping on Win32';
 	} else {
-		plan tests => 1;
+		plan tests => 3;
 	}
 }
 

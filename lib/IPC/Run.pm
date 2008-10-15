@@ -1013,8 +1013,8 @@ use strict;
 use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = "0.80";
-	@ISA = qw{ Exporter };
+	$VERSION = '0.81_01';
+	@ISA     = qw{ Exporter };
 
 	## We use @EXPORT for the end user's convenience: there's only one function
 	## exported, it's homonymous with the module, it's an unusual name, and
