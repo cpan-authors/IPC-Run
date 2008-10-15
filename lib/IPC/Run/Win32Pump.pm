@@ -1,5 +1,7 @@
 package IPC::Run::Win32Pump;
 
+=pod
+
 =head1 NAME
 
 IPC::Run::Win32Pump - helper processes to shovel data to/from parent, child
@@ -24,16 +26,20 @@ It parses a bunch of command line parameters from IPC::Run::Win32IO.
 
 =cut
 
-use strict ;
+use strict;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.81_01';
+}
 
 use Win32API::File qw(
    OsFHandleOpen
-) ;
+);
 
 
 my ( $stdin_fh, $stdout_fh, $debug_fh, $binmode, $parent_pid, $parent_start_time, $debug, $child_label );
 BEGIN {
-   ( $stdin_fh, $stdout_fh, $debug_fh, $binmode, $parent_pid, $parent_start_time, $debug, $child_label ) = @ARGV ;
+   ( $stdin_fh, $stdout_fh, $debug_fh, $binmode, $parent_pid, $parent_start_time, $debug, $child_label ) = @ARGV;
    ## Rather than letting IPC::Run::Debug export all-0 constants
    ## when not debugging, we do it manually in order to not even
    ## load IPC::Run::Debug.
@@ -59,62 +65,62 @@ STUBS_END
 if ( $debug ) {       #### REMOVE
 close STDERR;       #### REMOVE
 OsFHandleOpen( \*STDERR, $debug_fh, "w" )       #### REMOVE
- or print "$! opening STDERR as Win32 handle $debug_fh in pumper $$" ;       #### REMOVE
+ or print "$! opening STDERR as Win32 handle $debug_fh in pumper $$";       #### REMOVE
 }       #### REMOVE
 close STDIN;       #### REMOVE
 OsFHandleOpen( \*STDIN, $stdin_fh, "r" )       #### REMOVE
-or die "$! opening STDIN as Win32 handle $stdin_fh in pumper $$" ;       #### REMOVE
+or die "$! opening STDIN as Win32 handle $stdin_fh in pumper $$";       #### REMOVE
 close STDOUT;       #### REMOVE
 OsFHandleOpen( \*STDOUT, $stdout_fh, "w" )       #### REMOVE
-or die "$! opening STDOUT as Win32 handle $stdout_fh in pumper $$" ;       #### REMOVE
+or die "$! opening STDOUT as Win32 handle $stdout_fh in pumper $$";       #### REMOVE
 
 binmode STDIN;
 binmode STDOUT;
-$| = 1 ;
-select STDERR ; $| = 1 ; select STDOUT ;
+$| = 1;
+select STDERR; $| = 1; select STDOUT;
 
-$child_label ||= "pump" ;
+$child_label ||= "pump";
 _debug_init(
 $parent_pid,
 $parent_start_time,
 $debug,
 fileno STDERR,
 $child_label,
-) ;
+);
 
-_debug "Entered" if _debugging_details ;
+_debug "Entered" if _debugging_details;
 
 # No need to close all fds; win32 doesn't seem to pass any on to us.
-$| = 1 ;
-my $buf ;
-my $total_count = 0 ;
+$| = 1;
+my $buf;
+my $total_count = 0;
 while (1) {
-my $count = sysread STDIN, $buf, 10_000 ;
-last unless $count ;
+my $count = sysread STDIN, $buf, 10_000;
+last unless $count;
 if ( _debugging_gory_details ) {
- my $msg = "'$buf'" ;
- substr( $msg, 100, -1 ) = '...' if length $msg > 100 ;
- $msg =~ s/\n/\\n/g ;
- $msg =~ s/\r/\\r/g ;
- $msg =~ s/\t/\\t/g ;
- $msg =~ s/([\000-\037\177-\277])/sprintf "\0x%02x", ord $1/eg ;
- _debug sprintf( "%5d chars revc: ", $count ), $msg ;
+ my $msg = "'$buf'";
+ substr( $msg, 100, -1 ) = '...' if length $msg > 100;
+ $msg =~ s/\n/\\n/g;
+ $msg =~ s/\r/\\r/g;
+ $msg =~ s/\t/\\t/g;
+ $msg =~ s/([\000-\037\177-\277])/sprintf "\0x%02x", ord $1/eg;
+ _debug sprintf( "%5d chars revc: ", $count ), $msg;
 }
-$total_count += $count ;
+$total_count += $count;
 $buf =~ s/\r//g unless $binmode;
 if ( _debugging_gory_details ) {
- my $msg = "'$buf'" ;
- substr( $msg, 100, -1 ) = '...' if length $msg > 100 ;
- $msg =~ s/\n/\\n/g ;
- $msg =~ s/\r/\\r/g ;
- $msg =~ s/\t/\\t/g ;
- $msg =~ s/([\000-\037\177-\277])/sprintf "\0x%02x", ord $1/eg ;
- _debug sprintf( "%5d chars sent: ", $count ), $msg ;
+ my $msg = "'$buf'";
+ substr( $msg, 100, -1 ) = '...' if length $msg > 100;
+ $msg =~ s/\n/\\n/g;
+ $msg =~ s/\r/\\r/g;
+ $msg =~ s/\t/\\t/g;
+ $msg =~ s/([\000-\037\177-\277])/sprintf "\0x%02x", ord $1/eg;
+ _debug sprintf( "%5d chars sent: ", $count ), $msg;
 }
-print $buf ;
+print $buf;
 }
 
-_debug "Exiting, transferred $total_count chars" if _debugging_details ;
+_debug "Exiting, transferred $total_count chars" if _debugging_details;
 
 ## Perform a graceful socket shutdown.  Windows defaults to SO_DONTLINGER,
 ## which should cause a "graceful shutdown in the background" on sockets.
@@ -144,8 +150,12 @@ _debug "Exiting, transferred $total_count chars" if _debugging_details ;
 ## 3) Use Inline::C or a hand-tooled XS module to do helper threads.
 ## This would be faster than #1, but would require a ppm distro.
 ##
-close STDOUT ;
-close STDERR ;
+close STDOUT;
+close STDERR;
+
+1;
+
+=pod
 
 =head1 AUTHOR
 
@@ -158,5 +168,3 @@ Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 You may use this under the terms of either the GPL 2.0 ir the Artistic License.
 
 =cut
-
-1 ;

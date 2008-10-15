@@ -1,4 +1,6 @@
-package IPC::Run::Win32Helper ;
+package IPC::Run::Win32Helper;
+
+=pod
 
 =head1 NAME
 
@@ -17,73 +19,74 @@ contact me at barries@slaysys.com, thanks!.
 
 =cut
 
-@ISA = qw( Exporter ) ;
+use strict;
+use Carp;
+use IO::Handle;
+use vars qw{ $VERSION @ISA 
+BEGIN {
+	$VERSION = '0.81_01';
+	@ISA = qw( Exporter );
+	@EXPORT = qw(
+		win32_spawn
+		win32_parse_cmd_line
+		_dont_inherit
+		_inherit
+	);
+}
 
-@EXPORT = qw(
-   win32_spawn
-   win32_parse_cmd_line
-   _dont_inherit
-   _inherit
-) ;
+require POSIX;
 
-use strict ;
-use Carp ;
-use IO::Handle ;
-#use IPC::Open3 ();
-require POSIX ;
-
-use Text::ParseWords ;
-use Win32::Process ;
+use Text::ParseWords;
+use Win32::Process;
 use IPC::Run::Debug;
-## REMOVE OSFHandleOpen
 use Win32API::File qw(
    FdGetOsFHandle
    SetHandleInformation
    HANDLE_FLAG_INHERIT
    INVALID_HANDLE_VALUE
-) ;
+);
 
 ## Takes an fd or a GLOB ref, never never never a Win32 handle.
 sub _dont_inherit {
    for ( @_ ) {
-      next unless defined $_ ;
-      my $fd = $_ ;
-      $fd = fileno $fd if ref $fd ;
-      _debug "disabling inheritance of ", $fd if _debugging_details ;
-      my $osfh = FdGetOsFHandle $fd ;
-      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE ;
+      next unless defined $_;
+      my $fd = $_;
+      $fd = fileno $fd if ref $fd;
+      _debug "disabling inheritance of ", $fd if _debugging_details;
+      my $osfh = FdGetOsFHandle $fd;
+      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE;
 
-      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 0 ) ;
+      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 0 );
    }
 }
 
 sub _inherit {       #### REMOVE
    for ( @_ ) {       #### REMOVE
-      next unless defined $_ ;       #### REMOVE
-      my $fd = $_ ;       #### REMOVE
-      $fd = fileno $fd if ref $fd ;       #### REMOVE
-      _debug "enabling inheritance of ", $fd if _debugging_details ;       #### REMOVE
-      my $osfh = FdGetOsFHandle $fd ;       #### REMOVE
-      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE ;       #### REMOVE
+      next unless defined $_;       #### REMOVE
+      my $fd = $_;       #### REMOVE
+      $fd = fileno $fd if ref $fd;       #### REMOVE
+      _debug "enabling inheritance of ", $fd if _debugging_details;       #### REMOVE
+      my $osfh = FdGetOsFHandle $fd;       #### REMOVE
+      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE;       #### REMOVE
        #### REMOVE
-      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 1 ) ;       #### REMOVE
+      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 1 );       #### REMOVE
    }       #### REMOVE
 }       #### REMOVE
        #### REMOVE
 #sub _inherit {
 #   for ( @_ ) {
-#      next unless defined $_ ;
-#      my $osfh = GetOsFHandle $_ ;
-#      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE ;
-#      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT ) ;
+#      next unless defined $_;
+#      my $osfh = GetOsFHandle $_;
+#      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE;
+#      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT );
 #   }
 #}
+
+=pod
 
 =head1 FUNCTIONS
 
 =over
-
-=cut
 
 =item optimize()
 
@@ -309,9 +312,11 @@ sub optimize {
 
 }
 
+=pod
+
 =item win32_parse_cmd_line
 
-   @words = win32_parse_cmd_line( q{foo bar 'baz baz' "bat bat"} ) ;
+   @words = win32_parse_cmd_line( q{foo bar 'baz baz' "bat bat"} );
 
 returns 4 words. This parses like the bourne shell (see
 the bit about shellwords() in L<Text::ParseWords>), assuming we're
@@ -331,11 +336,12 @@ LIMITATIONS: shellwords dies silently on malformed input like
 =cut
 
 sub win32_parse_cmd_line {
-   my $line = shift ;
-   $line =~ s{(\\[\w\s])}{\\$1}g ;
-   return shellwords $line ;
+   my $line = shift;
+   $line =~ s{(\\[\w\s])}{\\$1}g;
+   return shellwords $line;
 }
 
+=pod
 
 =item win32_spawn
 
@@ -359,89 +365,89 @@ Remember to check the Win32 handle against INVALID_HANDLE_VALUE.
 =cut
 
 sub _save {
-   my ( $saved, $saved_as, $fd ) = @_ ;
+   my ( $saved, $saved_as, $fd ) = @_;
 
    ## We can only save aside the original fds once.
-   return if exists $saved->{$fd} ;
+   return if exists $saved->{$fd};
 
-   my $saved_fd = IPC::Run::_dup( $fd ) ;
-   _dont_inherit $saved_fd ;
+   my $saved_fd = IPC::Run::_dup( $fd );
+   _dont_inherit $saved_fd;
 
-   $saved->{$fd} = $saved_fd ;
-   $saved_as->{$saved_fd} = $fd ;
+   $saved->{$fd} = $saved_fd;
+   $saved_as->{$saved_fd} = $fd;
 
-   _dont_inherit $saved->{$fd} ;
+   _dont_inherit $saved->{$fd};
 }
 
 sub _dup2_gently {
-   my ( $saved, $saved_as, $fd1, $fd2 ) = @_ ;
-   _save $saved, $saved_as, $fd2 ;
+   my ( $saved, $saved_as, $fd1, $fd2 ) = @_;
+   _save $saved, $saved_as, $fd2;
 
    if ( exists $saved_as->{$fd2} ) {
       ## The target fd is colliding with a saved-as fd, gotta bump
       ## the saved-as fd to another fd.
-      my $orig_fd = delete $saved_as->{$fd2} ;
-      my $saved_fd = IPC::Run::_dup( $fd2 ) ;
-      _dont_inherit $saved_fd ;
+      my $orig_fd = delete $saved_as->{$fd2};
+      my $saved_fd = IPC::Run::_dup( $fd2 );
+      _dont_inherit $saved_fd;
 
-      $saved->{$orig_fd} = $saved_fd ;
-      $saved_as->{$saved_fd} = $orig_fd ;
+      $saved->{$orig_fd} = $saved_fd;
+      $saved_as->{$saved_fd} = $orig_fd;
    }
-   _debug "moving $fd1 to kid's $fd2" if _debugging_details ;
-   IPC::Run::_dup2_rudely( $fd1, $fd2 ) ;
+   _debug "moving $fd1 to kid's $fd2" if _debugging_details;
+   IPC::Run::_dup2_rudely( $fd1, $fd2 );
 }
 
 sub win32_spawn {
-   my ( $cmd, $ops) = @_ ;
+   my ( $cmd, $ops) = @_;
 
    ## NOTE: The debug pipe write handle is passed to pump processes as STDOUT.
    ## and is not to the "real" child process, since they would not know
    ## what to do with it...unlike Unix, we have no code executing in the
    ## child before the "real" child is exec()ed.
    
-   my %saved ;      ## Map of parent's orig fd -> saved fd
-   my %saved_as ;   ## Map of parent's saved fd -> orig fd, used to
+   my %saved;      ## Map of parent's orig fd -> saved fd
+   my %saved_as;   ## Map of parent's saved fd -> orig fd, used to
                     ## detect collisions between a KFD and the fd a
 		    ## parent's fd happened to be saved to.
    
    for my $op ( @$ops ) {
-      _dont_inherit $op->{FD}  if defined $op->{FD} ;
+      _dont_inherit $op->{FD}  if defined $op->{FD};
 
       if ( defined $op->{KFD} && $op->{KFD} > 2 ) {
 	 ## TODO: Detect this in harness()
 	 ## TODO: enable temporary redirections if ever necessary, not
 	 ## sure why they would be...
 	 ## 4>&1 1>/dev/null 1>&4 4>&-
-         croak "Can't redirect fd #", $op->{KFD}, " on Win32" ;
+         croak "Can't redirect fd #", $op->{KFD}, " on Win32";
       }
 
       ## This is very similar logic to IPC::Run::_do_kid_and_exit().
       if ( defined $op->{TFD} ) {
 	 unless ( $op->{TFD} == $op->{KFD} ) {
-	    _dup2_gently \%saved, \%saved_as, $op->{TFD}, $op->{KFD} ;
-	    _dont_inherit $op->{TFD} ;
+	    _dup2_gently \%saved, \%saved_as, $op->{TFD}, $op->{KFD};
+	    _dont_inherit $op->{TFD};
 	 }
       }
       elsif ( $op->{TYPE} eq "dup" ) {
          _dup2_gently \%saved, \%saved_as, $op->{KFD1}, $op->{KFD2}
-            unless $op->{KFD1} == $op->{KFD2} ;
+            unless $op->{KFD1} == $op->{KFD2};
       }
       elsif ( $op->{TYPE} eq "close" ) {
-	 _save \%saved, \%saved_as, $op->{KFD} ;
-	 IPC::Run::_close( $op->{KFD} ) ;
+	 _save \%saved, \%saved_as, $op->{KFD};
+	 IPC::Run::_close( $op->{KFD} );
       }
       elsif ( $op->{TYPE} eq "init" ) {
 	 ## TODO: detect this in harness()
-         croak "init subs not allowed on Win32" ;
+         croak "init subs not allowed on Win32";
       }
    }
 
-   my $process ;
+   my $process;
    my $cmd_line = join " ", map {
       ( my $s = $_ ) =~ s/"/"""/g;
-      $s = qq{"$s"} if /["\s]/;
-      $s ;
-   } @$cmd ;
+      $s = qq{"$s"} if /[\"\s]/;
+      $s;
+   } @$cmd;
 
    _debug "cmd line: ", $cmd_line
       if _debugging;
@@ -453,16 +459,20 @@ sub win32_spawn {
       1,  ## Inherit handles
       NORMAL_PRIORITY_CLASS,
       ".",
-   ) or croak "$!: Win32::Process::Create()" ;
+   ) or croak "$!: Win32::Process::Create()";
 
    for my $orig_fd ( keys %saved ) {
-      IPC::Run::_dup2_rudely( $saved{$orig_fd}, $orig_fd ) ;
-      IPC::Run::_close( $saved{$orig_fd} ) ;
+      IPC::Run::_dup2_rudely( $saved{$orig_fd}, $orig_fd );
+      IPC::Run::_close( $saved{$orig_fd} );
    }
 
-   return ( $process->GetProcessID(), $process ) ;
+   return ( $process->GetProcessID(), $process );
 }
 
+
+1;
+
+=pod
 
 =back
 
@@ -477,5 +487,3 @@ Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 You may use this under the terms of either the GPL 2.0 ir the Artistic License.
 
 =cut
-
-1 ;

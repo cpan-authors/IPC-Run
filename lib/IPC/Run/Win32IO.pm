@@ -1,5 +1,7 @@
 package IPC::Run::Win32IO;
 
+=pod
+
 =head1 NAME
 
 IPC::Run::Win32IO - helper routines for IPC::Run on Win32 platforms.
@@ -15,24 +17,27 @@ loop will work on Win32. This seems to only work on WinNT and Win2K at this
 time, not sure if it will ever work on Win95 or Win98. If you have experience
 in this area, please contact me at barries@slaysys.com, thanks!.
 
-=cut
-
 =head1 DESCRIPTION
 
 A specialized IO class used on Win32.
 
 =cut
 
-use strict ;
-use Carp ;
-use IO::Handle ;
-use Socket ;
-require POSIX ;
+use strict;
+use Carp;
+use IO::Handle;
+use Socket;
+require POSIX;
 
-use Socket qw( IPPROTO_TCP TCP_NODELAY ) ;
-use Symbol ;
-use Text::ParseWords ;
-use Win32::Process ;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.81_01';
+}
+
+use Socket qw( IPPROTO_TCP TCP_NODELAY );
+use Symbol;
+use Text::ParseWords;
+use Win32::Process;
 use IPC::Run::Debug qw( :default _debugging_level );
 use IPC::Run::Win32Helper qw( _inherit _dont_inherit );
 use Fcntl qw( O_TEXT O_RDONLY );
@@ -78,7 +83,7 @@ use Win32API::File qw(
    FILE_FLAG_WRITE_THROUGH
 
    FILE_BEGIN
-) ;
+);
 
 #   FILE_ATTRIBUTE_HIDDEN
 #   FILE_ATTRIBUTE_SYSTEM
@@ -96,7 +101,6 @@ BEGIN {
       INVALID_HANDLE_VALUE,
    );
 }
-
 
 use constant temp_file_flags => (
    FILE_ATTRIBUTE_TEMPORARY()   |
@@ -261,7 +265,7 @@ sub _recv_through_temp_file {
 	 []
       ) or croak "$^E reading from $self->{TEMP_FILE_NAME}";
 
-      _debug "ReadFile( $self->{TFD} ) = $r chars '$s'" if _debugging_data ;
+      _debug "ReadFile( $self->{TFD} ) = $r chars '$s'" if _debugging_data;
 
       return undef unless $r;
 
@@ -300,12 +304,12 @@ sub poll {
 ## closing off the ones we don't want.
 
 sub _spawn_pumper {
-   my ( $stdin, $stdout, $debug_fd, $binmode, $child_label, @opts ) = @_ ;
-   my ( $stdin_fd, $stdout_fd ) = ( fileno $stdin, fileno $stdout ) ;
+   my ( $stdin, $stdout, $debug_fd, $binmode, $child_label, @opts ) = @_;
+   my ( $stdin_fd, $stdout_fd ) = ( fileno $stdin, fileno $stdout );
 
    _debug "pumper stdin = ", $stdin_fd if _debugging_details;
    _debug "pumper stdout = ", $stdout_fd if _debugging_details;
-   _inherit $stdin_fd, $stdout_fd, $debug_fd ;
+   _inherit $stdin_fd, $stdout_fd, $debug_fd;
    my @I_options = map qq{"-I$_"}, @INC;
 
    my $cmd_line = join( " ",
@@ -323,21 +327,21 @@ sub _spawn_pumper {
       $binmode ? 1 : 0,
       $$, $^T, _debugging_level, qq{"$child_label"},
       @opts
-   ) ;
+   );
 
-#   open SAVEIN,  "<&STDIN"  or croak "$! saving STDIN" ;       #### ADD
-#   open SAVEOUT, ">&STDOUT" or croak "$! saving STDOUT" ;       #### ADD
-#   open SAVEERR, ">&STDERR" or croak "$! saving STDERR" ;       #### ADD
-#   _dont_inherit \*SAVEIN ;       #### ADD
-#   _dont_inherit \*SAVEOUT ;       #### ADD
-#   _dont_inherit \*SAVEERR ;       #### ADD
-#   open STDIN,  "<&$stdin_fd"  or croak "$! dup2()ing $stdin_fd (pumper's STDIN)" ;       #### ADD
-#   open STDOUT, ">&$stdout_fd" or croak "$! dup2()ing $stdout_fd (pumper's STDOUT)" ;       #### ADD
-#   open STDERR, ">&$debug_fd" or croak "$! dup2()ing $debug_fd (pumper's STDERR/debug_fd)" ;       #### ADD
+#   open SAVEIN,  "<&STDIN"  or croak "$! saving STDIN";       #### ADD
+#   open SAVEOUT, ">&STDOUT" or croak "$! saving STDOUT";       #### ADD
+#   open SAVEERR, ">&STDERR" or croak "$! saving STDERR";       #### ADD
+#   _dont_inherit \*SAVEIN;       #### ADD
+#   _dont_inherit \*SAVEOUT;       #### ADD
+#   _dont_inherit \*SAVEERR;       #### ADD
+#   open STDIN,  "<&$stdin_fd"  or croak "$! dup2()ing $stdin_fd (pumper's STDIN)";       #### ADD
+#   open STDOUT, ">&$stdout_fd" or croak "$! dup2()ing $stdout_fd (pumper's STDOUT)";       #### ADD
+#   open STDERR, ">&$debug_fd" or croak "$! dup2()ing $debug_fd (pumper's STDERR/debug_fd)";       #### ADD
 
    _debug "pump cmd line: ", $cmd_line if _debugging_details;
 
-   my $process ;
+   my $process;
    Win32::Process::Create( 
       $process,
       $^X,
@@ -345,53 +349,53 @@ sub _spawn_pumper {
       1,  ## Inherit handles
       NORMAL_PRIORITY_CLASS,
       ".",
-   ) or croak "$!: Win32::Process::Create()" ;
+   ) or croak "$!: Win32::Process::Create()";
 
-#   open STDIN,  "<&SAVEIN"  or croak "$! restoring STDIN" ;       #### ADD
-#   open STDOUT, ">&SAVEOUT" or croak "$! restoring STDOUT" ;       #### ADD
-#   open STDERR, ">&SAVEERR" or croak "$! restoring STDERR" ;       #### ADD
-#   close SAVEIN             or croak "$! closing SAVEIN" ;       #### ADD
-#   close SAVEOUT            or croak "$! closing SAVEOUT" ;       #### ADD
-#   close SAVEERR            or croak "$! closing SAVEERR" ;       #### ADD
+#   open STDIN,  "<&SAVEIN"  or croak "$! restoring STDIN";       #### ADD
+#   open STDOUT, ">&SAVEOUT" or croak "$! restoring STDOUT";       #### ADD
+#   open STDERR, ">&SAVEERR" or croak "$! restoring STDERR";       #### ADD
+#   close SAVEIN             or croak "$! closing SAVEIN";       #### ADD
+#   close SAVEOUT            or croak "$! closing SAVEOUT";       #### ADD
+#   close SAVEERR            or croak "$! closing SAVEERR";       #### ADD
 
-   close $stdin  or croak "$! closing pumper's stdin in parent" ;
-   close $stdout or croak "$! closing pumper's stdout in parent" ;
+   close $stdin  or croak "$! closing pumper's stdin in parent";
+   close $stdout or croak "$! closing pumper's stdout in parent";
    # Don't close $debug_fd, we need it, as do other pumpers.
 
    # Pause a moment to allow the child to get up and running and emit
    # debug messages.  This does not always work.
-   #   select undef, undef, undef, 1 if _debugging_details ;
+   #   select undef, undef, undef, 1 if _debugging_details;
 
    _debug "_spawn_pumper pid = ", $process->GetProcessID 
       if _debugging_data;
 }
 
 
-my $next_port = 2048 ;
-my $loopback  = inet_aton "127.0.0.1" ;
+my $next_port = 2048;
+my $loopback  = inet_aton "127.0.0.1";
 my $tcp_proto = getprotobyname('tcp');
-croak "$!: getprotobyname('tcp')" unless defined $tcp_proto ;
+croak "$!: getprotobyname('tcp')" unless defined $tcp_proto;
 
 sub _socket {
-   my ( $server ) = @_ ;
-   $server ||= gensym ;
-   my $client = gensym ;
+   my ( $server ) = @_;
+   $server ||= gensym;
+   my $client = gensym;
 
-   my $listener = gensym ;
+   my $listener = gensym;
    socket $listener, PF_INET, SOCK_STREAM, $tcp_proto
       or croak "$!: socket()";
    setsockopt $listener, SOL_SOCKET, SO_REUSEADDR, pack("l", 0)
       or croak "$!: setsockopt()";
 
-   my $port ;
-   my @errors ;
+   my $port;
+   my @errors;
 PORT_FINDER_LOOP:
    {
-      $port = $next_port ;
-      $next_port = 2048 if ++$next_port > 65_535 ; 
+      $port = $next_port;
+      $next_port = 2048 if ++$next_port > 65_535; 
       unless ( bind $listener, sockaddr_in( $port, INADDR_ANY ) ) {
-	 push @errors, "$! on port $port" ;
-	 croak join "\n", @errors if @errors > 10 ;
+	 push @errors, "$! on port $port";
+	 croak join "\n", @errors if @errors > 10;
          goto PORT_FINDER_LOOP;
       }
    }
@@ -399,7 +403,7 @@ PORT_FINDER_LOOP:
    _debug "win32 port = $port" if _debugging_details;
 
    listen $listener, my $queue_size = 1
-      or croak "$!: listen()" ;
+      or croak "$!: listen()";
 
    {
       socket $client, PF_INET, SOCK_STREAM, $tcp_proto
@@ -408,9 +412,9 @@ PORT_FINDER_LOOP:
       my $paddr = sockaddr_in($port, $loopback );
 
       connect $client, $paddr
-         or croak "$!: connect()" ;
+         or croak "$!: connect()";
     
-      croak "$!: accept" unless defined $paddr ;
+      croak "$!: accept" unless defined $paddr;
 
       ## The windows "default" is SO_DONTLINGER, which should make
       ## sure all socket data goes through.  I have my doubts based
@@ -422,20 +426,20 @@ PORT_FINDER_LOOP:
 
    {
       _debug "accept()ing on port $port" if _debugging_details;
-      my $paddr = accept( $server, $listener ) ;
-      croak "$!: accept()" unless defined $paddr ;
+      my $paddr = accept( $server, $listener );
+      croak "$!: accept()" unless defined $paddr;
    }
 
    _debug
       "win32 _socket = ( ", fileno $server, ", ", fileno $client, " ) on port $port" 
       if _debugging_details;
-   return ( $server, $client ) ;
+   return ( $server, $client );
 }
 
 
 sub _open_socket_pipe {
    my IPC::Run::Win32IO $self = shift;
-   my ( $debug_fd, $parent_handle ) = @_ ;
+   my ( $debug_fd, $parent_handle ) = @_;
 
    my $is_send_to_child = $self->dir eq "<";
 
@@ -445,7 +449,7 @@ sub _open_socket_pipe {
    ( 
       $self->{PARENT_HANDLE},
       $self->{PUMP_SOCKET_HANDLE}
-   ) = _socket $parent_handle ;
+   ) = _socket $parent_handle;
 
    ## These binmodes seem to have no effect on Win2K, but just to be safe
    ## I do them.
@@ -454,18 +458,18 @@ sub _open_socket_pipe {
 
 _debug "PUMP_SOCKET_HANDLE = ", fileno $self->{PUMP_SOCKET_HANDLE}
    if _debugging_details;
-##my $buf ;
-##$buf = "write on child end of " . fileno( $self->{WRITE_HANDLE} ) . "\n\n\n\n\n" ;
-##POSIX::write(fileno $self->{WRITE_HANDLE}, $buf, length $buf) or warn "$! in syswrite" ;
-##$buf = "write on parent end of " . fileno( $self->{CHILD_HANDLE} ) . "\r\n" ;
-##POSIX::write(fileno $self->{CHILD_HANDLE},$buf, length $buf) or warn "$! in syswrite" ;
-##   $self->{CHILD_HANDLE}->autoflush( 1 ) ;
-##   $self->{WRITE_HANDLE}->autoflush( 1 ) ;
+##my $buf;
+##$buf = "write on child end of " . fileno( $self->{WRITE_HANDLE} ) . "\n\n\n\n\n";
+##POSIX::write(fileno $self->{WRITE_HANDLE}, $buf, length $buf) or warn "$! in syswrite";
+##$buf = "write on parent end of " . fileno( $self->{CHILD_HANDLE} ) . "\r\n";
+##POSIX::write(fileno $self->{CHILD_HANDLE},$buf, length $buf) or warn "$! in syswrite";
+##   $self->{CHILD_HANDLE}->autoflush( 1 );
+##   $self->{WRITE_HANDLE}->autoflush( 1 );
 
    ## Now fork off a data pump and arrange to return the correct fds.
    if ( $is_send_to_child ) {
       pipe $self->{CHILD_HANDLE}, $self->{PUMP_PIPE_HANDLE}
-         or croak "$! opening child pipe" ;
+         or croak "$! opening child pipe";
 _debug "CHILD_HANDLE = ", fileno $self->{CHILD_HANDLE}
    if _debugging_details;
 _debug "PUMP_PIPE_HANDLE = ", fileno $self->{PUMP_PIPE_HANDLE}
@@ -473,7 +477,7 @@ _debug "PUMP_PIPE_HANDLE = ", fileno $self->{PUMP_PIPE_HANDLE}
    }
    else {
       pipe $self->{PUMP_PIPE_HANDLE}, $self->{CHILD_HANDLE}
-         or croak "$! opening child pipe" ;
+         or croak "$! opening child pipe";
 _debug "CHILD_HANDLE = ", fileno $self->{CHILD_HANDLE}
    if _debugging_details;
 _debug "PUMP_PIPE_HANDLE = ", fileno $self->{PUMP_PIPE_HANDLE}
@@ -486,21 +490,21 @@ _debug "PUMP_PIPE_HANDLE = ", fileno $self->{PUMP_PIPE_HANDLE}
    binmode $self->{PUMP_PIPE_HANDLE};
 
    ## No child should ever see this.
-   _dont_inherit $self->{PARENT_HANDLE} ;
+   _dont_inherit $self->{PARENT_HANDLE};
 
    ## We clear the inherit flag so these file descriptors are not inherited.
    ## It'll be dup()ed on to STDIN/STDOUT/STDERR before CreateProcess is
    ## called and *that* fd will be inheritable.
-   _dont_inherit $self->{PUMP_SOCKET_HANDLE} ;
-   _dont_inherit $self->{PUMP_PIPE_HANDLE} ;
-   _dont_inherit $self->{CHILD_HANDLE} ;
+   _dont_inherit $self->{PUMP_SOCKET_HANDLE};
+   _dont_inherit $self->{PUMP_PIPE_HANDLE};
+   _dont_inherit $self->{CHILD_HANDLE};
 
    ## Need to return $self so the HANDLEs don't get freed.
    ## Return $self, $parent_fd, $child_fd
    my ( $parent_fd, $child_fd ) = (
       fileno $self->{PARENT_HANDLE},
       fileno $self->{CHILD_HANDLE}
-   ) ;
+   );
 
    ## Both PUMP_..._HANDLEs will be closed, no need to worry about
    ## inheritance.
@@ -512,12 +516,12 @@ _debug "PUMP_PIPE_HANDLE = ", fileno $self->{PUMP_PIPE_HANDLE}
       $debug_fd,
       $self->binmode,
       $child_fd . $self->dir . "pump" . $self->dir . $parent_fd,
-   ) ;
+   );
 
 {
-my $foo ;
+my $foo;
 confess "PARENT_HANDLE no longer open"
-   unless POSIX::read( $parent_fd, $foo, 0 ) ;
+   unless POSIX::read( $parent_fd, $foo, 0 );
 }
 
    _debug "win32_fake_pipe = ( $parent_fd, $child_fd )"
@@ -541,6 +545,10 @@ sub _do_open {
    }
 }
 
+1;
+
+=pod
+
 =head1 AUTHOR
 
 Barries Slaymaker <barries@slaysys.com>.  Funded by Perforce Software, Inc.
@@ -552,5 +560,3 @@ Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 You may use this under the terms of either the GPL 2.0 ir the Artistic License.
 
 =cut
-
-1;

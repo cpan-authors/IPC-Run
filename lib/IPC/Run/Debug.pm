@@ -1,5 +1,7 @@
 package IPC::Run::Debug;
 
+=pod
+
 =head1 NAME
 
 IPC::Run::Debug - debugging routines for IPC::Run
@@ -60,37 +62,37 @@ Both of those are untested.
 
 =cut
 
-@ISA = qw( Exporter ) ;
-
 ## We use @EXPORT for the end user's convenience: there's only one function
 ## exported, it's homonymous with the module, it's an unusual name, and
-## it can be suppressed by "use IPC::Run () ;".
+## it can be suppressed by "use IPC::Run ();".
 
-@EXPORT = qw(
-   _debug
-   _debug_desc_fd
-   _debugging
-   _debugging_data
-   _debugging_details
-   _debugging_gory_details
-   _debugging_not_optimized
-   _set_child_debug_name
-);
-
-
-@EXPORT_OK = qw(
-   _debug_init
-   _debugging_level
-   _map_fds
-);
-
-%EXPORT_TAGS = (
-   default => \@EXPORT,
-   all     => [ @EXPORT, @EXPORT_OK ],
-);
-
-use strict ;
-use Exporter ;
+use strict;
+use Exporter;
+use vars qw{$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS};
+BEGIN {
+	$VERSION = '0.81_01';
+	@ISA     = qw( Exporter );
+	@EXPORT  = qw(
+		_debug
+		_debug_desc_fd
+		_debugging
+		_debugging_data
+		_debugging_details
+		_debugging_gory_details
+		_debugging_not_optimized
+		_set_child_debug_name
+	);
+	
+	@EXPORT_OK = qw(
+		_debug_init
+		_debugging_level
+		_map_fds
+	);
+	%EXPORT_TAGS = (
+		default => \@EXPORT,
+		all     => [ @EXPORT, @EXPORT_OK ],
+	);
+}
 
 my $disable_debugging =
    defined $ENV{IPCRUNDEBUG}
@@ -119,35 +121,35 @@ use POSIX;
 use UNIVERSAL qw( isa );
 
 sub _map_fds {
-   my $map = '' ;
-   my $digit = 0 ;
-   my $in_use ;
-   my $dummy ;
+   my $map = '';
+   my $digit = 0;
+   my $in_use;
+   my $dummy;
    for my $fd (0..63) {
       ## I'd like a quicker way (less user, cpu & expecially sys and kernal
       ## calls) to detect open file descriptors.  Let me know...
       ## Hmmm, could do a 0 length read and check for bad file descriptor...
       ## but that segfaults on Win32
-      my $test_fd = POSIX::dup( $fd ) ;
-      $in_use = defined $test_fd ;
-      POSIX::close $test_fd if $in_use ;
+      my $test_fd = POSIX::dup( $fd );
+      $in_use = defined $test_fd;
+      POSIX::close $test_fd if $in_use;
       $map .= $in_use ? $digit : '-';
-      $digit = 0 if ++$digit > 9 ;
+      $digit = 0 if ++$digit > 9;
    }
-   warn "No fds open???" unless $map =~ /\d/ ;
-   $map =~ s/(.{1,12})-*$/$1/ ;
-   return $map ;
+   warn "No fds open???" unless $map =~ /\d/;
+   $map =~ s/(.{1,12})-*$/$1/;
+   return $map;
 }
 
-use vars qw( $parent_pid ) ;
+use vars qw( $parent_pid );
 
-$parent_pid = $$ ;
+$parent_pid = $$;
 
 ## TODO: move debugging to it's own module and make it compile-time
 ## optimizable.
 
 ## Give kid process debugging nice names
-my $debug_name ;
+my $debug_name;
 
 sub _set_child_debug_name {
    $debug_name = shift;
@@ -179,11 +181,11 @@ my %debug_levels = (
 my $warned;
 
 sub _debugging_level() {
-   my $level = 0 ;
+   my $level = 0;
 
    $level = $IPC::Run::cur_self->{debug} || 0
       if $IPC::Run::cur_self
-         && ( $IPC::Run::cur_self->{debug} || 0 ) >= $level ;
+         && ( $IPC::Run::cur_self->{debug} || 0 ) >= $level;
 
    if ( defined $ENV{IPCRUNDEBUG} ) {
       my $v = $ENV{IPCRUNDEBUG};
@@ -192,17 +194,17 @@ sub _debugging_level() {
 	 $warned ||= warn "Unknown debug level $ENV{IPCRUNDEBUG}, assuming 'basic' (1)\n";
 	 $v = 1;
       }
-      $level = $v if $v > $level ;
+      $level = $v if $v > $level;
    }
-   return $level ;
+   return $level;
 }
 
 sub _debugging_atleast($) {
-   my $min_level = shift || 1 ;
+   my $min_level = shift || 1;
 
-   my $level = _debugging_level ;
+   my $level = _debugging_level;
    
-   return $level >= $min_level ? $level : 0 ;
+   return $level >= $min_level ? $level : 0;
 }
 
 sub _debugging()               { _debugging_atleast 1 }
@@ -214,25 +216,25 @@ sub _debugging_not_optimized() { ( $ENV{IPCRUNDEBUG} || "" ) eq "notopt" }
 sub _debug_init {
    ## This routine is called only in spawned children to fake out the
    ## debug routines so they'll emit debugging info.
-   $IPC::Run::cur_self = {} ;
+   $IPC::Run::cur_self = {};
    (  $parent_pid,
       $^T, 
       $IPC::Run::cur_self->{debug}, 
       $IPC::Run::cur_self->{DEBUG_FD}, 
       $debug_name 
-   ) = @_ ;
+   ) = @_;
 }
 
 
 sub _debug {
-#   return unless _debugging || _debugging_not_optimized ;
+#   return unless _debugging || _debugging_not_optimized;
 
    my $fd = defined &IPC::Run::_debug_fd
       ? IPC::Run::_debug_fd()
       : fileno STDERR;
 
-   my $s ;
-   my $debug_id ;
+   my $s;
+   my $debug_id;
    $debug_id = join( 
       " ",
       join(
@@ -241,7 +243,7 @@ sub _debug {
          "($$)",
       ),
       defined $debug_name && length $debug_name ? $debug_name        : (),
-   ) ;
+   );
    my $prefix = join(
       "",
       "IPC::Run",
@@ -249,25 +251,25 @@ sub _debug {
       ( _debugging_details ? ( " ", _map_fds ) : () ),
       length $debug_id ? ( " [", $debug_id, "]" ) : (),
       ": ",
-   ) ;
+   );
 
-   my $msg = join( '', map defined $_ ? $_ : "<undef>", @_ ) ;
-   chomp $msg ;
-   $msg =~ s{^}{$prefix}gm ;
-   $msg .= "\n" ;
-   POSIX::write( $fd, $msg, length $msg ) ;
+   my $msg = join( '', map defined $_ ? $_ : "<undef>", @_ );
+   chomp $msg;
+   $msg =~ s{^}{$prefix}gm;
+   $msg .= "\n";
+   POSIX::write( $fd, $msg, length $msg );
 }
 
 
-my @fd_descs = ( 'stdin', 'stdout', 'stderr' ) ;
+my @fd_descs = ( 'stdin', 'stdout', 'stderr' );
 
 sub _debug_desc_fd {
-   return unless _debugging ;
-   my $text = shift ;
-   my $op = pop ;
-   my $kid = $_[0] ;
+   return unless _debugging;
+   my $text = shift;
+   my $op = pop;
+   my $kid = $_[0];
 
-Carp::carp join " ", caller(0), $text, $op  if defined $op  && isa( $op, "IO::Pty" ) ;
+Carp::carp join " ", caller(0), $text, $op  if defined $op  && isa( $op, "IO::Pty" );
 
    _debug(
       $text,
@@ -295,17 +297,17 @@ Carp::carp join " ", caller(0), $text, $op  if defined $op  && isa( $op, "IO::Pt
          )
          : ()
       ),
-   ) ;
+   );
 }
 
 1;
 
 SUBS
 
+=pod
+
 =head1 AUTHOR
 
 Barrie Slaymaker <barries@slaysys.com>, with numerous suggestions by p5p.
 
 =cut
-
-1 ;
