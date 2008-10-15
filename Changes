@@ -1,6 +1,6 @@
 Revision history for Perl extension IPC::Run
 
-0.80_01
+0.81_01 Wed 15 Oct 2008
 	- Removed Makefile.PL message noisily asking users to do CPAN Testers
 	  dirty work.
 	- Simplfied the Makefile.PL code a little.
