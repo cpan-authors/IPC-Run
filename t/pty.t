@@ -106,7 +106,7 @@ my $platform_skip = $^O =~ /(?:aix|freebsd|openbsd)/ ? "$^O deadlocks on this te
 ##
 SKIP: {
 	if ( $platform_skip ) {
-		skip( $platform_skip, 7 );
+		skip( $platform_skip, 9 );
 	}
 	$out = 'REPLACE ME';
 	$? = 99;
