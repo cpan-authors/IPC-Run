@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.82 Thu 18 Dec 2008
+	- Moving changes in 0.81_01 to a production release
+
 0.81_01 Wed 15 Oct 2008
 	- This is the first in a series of refactoring test releases.
 	- Removed Makefile.PL message noisily asking users to do CPAN Testers
