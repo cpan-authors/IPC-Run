@@ -787,8 +787,8 @@ eok( $err, "1:Hello World\n2:HELLO World\n" );
    ok( $r );
 ok( ! $? );
 is( _map_fds, $fd_map );
-ok( $out =~ qr/^(?:HELLO World\n|Hello world\n){2}$/s );
-ok( $err =~ qr/^(?:[12]:Hello World.*){2}$/s );
+ok( $out =~ qr/^(?:HELLO World\n|Hello world\n){2}\z/s );
+ok( $err =~ qr/^(?:[12]:Hello World.*){2}\z/s );
 
 ##
 ## A few error cases...
