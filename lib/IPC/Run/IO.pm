@@ -65,6 +65,8 @@ Implement bidirectionality.
 
 Barrie Slaymaker <barries@slaysys.com>
 
+=over
+
 =cut
 
 ## This class is also used internally by IPC::Run in a very initimate way,
@@ -220,6 +222,8 @@ sub _new_internal {
    return $self;
 }
 
+=pod
+
 =item filename
 
 Gets/sets the filename.  Returns the value after the name change, if
@@ -232,6 +236,8 @@ sub filename {
    $self->{FILENAME} = shift if @_;
    return $self->{FILENAME};
 }
+
+=pod
 
 =item init
 
