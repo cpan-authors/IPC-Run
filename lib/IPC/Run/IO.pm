@@ -65,8 +65,6 @@ Implement bidirectionality.
 
 Barrie Slaymaker <barries@slaysys.com>
 
-=over
-
 =cut
 
 ## This class is also used internally by IPC::Run in a very initimate way,
@@ -223,6 +221,8 @@ sub _new_internal {
 }
 
 =pod
+
+=over
 
 =item filename
 
