@@ -1005,8 +1005,6 @@ in their exit codes.
 
 =head1 ROUTINES
 
-=over
-
 =cut
 
 use strict;
@@ -1402,6 +1400,8 @@ sub _write {
 }
 
 =pod
+
+=over
 
 =item run
 
