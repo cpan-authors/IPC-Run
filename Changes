@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.83 Fri 10 Jul 2009
+	- Switch from command.com to cmd.exe so we work on 2008 or newer.
+
 0.82 Thu 18 Dec 2008
 	- Moving changes in 0.81_01 to a production release
 

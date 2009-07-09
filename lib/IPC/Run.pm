@@ -1013,7 +1013,7 @@ use strict;
 use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '0.82';
+	$VERSION = '0.83';
 	@ISA     = qw{ Exporter };
 
 	## We use @EXPORT for the end user's convenience: there's only one function
@@ -1648,10 +1648,10 @@ sub harness {
 #      if $options && defined $options->{debug};
 
    my @args;
-
    if ( @_ == 1 && ! ref $_[0] ) {
       if ( Win32_MODE ) {
-         @args = ( [ qw( command /c ), win32_parse_cmd_line $_[0] ] );
+         my $command = $ENV{ComSpec} || 'cmd';
+         @args = ( [ $command, '/c', win32_parse_cmd_line $_[0] ] );
       }
       else {
          @args = ( [ qw( sh -c ), @_ ] );
