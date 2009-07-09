@@ -675,6 +675,8 @@ sub state {
 
 =pod
 
+=back
+
 =head1 TODO
 
 use Time::HiRes; if it's present.
