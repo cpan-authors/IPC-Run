@@ -3459,6 +3459,7 @@ sub finish {
 }
 
 =pod
+
 =item result
 
    $h->result;
