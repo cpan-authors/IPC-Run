@@ -1013,7 +1013,7 @@ use strict;
 use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '0.83';
+	$VERSION = '0.82';
 	@ISA     = qw{ Exporter };
 
 	## We use @EXPORT for the end user's convenience: there's only one function
@@ -4353,7 +4353,7 @@ Barrie Slaymaker <barries@slaysys.com>
 
 =head1 COPYRIGHT
 
-Some parts copyright 2008 Adam Kennedy.
+Some parts copyright 2008 - 2009 Adam Kennedy.
 
 Copyright 1999 Barrie Slaymaker.
 
