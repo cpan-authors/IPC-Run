@@ -9,10 +9,10 @@ if ( $^O ne 'MSWin32' ) {
 			warn("WARNING: \"IO::Pty not found\".\nWARNING: '<pty<', '>pty>' will not work.\n\n");
 			last;
 		}
-		$PREREQ_PM{'IO::Pty'} = '1.00';
+		$PREREQ_PM{'IO::Pty'} = '1.08';
 	}
 } else {
-	$PREREQ_PM{'Win32::Process'} = 0;
+	$PREREQ_PM{'Win32::Process'} = '0.14';
 	if ( ! eval "use Socket qw( IPPROTO_TCP TCP_NODELAY ); 1" ) {
 		warn <<"TOHERE";
 $@
