@@ -83,7 +83,7 @@ use IPC::Run qw( Win32_MODE );
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.83';
+	$VERSION = '0.84';
 	if ( Win32_MODE ) {
 		eval "use IPC::Run::Win32Helper; require IPC::Run::Win32IO; 1"
 		or ( $@ && die ) or die "$!";
