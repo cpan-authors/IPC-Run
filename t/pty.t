@@ -99,7 +99,7 @@ my $text = "hello world\n";
 
 ## Older Perls can't ok( a, qr// ), so I manually do that here.
 my $exp;
-my $platform_skip = $^O =~ /(?:aix|freebsd|openbsd)/ ? "$^O deadlocks on this test" : "";
+my $platform_skip = $^O =~ /(?:aix|freebsd|openbsd|darwin)/ ? "$^O deadlocks on this test" : "";
 
 ##
 ## stdin only
