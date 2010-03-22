@@ -103,7 +103,7 @@ Temporary files are used when receiving from children when output is
 to a scalar or subroutine with or without filters, but only if
 the child in question closes its inputs or takes input from 
 unfiltered SCALARs or named files.  Normally, a child inherits its STDIN
-from its parent; to close it, use "0<&-" or the C<noinherit => 1> option.
+from its parent; to close it, use "0<&-" or the C<< noinherit => 1 >> option.
 If data is sent to the child from CODE refs, filehandles or from
 scalars through filters than the child's outputs will not be optimized
 because C<optimize()> assumes the parent is interacting with the child.
