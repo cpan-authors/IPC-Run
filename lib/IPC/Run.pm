@@ -1149,12 +1149,16 @@ sub _search_path {
 
    if ( Win32_MODE
       && ( $cmd_name =~ /$dirsep/ )
-      && ( $cmd_name !~ /\..+$/ )  ## Only run if cmd_name has no extension?
+#      && ( $cmd_name !~ /\..+$/ )  ## Only run if cmd_name has no extension?
+      && ( $cmd_name !~ m!\.[^\\/\.]+$! )
     ) {
+
+      _debug "no extension(.exe), checking ENV{PATHEXT}"  if _debugging;
       for ( split /;/, $ENV{PATHEXT} || ".COM;.BAT;.EXE" ) {
          my $name = "$cmd_name$_";
          $cmd_name = $name, last if -f $name && -x _;
       }
+      _debug "cmd_name is now '$cmd_name'"  if _debugging;
    }
 
    if ( $cmd_name =~ /($dirsep)/ ) {

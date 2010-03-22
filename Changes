@@ -4,6 +4,7 @@ Revision history for Perl extension IPC::Run
     - Remove use UNIVERSAL. - RT 51509
     - delete FILTERS in IPC::Run::IO::_cleanup
     - fix pod for Win32Helper - RT 51695
+    - Better PATHEXT logic bug if cmd_name contains periods - RT 50739
 
 0.84 Mon 13 Jul 2009
 	- Add darwin to the list of known-bad platforms
