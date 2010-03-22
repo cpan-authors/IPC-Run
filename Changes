@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.85 Mon 22 Mar 2010
+    - Remove use UNIVERSAL. - RT 51509
+
 0.84 Mon 13 Jul 2009
 	- Add darwin to the list of known-bad platforms
 

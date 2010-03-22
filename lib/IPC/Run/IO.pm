@@ -76,7 +76,6 @@ use strict;
 use Carp;
 use Fcntl;
 use Symbol;
-use UNIVERSAL ();
 
 use IPC::Run::Debug;
 use IPC::Run qw( Win32_MODE );

@@ -118,7 +118,6 @@ sub _debugging_not_optimized() { 0 }
 STUBS
 
 use POSIX;
-use UNIVERSAL qw( isa );
 
 sub _map_fds {
    my $map = '';
