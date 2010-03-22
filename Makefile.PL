@@ -53,7 +53,7 @@ sub MY::libscan {
 	package MY;
 	my $self = shift;
 	my ($path) = @_;
-	return '' if /\.sw[a-z]$/;
+	return '' if $path =~ m/\.sw[a-z]\z/msx;
 	return '' unless length $self->SUPER::libscan($path);
 	return $path;
 }
