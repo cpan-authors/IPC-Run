@@ -119,11 +119,15 @@ sub case_inverting_filter {
 }
 
 sub eok {
-   my ( $got, $exp ) = ( shift, shift );
+   my ( $got, $exp, $name ) = @_;
    $got =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
    $exp =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
-   @_ = ( $got, $exp, @_ );
-   goto &is;
+
+   my($pack, $file, $line) = caller();
+   $name ||= qq[eok at $file line $line];
+
+   local $Test::Builder::Level = $Test::Builder::Level + 1;
+   return is( $got, $exp, $name );
 }
 
 my $r;
@@ -288,7 +292,7 @@ ok( ! $? );
 is( _map_fds, $fd_map );
 
 is( length $out, 20000 );
-ok( $out !~ /[^-]/ );
+unlike( $out, qr/[^-]/ );
 
 
 ##
@@ -301,7 +305,7 @@ ok( $out !~ /[^-]/ );
    $in = "\n";
    $out = "";
    pump $h until length $out;
-   ok $out eq "\n";
+   is $out, "\n";
 
 
 
@@ -321,7 +325,7 @@ ok( $out !~ /[^-]/ );
    $x = $@ if $ok_1 && ! $ok_2;
 
    if ( $ok_1 && $ok_2 ) {
-      ok $long_string eq $out;
+      is $long_string, $out;
    }
    else {
        $x =~ s/(x+)/sprintf "...%d \"x\" chars...", length $1/e;
@@ -607,12 +611,7 @@ is( length $err ? "Bad file descriptor error" : $err, "Bad file descriptor error
    eval {
       $r = run \@perl, ">$out_file", "<$bad_file";
    };
-   if ( $@ =~ /\Q$bad_file\E/ ) {
-      ok 1;
-   }
-   else {
-      is $@, "qr/\Q$bad_file\E/";
-   }
+   like $@, qr/\Q$bad_file\E/;
 is( _map_fds, $fd_map );
 
 ##
@@ -686,7 +685,7 @@ eok( $err, uc( "err: $text" ) );
    ok( $r );
 ok( ! $? );
 is( _map_fds, $fd_map );
-$out =~ /(?:$text){2}/i ? ok 1 : is $out, "qr/($text){2}/i";
+like $out, qr/(?:$text){2}/i;
 eok( $err, '' );
 
 ##
@@ -700,7 +699,7 @@ eok( $err, '' );
 ok( ! $? );
 is( _map_fds, $fd_map );
 
-ok( $out =~ qr/(?:$text){2}/i );
+like $out, qr/(?:$text){2}/i;
 
 ##
 ## Non-zero exit value, command with args, no redirects.
@@ -787,19 +786,19 @@ eok( $err, "1:Hello World\n2:HELLO World\n" );
    ok( $r );
 ok( ! $? );
 is( _map_fds, $fd_map );
-ok( $out =~ qr/^(?:HELLO World\n|Hello world\n){2}\z/s );
-ok( $err =~ qr/^(?:[12]:Hello World.*){2}\z/s );
+like $out, qr/^(?:HELLO World\n|Hello world\n){2}$/s;
+like $err, qr/^(?:[12]:Hello World.*){2}$/s;
 
 ##
 ## A few error cases...
 ##
    eval { $r = run \@perl, '<', [], [] };
-   ok( $@ =~ qr/not allowed/ );
+   like( $@, qr/not allowed/ );
    eval { $r = run \@perl, '>', [], [] };
-   ok( $@ =~ qr/not allowed/ );
+   like( $@, qr/not allowed/ );
    foreach my $foo ( qw( | & < > >& 1>&2 >file <file 2<&1 <&- 3<&- ) ) {
       eval { $r = run $foo, [] };
-      ok( $@ =~ qr/command/ );
+      like( $@, qr/command/ );
    }
    $out = 'REPLACE ME';
    $err = 'REPLACE ME';
@@ -844,7 +843,7 @@ is( _map_fds, $fd_map );
       [ @perl, '-pe', 'BEGIN { $| = 1 } print STDERR uc($_)' ],
       \$in, \$out, \$err,
    );
-   ok( $h->isa('IPC::Run') );
+   isa_ok( $h, 'IPC::Run' );
 is( $?, 99 );
 
 eok( $in,  'SHOULD BE UNCHANGED' );
@@ -855,7 +854,7 @@ ok( $h->pumpable );
    $in  = '';
    $? = 0;
    pump_nb $h for ( 1..100 );
-   ok( 1 );
+   pass( "after pump_nb" );
 eok( $in, '' );
 eok( $out, '' );
 eok( $err, '' );
@@ -864,7 +863,7 @@ ok( $h->pumpable );
    $in  = $text;
    $? = 0;
    pump $h until $out =~ /Hello World/;
-   ok( 1 );
+   pass("after pump");
 ok( ! $? );
 eok( $in, '' );
 eok( $out, $text );
