@@ -354,8 +354,7 @@ sub open_pipe {
 
 sub _cleanup { ## Called from Run.pm's _cleanup
    my $self = shift;
-   delete $self->{FAKE_PIPE};
-   delete $self->{FILTERS};
+   undef $self->{FAKE_PIPE};
 }
 
 
