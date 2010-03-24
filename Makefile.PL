@@ -46,8 +46,28 @@ WriteMakefile(
 	PREREQ_PM    => {
 		Test::More => '0.47',
 		%PREREQ_PM,
-	}
-);
+	},
+	META_MERGE  => {
+	    recommends => {
+		'Test::CPAN::Meta' => 0,
+		'Pod::Simple' =>  0,
+		'Test::Pod' => 0,
+		'Perl::MinimumVersion' => 0,
+		'Test::MinimumVersion' => 0,
+		'IO::Pty' => 0,
+	    },
+	    build_requires => {
+		'Test::More' => 0,  # For testing
+	    },
+	    resources => {
+		license => 'http://dev.perl.org/licenses/',
+#            homepage => 'http://',
+		bugtracker => 'https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run',
+		repository => 'http://svn.ali.as/cpan/trunk/IPC-Run',
+#            MailingList => 'http://groups.google.com/group/IPC-Run',
+	    }
+	});
+	  
 
 sub MY::libscan {
 	package MY;

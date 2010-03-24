@@ -9,8 +9,13 @@ configure_requires:
     ExtUtils::MakeMaker:  0
 build_requires:
     ExtUtils::MakeMaker:  0
+    Test::More:           0
 requires:
     Test::More:  0.47
+resources:
+    bugtracker:  https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
+    license:     http://dev.perl.org/licenses/
+    repository:  http://svn.ali.as/cpan/trunk/IPC-Run
 no_index:
     directory:
         - t
@@ -19,3 +24,10 @@ generated_by:       ExtUtils::MakeMaker version 6.56
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4
+recommends:
+    IO::Pty:              0
+    Perl::MinimumVersion:  0
+    Pod::Simple:          0
+    Test::CPAN::Meta:     0
+    Test::MinimumVersion:  0
+    Test::Pod:            0
