@@ -2864,10 +2864,13 @@ confess "gak!" unless defined $self->{PIPES};
    return $self;
 }
 
+=item adopt
+
+Experimental feature. NOT FUNCTIONAL YET, NEED TO CLOSE FDS BETTER IN CHILDREN.  SEE t/adopt.t for a test suite.
+
+=cut
 
 sub adopt {
-   ## NOT FUNCTIONAL YET, NEED TO CLOSE FDS BETTER IN CHILDREN.  SEE
-   ## t/adopt.t for a test suite.
    my IPC::Run $self = shift;
 
    for my $adoptee ( @_ ) {
@@ -3755,6 +3758,16 @@ sub new_appender($) {
    };
 }
 
+=item new_string_source
+
+TODO: Needs confirmation. Was previously undocumented. in this module.
+
+This is a filter which is exportable. Returns a sub which appends the data passed in to the output buffer and returns 1 if data was appended. 0 if it was an empty string and undef if no data was passed. 
+
+NOTE: Any additional variables passed to new_string_source will be passed to the sub every time it's called and appended to the output. 
+
+=cut
+
 
 sub new_string_source {
    my $ref;
@@ -3791,6 +3804,13 @@ sub new_string_source {
       }
 }
 
+=item new_string_sink
+
+TODO: Needs confirmation. Was previously undocumented.
+
+This is a filter which is exportable. Returns a sub which pops the data out of the input stream and pushes it onto the string.
+
+=cut
 
 sub new_string_sink {
    my ( $string_ref ) = @_;

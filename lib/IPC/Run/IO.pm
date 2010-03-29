@@ -92,6 +92,20 @@ BEGIN {
 sub _empty($);
 *_empty = \&IPC::Run::_empty;
 
+=pod
+
+=over
+
+=over
+
+=item new
+
+TODO: Needs more thorough documentation.  Patches welcome.
+
+I think it takes >> or << along with some other data. 
+
+=cut
+
 sub new {
    my $class = shift;
    $class = ref $class || $class;
@@ -218,10 +232,6 @@ sub _new_internal {
 
    return $self;
 }
-
-=pod
-
-=over
 
 =over
 
@@ -518,6 +528,13 @@ confess "\$self not an IPC::Run::IO" unless UNIVERSAL::isa( $self, "IPC::Run::IO
    push @{$self->{FBUFS}}, $self->{SOURCE};
 }
 
+=item poll
+
+TODO: Needs confirmation that this is correct. Was previously undocumented.
+
+I believe this is polling the IO for new input and then returns undef if there will never be any more input, 0 if there is none now, but there might be in the future, and TRUE if more input was gotten.
+
+=cut
 
 sub poll {
    my IPC::Run::IO $self = shift;
