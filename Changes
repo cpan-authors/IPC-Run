@@ -2,6 +2,7 @@ Revision history for Perl extension IPC::Run
 
 0.87 Mon 29 Mar 2010
   - Add doc type fixes - RT 56030 from carnil (Debian)
+  - Remove reccommends for AUTHOR only modules
 
 0.86 Wed 24 Mar 2010
   - Add all files to subversion for easier releases

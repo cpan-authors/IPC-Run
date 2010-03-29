@@ -49,11 +49,6 @@ WriteMakefile(
 	},
 	META_MERGE  => {
 	    recommends => {
-		'Test::CPAN::Meta' => 0,
-		'Pod::Simple' =>  0,
-		'Test::Pod' => 0,
-		'Perl::MinimumVersion' => 0,
-		'Test::MinimumVersion' => 0,
 		'IO::Pty' => 0,
 	    },
 	    build_requires => {
