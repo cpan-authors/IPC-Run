@@ -658,6 +658,8 @@ L</is_reset>.
 Note:  Setting the state to 'undef' to expire a timer will not throw an
 exception.
 
+=back
+
 =cut
 
 sub state {
@@ -674,8 +676,6 @@ sub state {
 1;
 
 =pod
-
-=back
 
 =head1 TODO
 

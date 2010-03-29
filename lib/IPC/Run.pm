@@ -112,7 +112,7 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
 
 =head1 DESCRIPTION
 
-IPC::Run allows you run and interact with child processes using files, pipes,
+IPC::Run allows you to run and interact with child processes using files, pipes,
 and pseudo-ttys.  Both system()-style and scripted usages are supported and
 may be mixed.  Likewise, functional and OO API styles are both supported and
 may be mixed.
@@ -1005,6 +1005,8 @@ in their exit codes.
 
 =head1 ROUTINES
 
+=over
+
 =cut
 
 use strict;
@@ -1531,10 +1533,10 @@ sub signal {
 Sends a C<TERM>, waits for all children to exit for up to 30 seconds, then
 sends a C<KILL> to any that survived the C<TERM>.
 
-Will wait for up to 30 more seconds for the OS to sucessfully C<KILL> the
+Will wait for up to 30 more seconds for the OS to successfully C<KILL> the
 processes.
 
-The 30 seconds may be overriden by setting the C<grace> option, this
+The 30 seconds may be overridden by setting the C<grace> option, this
 overrides both timers.
 
 The harness is then cleaned up.
@@ -3609,6 +3611,8 @@ use vars (
 
 =back
 
+=back
+
 =head1 FILTERS
 
 These filters are used to modify input our output between a child
@@ -4094,7 +4098,7 @@ Support for C<\@sub_cmd> as an argument to a command which
 gets replaced with /dev/fd or the name of a temporary file containing foo's
 output.  This is like <(sub_cmd ...) found in bash and csh (IIRC).
 
-Allow multiple harnesses to be combined as independant sets of processes
+Allow multiple harnesses to be combined as independent sets of processes
 in to one 'meta-harness'.
 
 Allow a harness to be passed in place of an \@cmd.  This would allow

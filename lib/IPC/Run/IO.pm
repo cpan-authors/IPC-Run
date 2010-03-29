@@ -48,7 +48,7 @@ to do this.>
 =head1 DESCRIPTION
 
 This class and module allows filehandles and filenames to be harnessed for
-I/O when used IPC::Run, independant of anything else IPC::Run is doing
+I/O when used IPC::Run, independent of anything else IPC::Run is doing
 (except that errors & exceptions can affect all things that IPC::Run is
 doing).
 
@@ -223,6 +223,8 @@ sub _new_internal {
 
 =over
 
+=over
+
 =item filename
 
 Gets/sets the filename.  Returns the value after the name change, if
@@ -311,7 +313,7 @@ sub open {
 =item open_pipe
 
 If this is a redirection IO object, this opens the pipe in a platform
-independant manner.
+independent manner.
 
 =cut
 

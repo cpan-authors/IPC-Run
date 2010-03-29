@@ -25,7 +25,7 @@ IPC::Run::Debug - debugging routines for IPC::Run
 =head1 DESCRIPTION
 
 Controls IPC::Run debugging.  Debugging levels are now set by using words,
-but the numbers shown are still supported for backwards compatability:
+but the numbers shown are still supported for backwards compatibility:
 
    0  none         disabled (special, see below)
    1  basic        what's running
