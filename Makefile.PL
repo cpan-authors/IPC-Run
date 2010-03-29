@@ -43,13 +43,14 @@ WriteMakefile(
 	NAME         => 'IPC::Run',
 	ABSTRACT     => 'system() and background procs w/ piping, redirs, ptys (Unix, Win32)',
 	VERSION_FROM => 'lib/IPC/Run.pm',
+	($ExtUtils::MakeMaker::VERSION >= 6.3002 ? ('LICENSE'        => 'perl', ) : ()),
 	PREREQ_PM    => {
 		Test::More => '0.47',
 		%PREREQ_PM,
 	},
 	META_MERGE  => {
 	    recommends => {
-		'IO::Pty' => 0,
+		'IO::Pty' => '1.08',
 	    },
 	    build_requires => {
 		'Test::More' => 0,  # For testing

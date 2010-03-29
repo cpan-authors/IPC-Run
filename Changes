@@ -5,6 +5,7 @@ Revision history for Perl extension IPC::Run
   - Remove reccommends for AUTHOR only modules
   - add pod_coverage and simplify pod test.
   - document undocumented public subs with TODO and best guess as to what they do.
+  - Explicity recommend IO::Pty version number 1.08
 
 0.86 Wed 24 Mar 2010
   - Add all files to subversion for easier releases

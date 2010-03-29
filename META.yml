@@ -1,9 +1,9 @@
 --- #YAML:1.0
 name:               IPC-Run
-version:            0.86
+version:            0.87
 abstract:           system() and background procs w/ piping, redirs, ptys (Unix, Win32)
 author:  []
-license:            unknown
+license:            perl
 distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0
@@ -25,9 +25,4 @@ meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4
 recommends:
-    IO::Pty:              0
-    Perl::MinimumVersion:  0
-    Pod::Simple:          0
-    Test::CPAN::Meta:     0
-    Test::MinimumVersion:  0
-    Test::Pod:            0
+    IO::Pty:  1.08

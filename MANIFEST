@@ -23,7 +23,8 @@ MANIFEST			This list of files
 README
 t/97_meta.t
 t/98_pod.t
-t/99_pmv.t
+t/98_pod_coverage.t
+t/99_perl_minimum_version.t
 t/adopt.t
 t/binmode.t
 t/bogus.t
