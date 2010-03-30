@@ -2,7 +2,10 @@ Revision history for Perl extension IPC::Run
 
 0.88 Tue 30 Mar 2010
   - Missed dangling isa in IPC::Run::Debug
-
+  - Fix retry for read of fh when I get "Resource temporarily unavailable."
+    It was previously pounding on the file handle with no rest 200 times then giving up.
+    On fast systems this wasn't long enough. I'm implementing select(undef, undef, 0.01)
+    to provide a more consistent retry among hardware and os.
 0.87 Mon 29 Mar 2010
   - Add doc type fixes - RT 56030 from carnil (Debian)
   - Remove reccommends for AUTHOR only modules

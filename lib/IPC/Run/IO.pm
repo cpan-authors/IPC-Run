@@ -569,14 +569,17 @@ sub _do_filters {
    my ( $saved_op, $saved_num ) =($IPC::Run::filter_op,$IPC::Run::filter_num);
    $IPC::Run::filter_op = $self;
    $IPC::Run::filter_num = -1;
-   my $c = 0;
+   my $redos = 0;
    my $r;
    {
 	   $@ = '';
 	   $r = eval { IPC::Run::get_more_input(); };
-	   $c++;
-	   ##$@ and warn "redo ", substr($@, 0, 20) , " ";
-	   (($c < 200) and ($@||'')=~ m/^Resource temporarily/) and redo;
+
+	   # Detect Resource temporarily unavailable and re-try to a point (200 or 2 seconds),  assuming select behaves (which it doesn't always? need ref)
+	   if($@ && $@ =~ m/^Resource temporarily/ && $redos++ < 200) {
+	       select(undef, undef, undef, 0.01);
+	       redo;
+	   }
    }
    ( $IPC::Run::filter_op, $IPC::Run::filter_num ) = ( $saved_op, $saved_num );
    $self->{HARNESS} = undef;
