@@ -268,7 +268,7 @@ sub _debug_desc_fd {
    my $op = pop;
    my $kid = $_[0];
 
-Carp::carp join " ", caller(0), $text, $op  if defined $op  && isa( $op, "IO::Pty" );
+Carp::carp join " ", caller(0), $text, $op  if defined $op  && UNIVERSAL::isa( $op, "IO::Pty" );
 
    _debug(
       $text,

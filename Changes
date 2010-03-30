@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.88 Tue 30 Mar 2010
+  - Missed dangling isa in IPC::Run::Debug
+
 0.87 Mon 29 Mar 2010
   - Add doc type fixes - RT 56030 from carnil (Debian)
   - Remove reccommends for AUTHOR only modules
