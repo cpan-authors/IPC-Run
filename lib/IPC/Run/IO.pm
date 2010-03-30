@@ -1,7 +1,5 @@
 package IPC::Run::IO;
 
-=pod
-
 =head1 NAME
 
 IPC::Run::IO -- I/O channels for IPC::Run.
@@ -57,14 +55,6 @@ doing).
 INCOMPATIBLE CHANGE: due to the awkwardness introduced in ripping pseudohashes
 out of Perl, this class I<no longer> uses the fields pragma.
 
-=head1 TODO
-
-Implement bidirectionality.
-
-=head1 AUTHOR
-
-Barrie Slaymaker <barries@slaysys.com>
-
 =cut
 
 ## This class is also used internally by IPC::Run in a very initimate way,
@@ -92,17 +82,15 @@ BEGIN {
 sub _empty($);
 *_empty = \&IPC::Run::_empty;
 
-=pod
+=head1 SUBROUTINES
 
-=over
-
-=over
+=over 4
 
 =item new
 
-TODO: Needs more thorough documentation.  Patches welcome.
+I think it takes >> or << along with some other data.
 
-I think it takes >> or << along with some other data. 
+TODO: Needs more thorough documentation. Patches welcome.
 
 =cut
 
@@ -233,8 +221,6 @@ sub _new_internal {
    return $self;
 }
 
-=over
-
 =item filename
 
 Gets/sets the filename.  Returns the value after the name change, if
@@ -247,8 +233,6 @@ sub filename {
    $self->{FILENAME} = shift if @_;
    return $self->{FILENAME};
 }
-
-=pod
 
 =item init
 
@@ -419,8 +403,6 @@ sub fileno {
    return $fd;
 }
 
-=pod
-
 =item mode
 
 Returns the operator in terms of 'r', 'w', and 'a'.  There is a state
@@ -586,5 +568,17 @@ sub _do_filters {
    die "ack ", $@ if $@;
    return $r;
 }
+
+=back
+
+=head1 AUTHOR
+
+Barrie Slaymaker <barries@slaysys.com>
+
+=head1 TODO
+
+Implement bidirectionality.
+
+=cut
 
 1;
