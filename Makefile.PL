@@ -41,7 +41,8 @@ TOHERE
 
 WriteMakefile(
 	NAME         => 'IPC::Run',
-	ABSTRACT     => 'system() and background procs w/ piping, redirs, ptys (Unix, Win32)',
+	ABSTRACT     => 'system() and background procs w/ piping, redirs, ptys (Unix, Win32)',	
+	AUTHOR       => 'Barrie Slaymaker <barries@slaysys.com>',
 	VERSION_FROM => 'lib/IPC/Run.pm',
 	($ExtUtils::MakeMaker::VERSION >= 6.3002 ? ('LICENSE'        => 'perl', ) : ()),
 	PREREQ_PM    => {
