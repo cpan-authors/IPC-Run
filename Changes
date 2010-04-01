@@ -1,5 +1,9 @@
 Revision history for Perl extension IPC::Run
 
+0.89 Wed 31 Mar 2010
+  - Revert extended tests to require "oslo consensus" variables - http://use.perl.org/~Alias/journal/36128
+  - Add IO::Pty to META.yml requirement This has been inconsistently depended on over the years in META.yml
+
 0.88 Tue 30 Mar 2010
   - Missed dangling isa in IPC::Run::Debug
   - Fix retry for read of fh when I get "Resource temporarily unavailable."

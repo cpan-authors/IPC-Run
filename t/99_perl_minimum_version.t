@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 # Test that our declared minimum Perl version matches our syntax
-
 use strict;
 BEGIN {
 	$|  = 1;
@@ -13,7 +12,7 @@ my @MODULES = (
 	'Test::MinimumVersion 0.008',
 );
 
-# Don't run tests for installs
+# Don't run tests during end-user installs
 use Test::More;
 unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
@@ -30,3 +29,5 @@ foreach my $MODULE ( @MODULES ) {
 }
 
 all_minimum_version_from_metayml_ok();
+
+1;
