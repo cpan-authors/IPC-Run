@@ -19,12 +19,23 @@ BEGIN {
 	}
 }
 
+my @WARNING_MESSAGES;
+$SIG{__WARN__} = sub{
+    push @WARNING_MESSAGES, @_; 
+    diag("WARN: $_") foreach(@_);
+}; 
+sub get_warnings {
+    my @warnings = @WARNING_MESSAGES;
+    @WARNING_MESSAGES = ();
+    return @warnings
+} 
+
 ## Handy to have when our output is intermingled with debugging output sent
 ## to the debugging fd.
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 266;
+use Test::More tests => 268;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
 use t::lib::Test;
@@ -969,3 +980,18 @@ is( _map_fds, $fd_map );
 eok( $in,      $text   );
 eok( $out,    "HeLlO WoRlD\n" );
 eok( $err,    uc( $text ) );
+
+
+{ # no warnings for an empty path but it does die.
+    # Some other OSes might not support find. Windows and UNIX do...
+    my @simple_command = ('bogusprogram');
+
+    local $ENV{PATH};
+    delete $ENV{PATH};
+    
+    eval {$h = start \@simple_command, \$in, \$out;};
+    ok($@, "Error running bogus program when path is empty");
+
+    my ($message) = get_warnings();
+    is($message, undef, "No warnings found during program call with empty path");    
+}

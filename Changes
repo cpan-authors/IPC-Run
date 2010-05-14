@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.90 Thu 13 May 2010
+  - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.
+
 0.89 Wed 31 Mar 2010
   - Revert extended tests to require "oslo consensus" variables - http://use.perl.org/~Alias/journal/36128
   - Add IO::Pty to META.yml requirement This has been inconsistently depended on over the years in META.yml

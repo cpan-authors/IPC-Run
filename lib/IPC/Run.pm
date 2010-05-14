@@ -1013,7 +1013,7 @@ use strict;
 use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '0.89';
+	$VERSION = '0.90';
 	@ISA     = qw{ Exporter };
 
 	## We use @EXPORT for the end user's convenience: there's only one function
@@ -1188,7 +1188,7 @@ sub _search_path {
       my $re = Win32_MODE ? qr/;/ : qr/:/;
 
 LOOP:
-   for ( split( $re, $ENV{PATH}, -1 ) ) {
+   for ( split( $re, $ENV{PATH} || '', -1 ) ) {
       $_ = "." unless length $_;
       push @searched_in, $_;
 
