@@ -993,5 +993,7 @@ eok( $err,    uc( $text ) );
     ok($@, "Error running bogus program when path is empty");
 
     my ($message) = get_warnings();
-    is($message, undef, "No warnings found during program call with empty path");    
+    is($message, undef, "No warnings found during program call with empty path");
+    finish $h; # Close out the program call    
 }
+

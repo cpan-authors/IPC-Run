@@ -20,7 +20,7 @@ BEGIN {
 }
 
 ## Separate from run.t so run.t is not too slow.
-use Test::More tests => 25;
+use Test::More tests => 26;
 use IPC::Run qw( harness timeout );
 
 my $h;
@@ -84,4 +84,14 @@ SCOPE: {
 SCOPE: {
 	my $elapsed = time - $started;
 	$elapsed >= 1 ? ok( 1 ) : is( $elapsed, ">= 1" );
+}
+
+SCOPE: {
+    $h = harness( [ $^X, '-e', 'sleep 1' ], timeout( 10 ), debug => 1);
+    my $started_at = time;
+    $h->start;
+    $h->finish;
+    my $finished_at = time;
+    ok( $finished_at-$started_at <= 2, 'not too slow to reap' )
+        or diag($finished_at-$started_at . " seconds passed");
 }
