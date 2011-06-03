@@ -29,7 +29,7 @@ It parses a bunch of command line parameters from IPC::Run::Win32IO.
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.90';
+	$VERSION = '0.90_01';
 }
 
 use Win32API::File qw(

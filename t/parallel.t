@@ -24,7 +24,15 @@ BEGIN {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 6;
+BEGIN {
+    use Test::More;
+    if($^O eq 'MSWin32') {
+	plan skip_all => 'Parallel tests are dangerous on MSWin32';
+    } else {
+	plan tests => 6;
+    }
+
+}
 use IPC::Run qw( start pump finish );
 
 my $text1 = "Hello world 1\n";
