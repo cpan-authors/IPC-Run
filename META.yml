@@ -1,30 +1,30 @@
----
-abstract: 'system() and background procs w/ piping, redirs, ptys (Unix, Win32)'
+--- #YAML:1.0
+name:               IPC-Run
+version:            0.90_03
+abstract:           system() and background procs w/ piping, redirs, ptys (Unix, Win32)
 author:
-  - 'Barrie Slaymaker <barries@slaysys.com>'
-build_requires:
-  ExtUtils::MakeMaker: 0
-  Test::More: 0
+    - Barrie Slaymaker <barries@slaysys.com>
+license:            perl
+distribution_type:  module
 configure_requires:
-  ExtUtils::MakeMaker: 0
-dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.571, CPAN::Meta::Converter version 2.110930'
-license: perl
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-name: IPC-Run
-no_index:
-  directory:
-    - t
-    - inc
-recommends:
-  IO::Pty: 1.08
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+    Test::More:           0
 requires:
-  IO::Pty: 1.08
-  Test::More: 0.47
+    IO::Pty:     1.08
+    Test::More:  0.47
 resources:
-  bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
-  license: http://dev.perl.org/licenses/
-  repository: http://svn.ali.as/cpan/trunk/IPC-Run
-version: 0.90_02
+    bugtracker:  https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
+    license:     http://dev.perl.org/licenses/
+    repository:  http://svn.ali.as/cpan/trunk/IPC-Run
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.56
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4
+recommends:
+    IO::Pty:  1.08
