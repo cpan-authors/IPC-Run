@@ -1,4 +1,5 @@
 package IPC::Run;
+use bytes;
 
 =pod
 
