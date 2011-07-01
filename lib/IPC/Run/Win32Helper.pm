@@ -24,7 +24,7 @@ use Carp;
 use IO::Handle;
 use vars qw{ $VERSION @ISA @EXPORT };
 BEGIN {
-	$VERSION = '0.90_01';
+	$VERSION = '0.90_02';
 	@ISA = qw( Exporter );
 	@EXPORT = qw(
 		win32_spawn

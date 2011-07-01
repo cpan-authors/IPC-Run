@@ -1,0 +1,57 @@
+{
+   "abstract" : "system() and background procs w/ piping, redirs, ptys (Unix, Win32)",
+   "author" : [
+      "Barrie Slaymaker <barries@slaysys.com>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "ExtUtils::MakeMaker version 6.571, CPAN::Meta::Converter version 2.110930",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "IPC-Run",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0,
+            "Test::More" : 0
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "IO::Pty" : "1.08"
+         },
+         "requires" : {
+            "IO::Pty" : "1.08",
+            "Test::More" : "0.47"
+         }
+      }
+   },
+   "release_status" : "testing",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run"
+      },
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+         "url" : "http://svn.ali.as/cpan/trunk/IPC-Run"
+      }
+   },
+   "version" : "0.90_02"
+}
