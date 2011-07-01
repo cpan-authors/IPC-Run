@@ -393,7 +393,7 @@ PORT_FINDER_LOOP:
    {
       $port = $next_port;
       $next_port = 2048 if ++$next_port > 65_535; 
-      unless ( bind $listener, sockaddr_in( $port, INADDR_ANY ) ) {
+      unless ( bind $listener, sockaddr_in( $port, $loopback ) ) {
 	 push @errors, "$! on port $port";
 	 croak join "\n", @errors if @errors > 10;
          goto PORT_FINDER_LOOP;
