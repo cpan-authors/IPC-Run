@@ -3,6 +3,7 @@ Revision history for Perl extension IPC::Run
 0.91 Wed 29 Jun 2011
  - RT 57277 - Add breaking test. No solution at present.
  - RT 68623 - disable parallel tests on windows
+ - RT 43072 - Skip dragonfly platform on t/pty.t (hangs)
 
 0.90 Thu 13 May 2010
   - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.
