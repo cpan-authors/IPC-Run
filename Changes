@@ -6,6 +6,7 @@ Revision history for Perl extension IPC::Run
  - RT 43072 - Skip dragonfly platform on t/pty.t (hangs)
  - RT 14078 - run() miscalculates length of UTF-8 strings
  - RT 49693 - security patch for lib/IPC/Run/Win32IO.pm s/INADDR_ANY//
+ - RT 38193 - Fix error detection on non-English operating systems
 
 0.90 Thu 13 May 2010
   - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.

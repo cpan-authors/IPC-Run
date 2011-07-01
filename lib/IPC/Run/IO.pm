@@ -557,8 +557,8 @@ sub _do_filters {
 	   $@ = '';
 	   $r = eval { IPC::Run::get_more_input(); };
 
-	   # Detect Resource temporarily unavailable and re-try to a point (200 or 2 seconds),  assuming select behaves (which it doesn't always? need ref)
-	   if($@ && $@ =~ m/^Resource temporarily/ && $redos++ < 200) {
+	   # Detect Resource temporarily unavailable and re-try 200 times (2 seconds),  assuming select behaves (which it doesn't always? need ref)
+	   if(($@||'') =~ $IPC::Run::_EAGAIN && $redos++ < 200) {
 	       select(undef, undef, undef, 0.01);
 	       redo;
 	   }

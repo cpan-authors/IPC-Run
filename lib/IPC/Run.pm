@@ -1076,6 +1076,16 @@ sub get_more_input();
 ###############################################################################
 
 ##
+## Error constants, not too locale-dependant
+use vars  qw( $_EIO $_EAGAIN );
+use Errno qw(   EIO   EAGAIN );
+BEGIN {
+  local $!;
+  $! = EIO;    $_EIO    = qr/^$!/;
+  $! = EAGAIN; $_EAGAIN = qr/^$!/;
+}
+
+##
 ## State machine states, set in $self->{STATE}
 ##
 ## These must be in ascending order numerically
@@ -2406,7 +2416,7 @@ sub _open_pipes {
 	       ## read() throws the bad file descriptor message if the
 	       ## kid dies on Win32.
                die $@ unless
-	          $@ =~ /^Input\/output error: read/ ||
+	          $@ =~ $_EIO ||
 		  ($@ =~ /input or output/ && $^O =~ /aix/) 
 		  || ( Win32_MODE && $@ =~ /Bad file descriptor/ );
             }
