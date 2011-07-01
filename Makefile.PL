@@ -49,6 +49,8 @@ WriteMakefile(
 		Test::More => '0.47',
 		%PREREQ_PM,
 	},
+        dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+        clean               => { FILES => 'IPC-Run-*' },
 	META_MERGE  => {
 	    recommends => {
 		'IO::Pty' => '1.08',
