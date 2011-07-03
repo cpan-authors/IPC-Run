@@ -70,7 +70,7 @@ use strict;
 use Exporter;
 use vars qw{$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '0.90_03';
+	$VERSION = '0.90';
 	@ISA     = qw( Exporter );
 	@EXPORT  = qw(
 		_debug

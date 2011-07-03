@@ -1,15 +1,14 @@
 Revision history for Perl extension IPC::Run
 
-0.91 Wed 29 Jun 2011
+0.90 Wed 29 Jun 2011
  - RT 57277 - Add breaking test. No solution at present.
  - RT 68623 - disable parallel tests on windows
  - RT 43072 - Skip dragonfly platform on t/pty.t (hangs)
  - RT 14078 - run() miscalculates length of UTF-8 strings
  - RT 49693 - security patch for lib/IPC/Run/Win32IO.pm s/INADDR_ANY//
  - RT 38193 - Fix error detection on non-English operating systems
-
-0.90 Thu 13 May 2010
-  - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.
+ - Add a blank doc entry for IPC::Run::Win32IO::poll to quiet windows pod parser errors
+ - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.
   
 0.89 Wed 31 Mar 2010
   - Revert extended tests to require "oslo consensus" variables - http://use.perl.org/~Alias/journal/36128

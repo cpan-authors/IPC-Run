@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               IPC-Run
-version:            0.90_03
+version:            0.90
 abstract:           system() and background procs w/ piping, redirs, ptys (Unix, Win32)
 author:
     - Barrie Slaymaker <barries@slaysys.com>
