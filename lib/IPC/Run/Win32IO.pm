@@ -288,6 +288,17 @@ sub _recv_through_temp_file {
    IPC::Run::_close( $self->{TFD} );
 }
 
+=head1 SUBROUTINES
+
+=over
+
+=item poll
+
+Windows version of IPC::Run::IP::poll.
+
+=back
+
+=cut
 
 sub poll {
    my IPC::Run::Win32IO $self = shift;
