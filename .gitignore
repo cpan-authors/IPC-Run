@@ -9,3 +9,4 @@
 /MYMETA.yml
 *.orig
 *.rej
+.svn

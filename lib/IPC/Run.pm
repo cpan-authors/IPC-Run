@@ -1014,7 +1014,7 @@ use strict;
 use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '0.90';
+	$VERSION = '0.90_01';
 	@ISA     = qw{ Exporter };
 
 	## We use @EXPORT for the end user's convenience: there's only one function
@@ -3009,7 +3009,7 @@ SELECT:
       ## we have I/O, or are just waiting for children to exit.
       my $p = $self->pumpable;
       last unless $p;
-      if ( $p > 0  && ( ! defined $timeout || $timeout > 0.1 ) ) {
+      if ( $p != 0  && ( ! defined $timeout || $timeout > 0.1 ) ) {
          ## No I/O will wake the select loop up, but we have children
          ## lingering, so we need to poll them with a short timeout.
 	 ## Otherwise, assume more input will be coming.
