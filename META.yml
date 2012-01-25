@@ -27,4 +27,4 @@ resources:
   bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
   license: http://dev.perl.org/licenses/
   repository: http://svn.ali.as/cpan/trunk/IPC-Run
-version: 0.90_01
+version: 0.91_01
