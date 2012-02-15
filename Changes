@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.91 Tue 14 Feb 2012
+ - Tests are good in dev version. Releasing to stable.
+
 0.91_01 Mon 16 Jan 2012
  - RT 57277 - Apply suggested 1 line fix for dev release to public.
 

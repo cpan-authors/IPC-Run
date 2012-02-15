@@ -4,7 +4,7 @@
       "Barrie Slaymaker <barries@slaysys.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.58, CPAN::Meta::Converter version 2.110930001",
+   "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120351",
    "license" : [
       "perl_5"
    ],
@@ -22,13 +22,13 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : 0,
-            "Test::More" : 0
+            "ExtUtils::MakeMaker" : "0",
+            "Test::More" : "0"
          }
       },
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : 0
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "runtime" : {
@@ -41,7 +41,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run"
@@ -53,5 +53,5 @@
          "url" : "http://svn.ali.as/cpan/trunk/IPC-Run"
       }
    },
-   "version" : "0.91_01"
+   "version" : "0.91"
 }
