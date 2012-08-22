@@ -3069,7 +3069,17 @@ SELECT:
       }
       last if ! $nfound && $self->{non_blocking};
 
-      croak "$! in select" if $nfound < 0 and $! != POSIX::EINTR;
+      if ($nfound < 0) {
+         if ($! == POSIX::EINTR) {
+            # Caught a signal before any FD went ready.  Ensure that
+            # the bit fields reflect "no FDs ready".
+            $self->{ROUT} = $self->{WOUT} = $self->{EOUT} = '';
+            $nfound = 0;
+         }
+         else {
+            croak "$! in select";
+         }
+      }
           ## TODO: Analyze the EINTR failure mode and see if this patch
           ## is adequate and optimal.
           ## TODO: Add an EINTR test to the test suite.
