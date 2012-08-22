@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.92_01 Wed 22 Aug 2012
+ - RT 59775 - Catching a signal during select() can lock up IPC::Run
+
 0.91 Tue 14 Feb 2012
  - Tests are good in dev version. Releasing to stable.
 
