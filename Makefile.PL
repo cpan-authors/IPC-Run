@@ -60,10 +60,8 @@ WriteMakefile(
 	    },
 	    resources => {
 		license => 'http://dev.perl.org/licenses/',
-#            homepage => 'http://',
 		bugtracker => 'https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run',
-		repository => 'http://svn.ali.as/cpan/trunk/IPC-Run',
-#            MailingList => 'http://groups.google.com/group/IPC-Run',
+		repository => 'https://github.com/toddr/IPC-Run',
 	    }
 	});
 	  
