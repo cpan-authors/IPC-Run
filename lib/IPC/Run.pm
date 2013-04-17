@@ -2535,10 +2535,12 @@ sub _do_kid_and_exit {
    eval {
       local $cur_self = $self;
 
-      _set_child_debug_name( ref $kid->{VAL} eq "CODE"
-	 ? "CODE"
-	 : basename( $kid->{VAL}->[0] )
-      );
+      if ( _debugging ) {
+         _set_child_debug_name( ref $kid->{VAL} eq "CODE"
+         	 ? "CODE"
+         	 : basename( $kid->{VAL}->[0] )
+         );
+      }
 
       ## close parent FD's first so they're out of the way.
       ## Don't close STDIN, STDOUT, STDERR: they should be inherited or
@@ -2643,9 +2645,10 @@ sub _do_kid_and_exit {
 	    fcntl $s2, F_SETFD, 1;
 	 }
 
-	 my @cmd = ( $kid->{PATH}, @{$kid->{VAL}}[1..$#{$kid->{VAL}}] );
-	 _debug 'execing ', join " ", map { /[\s\"]/ ? "'$_'" : $_ } @cmd
-	    if _debugging;
+	 if ( _debugging ) {
+	    my @cmd = ( $kid->{PATH}, @{$kid->{VAL}}[1..$#{$kid->{VAL}}] );
+	    _debug 'execing ', join " ", map { /[\s\"]/ ? "'$_'" : $_ } @cmd;
+	 }
 
 	 die "exec failed: simulating exec() failure"
 	    if $self->{_simulate_exec_failure};
