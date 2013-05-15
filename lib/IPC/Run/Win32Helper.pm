@@ -445,7 +445,7 @@ sub win32_spawn {
    my $process;
    my $cmd_line = join " ", map {
       ( my $s = $_ ) =~ s/"/"""/g;
-      $s = qq{"$s"} if /[\"\s]/;
+      $s = qq{"$s"} if /[\"\s]|^$/;
       $s;
    } @$cmd;
 
