@@ -138,7 +138,7 @@ subroutine will not get any data until after the child process exits,
 and it is likely to get bigger chunks of data at once.
 
 The reason for the optimization is that, without it, "pumper" processes
-are used to overcome the inconsistancies of the Win32 API.  We need to
+are used to overcome the inconsistencies of the Win32 API.  We need to
 use anonymous pipes to connect to the child processes' stdin, stdout,
 and stderr, yet select() does not work on these.  select() only works on
 sockets on Win32.  So for each redirected child handle, there is
@@ -170,7 +170,7 @@ FILE_SHARE_READ|FILE_SHARE_WRITE.
 Setting the debug level to "details" or "gory" will give detailed
 information about the optimization process; setting it to "basic" or
 higher will tell whether or not a given call is optimized.  Setting
-it to "notopt" will highligh those calls that aren't optimized.
+it to "notopt" will highlight those calls that aren't optimized.
 
 =cut
 
@@ -484,6 +484,6 @@ Barries Slaymaker <barries@slaysys.com>.  Funded by Perforce Software, Inc.
 
 Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 
-You may use this under the terms of either the GPL 2.0 ir the Artistic License.
+You may use this under the terms of either the GPL 2.0 or the Artistic License.
 
 =cut
