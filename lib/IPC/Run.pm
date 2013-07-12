@@ -355,7 +355,7 @@ start() pauses the parent until the child executes the command or CODE
 reference and propagates any exceptions thrown (including exec()
 failure) back to the parent.  This has several pleasant effects: any
 exceptions thrown in the child, including exec() failure, come flying
-out of start() or run() as though they had ocurred in the parent.
+out of start() or run() as though they had occurred in the parent.
 
 This includes exceptions your code thrown from init subs.  In this
 example:
@@ -488,7 +488,7 @@ If no piping or redirection is specified for a child, it will inherit
 the parent's open file handles as dictated by your system's
 close-on-exec behavior and the $^F flag, except that processes after a
 '&' will not inherit the parent's stdin. Also note that $^F does not
-affect file desciptors obtained via POSIX, since it only applies to
+affect file descriptors obtained via POSIX, since it only applies to
 full-fledged Perl file handles.  Such processes will have their stdin
 closed unless it has been redirected-to.
 
@@ -1277,7 +1277,7 @@ sub _exec {
 #      no warnings "exec";
 #
 #      # Just in case the no warnings workaround
-#      # stops beign a workaround, we don't want
+#      # stops being a workaround, we don't want
 #      # old values of $! causing spurious strerr()
 #      # messages to appear in the "Can't exec" message
 #      undef $!;
@@ -1437,7 +1437,7 @@ set \$input_scalars to '' like finish() does.  If an exception is thrown
 from run(), all children will be killed off "gently", and then "annihilated"
 if they do not go gently (in to that dark night. sorry).
 
-If any exceptions are thrown, this does a L</kill_kill> before propogating
+If any exceptions are thrown, this does a L</kill_kill> before propagating
 them.
 
 =cut
@@ -1594,7 +1594,7 @@ sub kill_kill {
    my $have_killed_before;
 
    while () {
-      ## delay first to yeild to other processes
+      ## delay first to yield to other processes
       select undef, undef, undef, $delay;
       $accum_delay += $delay;
 
@@ -1645,7 +1645,7 @@ you.  You can't pass harness specifications to pump(), though.
 ##
 ## Notes: I've avoided handling a scalar that doesn't look like an
 ## opcode as a here document or as a filename, though I could DWIM
-## those.  I'm not sure that the advantages outweight the danger when
+## those.  I'm not sure that the advantages outweigh the danger when
 ## the DWIMer guesses wrong.
 ##
 ## TODO: allow user to spec default shell. Hmm, globally, in the
@@ -2525,7 +2525,7 @@ sub _do_kid_and_exit {
    ## perl 5.6.0, godforsaken version that it is...not sure about 5.6.1.
    ## Part of this could be that these symbols get destructed when
    ## exiting the eval, and that destruction might be what's (wrongly)
-   ## confusing the eval{}, allowing the exception to probpogate.
+   ## confusing the eval{}, allowing the exception to propagate.
    my $s1 = gensym;
    my $s2 = gensym;
 
@@ -2803,7 +2803,7 @@ sub start {
 	       $self->_spawn( $kid );
             }
             else {
-## TODO: Test and debug spawing code.  Someday.
+## TODO: Test and debug spawning code.  Someday.
                _debug( 
                   'spawning ',
                   join(
@@ -3140,7 +3140,7 @@ SELECT:
 #            ## mechanism useless for our purposes.  The exception
 #            ## flag semantics are too variable (they're device driver
 #            ## specific) for me to easily map to any automatic action like
-#            ## warning or croaking (try running v0.42 if you don't beleive me
+#            ## warning or croaking (try running v0.42 if you don't believe me
 #            ## :-).
 #            warn "Exception on descriptor $pipe->{FD}";
 #         }
@@ -3228,7 +3228,7 @@ sub _cleanup {
    $h->pump;
 
 Pump accepts a single parameter harness.  It blocks until it delivers some
-input or recieves some output.  It returns TRUE if there is still input or
+input or receives some output.  It returns TRUE if there is still input or
 output to be done, FALSE otherwise.
 
 pump() will automatically call start() if need be, so you may call harness()
@@ -3373,7 +3373,7 @@ Does not currently take any parameters, one day it will allow specific
 children to be reaped.
 
 Only call this from a signal handler if your C<perl> is recent enough
-to have safe signal handling (5.6.1 did not, IIRC, but it was beign discussed
+to have safe signal handling (5.6.1 did not, IIRC, but it was being discussed
 on perl5-porters).  Calling this (or doing any significant work) in a signal
 handler on older C<perl>s is asking for seg faults.
 
@@ -3857,7 +3857,7 @@ sub new_string_sink {
 #
 #The time interval may be passed in seconds, or as an end time in
 #"HH:MM:SS" format (any non-digit other than '.' may be used as
-#spacing and puctuation).  This is probably best shown by example:
+#spacing and punctuation).  This is probably best shown by example:
 #
 #   $h->timeout( $val );
 #
@@ -4177,7 +4177,7 @@ sure.
 
 Win32 only allows passing explicit fds 0, 1, and 2.  If you really, really need to pass file handles, us Win32API:: GetOsFHandle() or ::FdGetOsFHandle() to
 get the integer handle and pass it to the child process using the command
-line, environment, stdin, intermediary file, or other IPC mechnism.  Then
+line, environment, stdin, intermediary file, or other IPC mechanism.  Then
 use that handle in the child (Win32API.pm provides ways to reconstitute
 Perl file handles from Win32 file handles).
 
@@ -4343,7 +4343,7 @@ non-inheritable but we don't C<exec()> for &sub processes.
 
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the
-child is forked, the the DESTROY will get run once in the parent and once in
+child is forked, the DESTROY will get run once in the parent and once in
 the child.  When coprocess subs exit, POSIX::exit is called to work around this,
 but it means that objects that are still referred to at that time are not
 cleaned up.  So setting package vars or closure vars to point to objects that

@@ -57,7 +57,7 @@ out of Perl, this class I<no longer> uses the fields pragma.
 
 =cut
 
-## This class is also used internally by IPC::Run in a very initimate way,
+## This class is also used internally by IPC::Run in a very intimate way,
 ## since this is a partial factoring of code from IPC::Run plus some code
 ## needed to do standalone channels.  This factoring process will continue
 ## at some point.  Don't know how far how fast.

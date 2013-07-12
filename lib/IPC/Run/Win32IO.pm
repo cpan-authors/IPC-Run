@@ -241,7 +241,7 @@ sub _init_recv_through_temp_file {
 }
 
 
-## TODO: USe the Win32 API in the select loop to see if the file has grown
+## TODO: Use the Win32 API in the select loop to see if the file has grown
 ## and read it incrementally if it has.
 sub _recv_through_temp_file {
    my IPC::Run::Win32IO $self = shift;
@@ -568,6 +568,6 @@ Barries Slaymaker <barries@slaysys.com>.  Funded by Perforce Software, Inc.
 
 Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 
-You may use this under the terms of either the GPL 2.0 ir the Artistic License.
+You may use this under the terms of either the GPL 2.0 or the Artistic License.
 
 =cut

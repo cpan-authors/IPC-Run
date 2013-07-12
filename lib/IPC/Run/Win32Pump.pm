@@ -165,6 +165,6 @@ Barries Slaymaker <barries@slaysys.com>.  Funded by Perforce Software, Inc.
 
 Copyright 2001, Barrie Slaymaker, All Rights Reserved.
 
-You may use this under the terms of either the GPL 2.0 ir the Artistic License.
+You may use this under the terms of either the GPL 2.0 or the Artistic License.
 
 =cut
