@@ -60,7 +60,7 @@ You do need to check timers:
 
 Timers and timeouts that are reset get started by start() and
 pump().  Timers change state only in pump().  Since run() and
-finish() both call pump(), they act like pump() with repect to
+finish() both call pump(), they act like pump() with respect to
 timers.
 
 Timers and timeouts have three states: reset, running, and expired.
