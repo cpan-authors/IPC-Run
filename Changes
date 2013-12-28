@@ -1,7 +1,8 @@
 Revision history for Perl extension IPC::Run
 
-0.94
+0.93_01 Wed Dec 10 2014
  - Many typo corrections from David Steinbrunner via github
+ - RT 20105 - t/pty.t fails on Solaris 10
 
 0.93 Wed Dec 10 2014
  - RT 100711 - Add aggressive exit to t/signal.t after skip_all to prevent failures.
