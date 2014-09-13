@@ -1281,7 +1281,7 @@ sub _exec {
 #      # old values of $! causing spurious strerr()
 #      # messages to appear in the "Can't exec" message
 #      undef $!;
-      exec @_;
+      exec { $_[0] } @_;
 #   }
 #   croak "$!: exec( " . join( ', ', map "'$_'", @_ ) . " )";
     ## Fall through so $! can be reported to parent.
