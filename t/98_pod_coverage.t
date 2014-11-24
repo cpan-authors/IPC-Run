@@ -35,6 +35,13 @@ pod_coverage_ok('IPC::Run'             , "Test IPC::Run that all modules are doc
 pod_coverage_ok('IPC::Run::Debug'      , "Test IPC::Run::Debug that all modules are documented.");
 pod_coverage_ok('IPC::Run::IO'         , "Test IPC::Run::IO that all modules are documented.");
 pod_coverage_ok('IPC::Run::Timer'      , "Test IPC::Run::Timer that all modules are documented.");
-pod_coverage_ok('IPC::Run::Win32Helper', "Test IPC::Run::Win32Helper that all modules are documented.");
-pod_coverage_ok('IPC::Run::Win32IO'    , "Test IPC::Run::Win32IO that all modules are documented.");
-pod_coverage_ok('IPC::Run::Win32Pump'  , "Test IPC::Run::Win32Pump that all modules are documented.");
+
+SKIP: {
+        if ($^O eq 'MSWin32') {
+                pod_coverage_ok('IPC::Run::Win32Helper', "Test IPC::Run::Win32Helper that all modules are documented.");
+                pod_coverage_ok('IPC::Run::Win32IO'    , "Test IPC::Run::Win32IO that all modules are documented.");
+                pod_coverage_ok('IPC::Run::Win32Pump'  , "Test IPC::Run::Win32Pump that all modules are documented.");
+        } else {
+                skip 'Not on windows platform', 3;
+        }
+}
