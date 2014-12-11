@@ -1234,7 +1234,6 @@ sub _empty($) { ! ( defined $_[0] && length $_[0] ) }
 ## 'safe' versions of otherwise fun things to do. See also IPC::Run::Win32Helper.
 sub _close {
    confess 'undef' unless defined $_[0];
-   no strict 'refs';
    my $fd = $_[0] =~ /^\d+$/ ? $_[0] : fileno $_[0];
    my $r = POSIX::close $fd;
    $r = $r ? '' : " ERROR $!";
