@@ -29,6 +29,11 @@ BEGIN {
        plan( skip_all => "perl5.00503's Socket.pm does not export IPPROTO_TCP" );
    }
 
+    if ( $^O eq 'android' ) {
+        plan( skip_all => "android does not support getprotobyname()" );
+    }
+
+
    $INC{$_} = 1 for qw( Win32/Process.pm Win32API/File.pm );
 
    package Win32API::File;
