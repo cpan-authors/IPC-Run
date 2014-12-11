@@ -1,5 +1,11 @@
 Revision history for Perl extension IPC::Run
 
+0.93 Wed Dec 10 2014
+ - RT 100711 - Add aggressive exit to t/signal.t after skip_all to prevent failures.
+ - RT 97926 - Fix for run argument with spaces in path
+ - skip t/win32_compile.t on Android
+ - RT 86133 - TODO failing POD tests for IPC::Run
+
 0.92 Thu Aug 30 2012
  - Tests are good in dev version. Releasing to stable.
 
