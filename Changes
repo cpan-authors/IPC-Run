@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.94
+ - Many typo corrections from David Steinbrunner via github
+
 0.93 Wed Dec 10 2014
  - RT 100711 - Add aggressive exit to t/signal.t after skip_all to prevent failures.
  - RT 97926 - Fix for run argument with spaces in path
