@@ -25,6 +25,7 @@ use t::lib::Test;
 BEGIN {
 	if ( IPC::Run::Win32_MODE() ) {
 		plan skip_all => 'Skipping on Win32';
+		exit(0);
 	} else {
 		plan tests => 3;
 	}
