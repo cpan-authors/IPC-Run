@@ -27,4 +27,4 @@ resources:
   bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
   license: http://dev.perl.org/licenses/
   repository: https://github.com/toddr/IPC-Run
-version: '0.93_01'
+version: '0.94'

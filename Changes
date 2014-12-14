@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.94 Sun Dec 14 2014
+ - RT 100858 - Update License discrepancies.
+
 0.93_01 Wed Dec 10 2014
  - Many typo corrections from David Steinbrunner via github
  - RT 20105 - t/pty.t fails on Solaris 10
