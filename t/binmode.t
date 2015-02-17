@@ -40,11 +40,11 @@ $nl_text =~ s/\r//g;
 
 my @perl    = ( $^X );
 
-my $emitter_script = q{ binmode STDOUT; print "Hello World\r\n" };
+my $emitter_script = q{ binmode STDOUT; print qq{Hello World\r\n} };
 my @emitter = ( @perl, '-e', $emitter_script );
 
 my $reporter_script =
-   q{ binmode STDIN; $_ = join "", <>; s/([\000-\037])/sprintf "\\\\0x%02x", ord $1/ge; print };
+   q{ binmode STDIN; $_ = join q{}, <>; s/([\000-\037])/sprintf qq{\\\\0x%02x}, ord $1/ge; print };
 my @reporter = ( @perl, '-e', $reporter_script );
 
 my $in;
