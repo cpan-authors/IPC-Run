@@ -442,8 +442,15 @@ sub win32_spawn {
 
     my $process;
     my $cmd_line = join " ", map {
-        ( my $s = $_ ) =~ s/"/"""/g;
-        $s = qq{"$s"} if /[\"\s]|^$/;
+        my $s = $_;
+        if ($s eq "") {
+            $s = '""';
+        } elsif ($s =~ /[\s"]/) {
+            # Double-quotes will be escaped with a backslash, and any backslash
+            # that immediately precedes a double-quote will also be escaped.
+            $s =~ s/(\\*)"/$1$1\\"/g;
+            $s = '"' . $s . '"';
+        }
         $s;
     } @$cmd;
 
