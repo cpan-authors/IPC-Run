@@ -382,7 +382,6 @@ sub _spawn_pumper {
 }
 
 
-my $next_port = 2048;
 my $loopback  = inet_aton "127.0.0.1";
 my $tcp_proto = getprotobyname('tcp');
 croak "$!: getprotobyname('tcp')" unless defined $tcp_proto;
@@ -398,18 +397,11 @@ sub _socket {
    setsockopt $listener, SOL_SOCKET, SO_REUSEADDR, pack("l", 0)
       or croak "$!: setsockopt()";
 
-   my $port;
-   my @errors;
-PORT_FINDER_LOOP:
-   {
-      $port = $next_port;
-      $next_port = 2048 if ++$next_port > 65_535; 
-      unless ( bind $listener, sockaddr_in( $port, $loopback ) ) {
-	 push @errors, "$! on port $port";
-	 croak join "\n", @errors if @errors > 10;
-         goto PORT_FINDER_LOOP;
-      }
+   unless ( bind $listener, sockaddr_in( 0, $loopback ) ) {
+      croak "Error binding: $!";
    }
+
+   my ($port) = sockaddr_in(getsockname($listener));
 
    _debug "win32 port = $port" if _debugging_details;
 
