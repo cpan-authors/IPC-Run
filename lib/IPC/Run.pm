@@ -550,7 +550,7 @@ IPC::Run.  Frequently, programs alter their behavior when they detect
 that stdin, stdout, or stderr are not connected to a tty, assuming that
 they are being run in batch mode.  Whether this helps or hurts depends
 on which optimizations change.  And there's often no way of telling
-what a program does in these areas other than trial and error and,
+what a program does in these areas other than trial and error and
 occasionally, reading the source.  This includes different versions
 and implementations of the same program.
 
