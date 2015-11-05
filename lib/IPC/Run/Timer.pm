@@ -194,18 +194,26 @@ my $resolution = 1;
 
 sub _parse_time {
    for ( $_[0] ) {
-      return $_ unless defined $_;
-      return $_ if /^\d*(?:\.\d*)?$/;
-
-      my @f = reverse split( /[^\d\.]+/i );
-      croak "IPC::Run: invalid time string '$_'" unless @f <= 4;
-      my ( $s, $m, $h, $d ) = @f;
-      return
-      ( (
-	         ( $d || 0 )   * 24
-	       + ( $h || 0 ) ) * 60
-	       + ( $m || 0 ) ) * 60
-               + ( $s || 0 );
+      my $val;
+      if (not defined $_) {
+         $val = $_;
+      }
+      elsif (/^\d*(?:\.\d*)?$/) {
+         $val = $_;
+      }
+      else {
+         my @f = reverse split( /[^\d\.]+/i );
+         if (scalar @f > 4) {
+            croak "IPC::Run: expected <= 4 elements in time string '$_'";
+         }
+         my ( $s, $m, $h, $d ) = @f;
+         $val = ( (
+             ( $d || 0 )   * 24
+           + ( $h || 0 ) ) * 60
+           + ( $m || 0 ) ) * 60
+           + ( $s || 0 );
+      }
+      return $val;
    }
 }
 

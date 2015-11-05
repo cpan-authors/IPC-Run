@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 72;
+use Test::More tests => 73;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
 
@@ -47,6 +47,12 @@ $t->interval( "1:1:1"     );  is( $t->interval,   3661 );
 $t->interval( "1:1:1.1"   );  ok( $t->interval >  3661 );
 $t->interval( "1:1:1.1"   );  ok( $t->interval <= 3662 );
 $t->interval( "1:1:1:1"   );  is( $t->interval,  90061 );
+
+SCOPE: {
+   eval { $t->interval( "1:1:1:1:1" ) };
+   my $msg = 'IPC::Run: expected <= 4';
+   $@ =~ /$msg/ ? ok( 1 ) : is( $@, $msg );
+}
 
 $t->reset;
 $t->interval( 5 );
