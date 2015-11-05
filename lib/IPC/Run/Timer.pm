@@ -197,16 +197,15 @@ sub _parse_time {
       my $val;
       if (not defined $_) {
          $val = $_;
-      }
-      elsif (/^\d*(?:\.\d*)?$/) {
-         $val = $_;
-      }
-      else {
-         my @f = reverse split( /[^\d\.]+/i );
+      } else {
+         my @f = split( /:/, $_, -1 );
          if (scalar @f > 4) {
             croak "IPC::Run: expected <= 4 elements in time string '$_'";
          }
-         my ( $s, $m, $h, $d ) = @f;
+         map {
+            $_ =~ /\d+/ ? $_ : croak "IPC::Run: non-numeric element '$_' in time string '$_'";
+         } @f;
+         my ( $s, $m, $h, $d ) = reverse @f;
          $val = ( (
              ( $d || 0 )   * 24
            + ( $h || 0 ) ) * 60
@@ -315,10 +314,7 @@ sub new {
 
    while ( @_ ) {
       my $arg = shift;
-      if ( $arg =~ /^(?:\d+[^\a\d]){0,3}\d*(?:\.\d*)?$/ ) {
-         $self->interval( $arg );
-      }
-      elsif ( $arg eq 'exception' ) {
+      if ( $arg eq 'exception' ) {
          $self->exception( shift );
       }
       elsif ( $arg eq 'name' ) {
@@ -328,7 +324,7 @@ sub new {
          $self->debug( shift );
       }
       else {
-         croak "IPC::Run: unexpected parameter '$arg'";
+         $self->interval( $arg );
       }
    }
 

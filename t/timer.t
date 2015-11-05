@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 73;
+use Test::More tests => 76;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
 
@@ -51,6 +51,24 @@ $t->interval( "1:1:1:1"   );  is( $t->interval,  90061 );
 SCOPE: {
    eval { $t->interval( "1:1:1:1:1" ) };
    my $msg = 'IPC::Run: expected <= 4';
+   $@ =~ /$msg/ ? ok( 1 ) : is( $@, $msg );
+}
+
+SCOPE: {
+   eval { $t->interval( "foo" ) };
+   my $msg = 'IPC::Run: non-numeric';
+   $@ =~ /$msg/ ? ok( 1 ) : is( $@, $msg );
+}
+
+SCOPE: {
+   eval { $t->interval( "1foo1:9:bar:0" ) };
+   my $msg = 'IPC::Run: non-numeric';
+   $@ =~ /$msg/ ? ok( 1 ) : is( $@, $msg );
+}
+
+SCOPE: {
+   eval { $t->interval( "6:4:" ) };
+   my $msg = 'IPC::Run: non-numeric';
    $@ =~ /$msg/ ? ok( 1 ) : is( $@, $msg );
 }
 
