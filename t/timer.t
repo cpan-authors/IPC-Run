@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 76;
+use Test::More tests => 77;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
 
@@ -40,6 +40,8 @@ $t->interval(  1          );  ok( $t->interval >=    1 );
 $t->interval( 30          );  ok( $t->interval >=   30 );
 $t->interval( 30.1        );  ok( $t->interval >    30 );
 $t->interval( 30.1        );  ok( $t->interval <=   31 );
+
+$t->interval( 'inf'       );  ok( $t->interval >  1000 );
 
 $t->interval( "1:0"       );  is( $t->interval,     60 );
 $t->interval( "1:0:0"     );  is( $t->interval,   3600 );

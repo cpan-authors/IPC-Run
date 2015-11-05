@@ -27,8 +27,7 @@ TOHERE
 		## Die nicely in case some install manager cares about the canonical
 		## error message for this.  Not that I've ever seen one, but those
 		## wacky CPANPLUSers might just do something cool in this case.
-
-      		## Older perls' Socket.pm don't export IPPROTO_TCP
+		## Older perls' Socket.pm don't export IPPROTO_TCP
 		require 5.006;
 		## Most of the time it's not needed (since IPC::Run tries not to
 		## use sockets), but the user is not likely to know what the hell
@@ -37,6 +36,11 @@ TOHERE
 		## If something really odd is happening...
 		exit 1;
 	}
+}
+
+if ( $^V < version->parse('v5.8.1') ) {
+    # need Scalar::Util::looks_like_number
+	$PREREQ_PM{'Scalar::List::Utils'} = '1.10';
 }
 
 WriteMakefile(
