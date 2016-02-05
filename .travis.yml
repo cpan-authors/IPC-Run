@@ -27,6 +27,7 @@ install:
 - gem install coveralls-lcov
 - lcov --version
 - g++ --version
+- perl -V
 before_script:
 - cd ${TRAVIS_BUILD_DIR}
 # init coverage to 0 (optional)
