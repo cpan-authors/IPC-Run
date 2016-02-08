@@ -2789,8 +2789,8 @@ sub start {
       ## autoflush STDOUT and STDERR.  This is done so that the children don't
       ## inherit output buffers chock full o' redundant data.  It's really
       ## confusing to track that down.
-      { my $ofh = select STDOUT; local $| = 1; select $ofh; }
-      { my $ofh = select STDERR; local $| = 1; select $ofh; }
+      { my $ofh = select STDOUT; my $of = $|; $| = 1; $| = $of; select $ofh; }
+      { my $ofh = select STDERR; my $of = $|; $| = 1; $| = $of; select $ofh; }
       for my $kid ( @{$self->{KIDS}} ) {
          $kid->{RESULT} = undef;
          _debug "child: ",
