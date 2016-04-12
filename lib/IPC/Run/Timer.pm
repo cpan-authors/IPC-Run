@@ -71,9 +71,9 @@ it's in.
 
 =head2 Time values
 
-All time values are in seconds.  Times may be specified as integer or
-floating point seconds, optionally preceded by puncuation-separated
-days, hours, and minutes.\
+All time values are in seconds.  Times may be any kind of perl number,
+e.g. as integer or floating point seconds, optionally preceded by
+punctuation-separated days, hours, and minutes.
 
 Examples:
 
@@ -84,6 +84,7 @@ Examples:
    1:1         1 minute, 1 second
    1:90        2 minutes, 30 seconds
    1:2:3:4.5   1 day, 2 hours, 3 minutes, 4.5 seconds
+   'inf'       the infinity perl special number (the timer never finishes)
 
 Absolute date/time strings are *not* accepted: year, month and
 day-of-month parsing is not available (patches welcome :-).
@@ -161,6 +162,7 @@ use Carp;
 use Fcntl;
 use Symbol;
 use Exporter;
+use Scalar::Util;
 use vars qw( $VERSION @ISA @EXPORT_OK %EXPORT_TAGS );
 BEGIN {
 	$VERSION   = '0.94';
@@ -194,18 +196,27 @@ my $resolution = 1;
 
 sub _parse_time {
    for ( $_[0] ) {
-      return $_ unless defined $_;
-      return $_ if /^\d*(?:\.\d*)?$/;
-
-      my @f = reverse split( /[^\d\.]+/i );
-      croak "IPC::Run: invalid time string '$_'" unless @f <= 4;
-      my ( $s, $m, $h, $d ) = @f;
-      return
-      ( (
-	         ( $d || 0 )   * 24
-	       + ( $h || 0 ) ) * 60
-	       + ( $m || 0 ) ) * 60
-               + ( $s || 0 );
+      my $val;
+      if (not defined $_) {
+         $val = $_;
+      } else {
+         my @f = split( /:/, $_, -1 );
+         if (scalar @f > 4) {
+            croak "IPC::Run: expected <= 4 elements in time string '$_'";
+         }
+         for (@f) {
+            if (not Scalar::Util::looks_like_number($_)) {
+               croak "IPC::Run: non-numeric element '$_' in time string '$_'";
+            }
+         }
+         my ( $s, $m, $h, $d ) = reverse @f;
+         $val = ( (
+             ( $d || 0 )   * 24
+           + ( $h || 0 ) ) * 60
+           + ( $m || 0 ) ) * 60
+           + ( $s || 0 );
+      }
+      return $val;
    }
 }
 
@@ -307,10 +318,7 @@ sub new {
 
    while ( @_ ) {
       my $arg = shift;
-      if ( $arg =~ /^(?:\d+[^\a\d]){0,3}\d*(?:\.\d*)?$/ ) {
-         $self->interval( $arg );
-      }
-      elsif ( $arg eq 'exception' ) {
+      if ( $arg eq 'exception' ) {
          $self->exception( shift );
       }
       elsif ( $arg eq 'name' ) {
@@ -320,7 +328,7 @@ sub new {
          $self->debug( shift );
       }
       else {
-         croak "IPC::Run: unexpected parameter '$arg'";
+         $self->interval( $arg );
       }
    }
 
