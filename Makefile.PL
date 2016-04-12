@@ -42,7 +42,7 @@ TOHERE
 	}
 }
 
-if ( $^V < version->parse('v5.8.1') ) {
+if ( $] < 5.008001 ) {
     # need Scalar::Util::looks_like_number
 	$PREREQ_PM{'Scalar::List::Utils'} = '1.10';
 }
