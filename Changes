@@ -1,5 +1,20 @@
 Revision history for Perl extension IPC::Run
 
+0.94_01 Tue Apr 12 2016
+ - Enable Travis-CI integration for IPC::Run
+ - Use q{} and qq{} to fix problems with quotation in cmd.exe
+ - sync $VERSION across all files to address kwalitee
+ - RT 109243 - Stop side affect of altering flushing of STDOUT and STDERR
+ - CHILD_HANDLE should be closed with 'Close' to prevent a warning.
+ - require Win32API::File on Windows
+ - Better timer error message + an additional unit test
+ - Catching previously non-detected malformed time strings
+ - Let Timer accept all allowable perl numbers
+ - allow the OS to choose the ephemeral port to use
+ - Don't use version.pm to parse the perl version in Makefile.PL
+ - perltidy
+ - Do not import POSIX into local namespace (it's a memory hog)
+
 0.94 Sun Dec 14 2014
  - RT 100858 - Update License discrepancies.
 
