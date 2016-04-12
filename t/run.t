@@ -768,9 +768,9 @@ SKIP: {
    $err = 'REPLACE ME';
    $fd_map = _map_fds;
    $r = run(
-      [ @perl, '-lane', 'print STDERR "1:$_"; print uc($F[0])," ",$F[1]'],
-         \"Hello World",
-  '|',[ @perl, '-lane', 'print STDERR "2:$_"; print $F[0]," ",lc($F[1])'],
+      [ @perl, '-lane', 'print STDERR qq{1:$_}; print uc($F[0]), q{ },$F[1]'],
+         \q{Hello World},
+  '|',[ @perl, '-lane', 'print STDERR qq{2:$_}; print $F[0], q{ },lc($F[1])'],
 	 \$out,
 	 \$err,
    );
@@ -787,10 +787,10 @@ eok( $err, "1:Hello World\n2:HELLO World\n" );
    $err = 'REPLACE ME';
    $fd_map = _map_fds;
    $r = run(
-      [ @perl, '-lane', 'print STDERR "1:$_"; print uc($F[0])," ",$F[1]' ],
-         \"Hello World",
- '&', [ @perl, '-lane', 'print STDERR "2:$_"; print $F[0]," ",lc( $F[1] )' ],
-	 \"Hello World",
+      [ @perl, '-lane', 'print STDERR qq{1:$_}; print uc($F[0]),q{ },$F[1]' ],
+         \q{Hello World},
+ '&', [ @perl, '-lane', 'print STDERR "2:$_"; print $F[0],q{ },lc( $F[1] )' ],
+	 \q{Hello World},
 	 \$out,
 	 \$err,
    );
