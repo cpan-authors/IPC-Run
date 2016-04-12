@@ -13,6 +13,10 @@ if ( $^O ne 'MSWin32' ) {
 	}
 } else {
 	$PREREQ_PM{'Win32::Process'} = '0.14';
+	$PREREQ_PM{'Win32API::File'} = '0.0901';
+	if ($] >= 5.021006) {
+			$PREREQ_PM{'Win32API::File'} = '0.1203';
+	}
 	if ( ! eval "use Socket qw( IPPROTO_TCP TCP_NODELAY ); 1" ) {
 		warn <<"TOHERE";
 $@
