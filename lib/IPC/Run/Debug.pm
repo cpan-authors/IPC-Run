@@ -115,7 +115,7 @@ sub _debugging_not_optimized() { 0 }
 1;
 STUBS
 
-use POSIX;
+use POSIX ();
 
 sub _map_fds {
    my $map = '';

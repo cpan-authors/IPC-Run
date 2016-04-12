@@ -1361,7 +1361,7 @@ sub _read {
     confess 'undef' unless defined $_[0];
     my $s = '';
     my $r = POSIX::read( $_[0], $s, 10_000 );
-    croak "$!: read( $_[0] )" if not($r) and $! != POSIX::EINTR;
+    croak "$!: read( $_[0] )" if not($r) and $! != POSIX::EINTR();
     $r ||= 0;
     _debug "read( $_[0] ) = $r chars '$s'" if _debugging_data;
     return $s;
@@ -3034,7 +3034,7 @@ sub _select_loop {
         last if !$nfound && $self->{non_blocking};
 
         if ( $nfound < 0 ) {
-            if ( $! == POSIX::EINTR ) {
+            if ( $! == POSIX::EINTR() ) {
 
                 # Caught a signal before any FD went ready.  Ensure that
                 # the bit fields reflect "no FDs ready".
