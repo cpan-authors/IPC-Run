@@ -4,9 +4,9 @@
 
 use IPC::Run qw(run timeout);
 
-$IPC::Run::debug = 10 ;
+$IPC::Run::debug = 10;
 
 warn "parent id=$$\n";
-$res = run [ './nosuchfile', 0 ], \"foo", \$out, \$err ;
+$res = run [ './nosuchfile', 0 ], \"foo", \$out, \$err;
 warn "running after 'run',
         pid=$$\n\$?=$?\nstderr=[[[[$err]]]]\nstdout=[[[[$out]]]]\n";

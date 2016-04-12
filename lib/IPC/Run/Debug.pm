@@ -69,37 +69,35 @@ Both of those are untested.
 use strict;
 use Exporter;
 use vars qw{$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS};
+
 BEGIN {
-	$VERSION = '0.94';
-	@ISA     = qw( Exporter );
-	@EXPORT  = qw(
-		_debug
-		_debug_desc_fd
-		_debugging
-		_debugging_data
-		_debugging_details
-		_debugging_gory_details
-		_debugging_not_optimized
-		_set_child_debug_name
-	);
-	
-	@EXPORT_OK = qw(
-		_debug_init
-		_debugging_level
-		_map_fds
-	);
-	%EXPORT_TAGS = (
-		default => \@EXPORT,
-		all     => [ @EXPORT, @EXPORT_OK ],
-	);
+    $VERSION = '0.94';
+    @ISA     = qw( Exporter );
+    @EXPORT  = qw(
+      _debug
+      _debug_desc_fd
+      _debugging
+      _debugging_data
+      _debugging_details
+      _debugging_gory_details
+      _debugging_not_optimized
+      _set_child_debug_name
+    );
+
+    @EXPORT_OK = qw(
+      _debug_init
+      _debugging_level
+      _map_fds
+    );
+    %EXPORT_TAGS = (
+        default => \@EXPORT,
+        all => [ @EXPORT, @EXPORT_OK ],
+    );
 }
 
-my $disable_debugging =
-   defined $ENV{IPCRUNDEBUG}
-   && (
-      ! $ENV{IPCRUNDEBUG}
-      || lc $ENV{IPCRUNDEBUG} eq "none"
-   );
+my $disable_debugging = defined $ENV{IPCRUNDEBUG}
+  && ( !$ENV{IPCRUNDEBUG}
+    || lc $ENV{IPCRUNDEBUG} eq "none" );
 
 eval( $disable_debugging ? <<'STUBS' : <<'SUBS' ) or die $@;
 sub _map_fds()                 { "" }

@@ -1,10 +1,12 @@
 use Test::More;
+
 BEGIN {
-	if ($^O eq 'MSWin32') {
-		plan skip_all => "no cat on Windows"; #and "cmd /C type con" reads from real STDIN
-	} else {
-		plan tests => 4;
-	}
+    if ( $^O eq 'MSWin32' ) {
+        plan skip_all => "no cat on Windows";    #and "cmd /C type con" reads from real STDIN
+    }
+    else {
+        plan tests => 4;
+    }
 }
 
 use strict;

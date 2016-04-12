@@ -9,28 +9,28 @@ eintr.t - Test select() failing with EINTR
 =cut
 
 use strict;
-BEGIN { 
-	$|  = 1;
-	$^W = 1;
-	if( $ENV{PERL_CORE} ) {
-		chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-		unshift @INC, 'lib', '../..';
-		$^X = '../../../t/' . $^X;
-	}
+
+BEGIN {
+    $|  = 1;
+    $^W = 1;
+    if ( $ENV{PERL_CORE} ) {
+        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
+        unshift @INC, 'lib', '../..';
+        $^X = '../../../t/' . $^X;
+    }
 }
 
 use Test::More;
 use IPC::Run qw( start run );
-
 
 my $got_usr1 = 0;
 $SIG{USR1} = sub { $got_usr1++ };
 
 # Need the child to send a signal to this process in order to trigger
 # EINTR on select(), skip the test on platforms where we can't do that.
-my ($in, $out, $err) = ('', '', '');
-run [$^X, '-e', "kill 'USR1', $$"], \$in, \$out, \$err;
-if ($got_usr1 != 1) {
+my ( $in, $out, $err ) = ( '', '', '' );
+run [ $^X, '-e', "kill 'USR1', $$" ], \$in, \$out, \$err;
+if ( $got_usr1 != 1 ) {
     plan skip_all => "can't deliver a signal on this platform";
 }
 
@@ -44,7 +44,7 @@ my @kid = ( $^X, '-e', "\$| = 1; $kid_perl" );
 # that one or more kid output handles are ready for reads when they are
 # not, causing it to block until the kid exits.
 
-($in, $out, $err) = ('', '', '');
+( $in, $out, $err ) = ( '', '', '' );
 my $harness = start \@kid, \$in, \$out, \$err;
 
 my $pump_started = time;
