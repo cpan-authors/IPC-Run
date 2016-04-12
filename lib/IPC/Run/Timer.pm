@@ -163,7 +163,7 @@ use Symbol;
 use Exporter;
 use vars qw( $VERSION @ISA @EXPORT_OK %EXPORT_TAGS );
 BEGIN {
-	$VERSION   = '0.90';
+	$VERSION   = '0.94';
 	@ISA       = qw( Exporter );
 	@EXPORT_OK = qw(
 		check
