@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.94_02 Thu Apr 14 2016
+ - Skip infinity test on perl below 5.8.9
+
 0.94_01 Tue Apr 12 2016
  - Enable Travis-CI integration for IPC::Run
  - Use q{} and qq{} to fix problems with quotation in cmd.exe

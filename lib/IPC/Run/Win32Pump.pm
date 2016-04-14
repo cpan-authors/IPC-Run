@@ -30,7 +30,7 @@ use strict;
 use vars qw{$VERSION};
 
 BEGIN {
-    $VERSION = '0.94_01';
+    $VERSION = '0.94_02';
 }
 
 use Win32API::File qw(

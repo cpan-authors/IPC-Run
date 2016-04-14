@@ -8,7 +8,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: '0'
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 7.04, CPAN::Meta::Converter version 2.143240'
+generated_by: 'ExtUtils::MakeMaker version 7.0401, CPAN::Meta::Converter version 2.150001'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -27,4 +27,4 @@ resources:
   bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
   license: http://dev.perl.org/licenses/
   repository: https://github.com/toddr/IPC-Run
-version: '0.94'
+version: 0.94_02
