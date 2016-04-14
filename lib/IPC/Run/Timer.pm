@@ -162,7 +162,7 @@ use Carp;
 use Fcntl;
 use Symbol;
 use Exporter;
-use Scalar::Util;
+use Scalar::Util ();
 use vars qw( $VERSION @ISA @EXPORT_OK %EXPORT_TAGS );
 
 BEGIN {

@@ -49,8 +49,11 @@ ok( $t->interval > 30 );
 $t->interval(30.1);
 ok( $t->interval <= 31 );
 
-$t->interval('inf');
-ok( $t->interval > 1000 );
+SKIP: {
+    skip( "Perl below 5.8.9 doesn't seem to be able to handle infinity", 1 ) if ( $] < 5.008009 );
+    $t->interval('inf');
+    ok( $t->interval > 1000, "Infinity timer." );
+}
 
 $t->interval("1:0");
 is( $t->interval, 60 );
