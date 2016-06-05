@@ -52,7 +52,7 @@ Revision history for Perl extension IPC::Run
  - RT 38193 - Fix error detection on non-English operating systems
  - Add a blank doc entry for IPC::Run::Win32IO::poll to quiet windows pod parser errors
  - RT 57190 - handle PATH environment variable not being defined. WILL NOT default to '.' since UNIX would not do this and the program has been behaving the UNIX way to date.
-  
+
 0.89 Wed 31 Mar 2010
   - Revert extended tests to require "oslo consensus" variables - http://use.perl.org/~Alias/journal/36128
   - Add IO::Pty to META.yml requirement This has been inconsistently depended on over the years in META.yml
@@ -67,10 +67,10 @@ Revision history for Perl extension IPC::Run
 
 0.87 Mon 29 Mar 2010
   - Add doc type fixes - RT 56030 from carnil (Debian)
-  - Remove reccommends for AUTHOR only modules
+  - Remove recommends for AUTHOR only modules
   - add pod_coverage and simplify pod test.
   - document undocumented public subs with TODO and best guess as to what they do.
-  - Explicity recommend IO::Pty version number 1.08
+  - Explicitly recommend IO::Pty version number 1.08
 
 0.86 Wed 24 Mar 2010
   - Add all files to subversion for easier releases
@@ -95,7 +95,7 @@ Revision history for Perl extension IPC::Run
 	- This is the first in a series of refactoring test releases.
 	- Removed Makefile.PL message noisily asking users to do CPAN Testers
 	  dirty work.
-	- Simplfied the Makefile.PL code a little.
+	- Simplified the Makefile.PL code a little.
 	- Upgraded all tests to Test::More
 	- Added a $VERSION for all modules
 	- Adding some missing POD sections
@@ -119,7 +119,7 @@ Revision history for Perl extension IPC::Run
 	- FreeBSD uses fds up to 4 by default, fixed tests to start at 5 (#8060)
 
 0.78 Tue Mar  9 01:49:25 EST 2004
-	- Removed all psuedohashes
+	- Removed all pseudohashes
 	- Require Win32::Process when on Win32 (<CORION a t cpan . org>)
 	- Retry the select() instead of croaking when EINTR occurs
 	  (Ilya Martynov,  ilya a t iponweb.net)
@@ -205,7 +205,7 @@ Revision history for Perl extension IPC::Run
 
 0.65 (unreleased)
 	- Mostly focused on Win32
-	- pass filehandles to pumpers by number on the command line to avoid 
+	- pass filehandles to pumpers by number on the command line to avoid
 	- use 2 arg binmode to force socket handles into/out of binmode
 	- improve t/binmode.t
 	- TODO: test ^Z and \000 pass-through.
@@ -345,9 +345,9 @@ Revision history for Perl extension IPC::Run
 	  fflush( NULL ) ;
 
 0.42 Thu Aug 17 23:26:34 EDT 2000
-	- Worked around psuedo-hash features not implemented in perl5.00503
+	- Worked around pseudo-hash features not implemented in perl5.00503
 	- Deprecated passing hashes of options in favor of just passing
-	  name-vlaue pairs.
+	  name-value pairs.
 
 0.41 (missing)
 	- Added result, results, full_result, full_results.  I added so many
@@ -369,7 +369,7 @@ Revision history for Perl extension IPC::Run
 	- Added warning about missing IO::Pty in MakeMaker.PL.  Thought about
 	  making it a prerequisite, but it's not: IPC::Run can do pipes, etc,
 	  if it's not found, and IO::Pty is more unix-specific than IPC::Run is.
-	  What I'd really like is an 'ENABLERS' section to MakeMaker.PL that 
+	  What I'd really like is an 'ENABLERS' section to MakeMaker.PL that
 	  tells CPAN.pm to try to install it but not to stress if it can't.
 	- t/pty.t skips all tests if require IO::Pty fails.
 
@@ -398,13 +398,13 @@ Revision history for Perl extension IPC::Run
 0.2  Thu Jun  1 01:48:29 EDT 2000
 	- Undid the creation of a pipe when passing a \*FOO or an IO::Handle
 	  ref and added '<|<', \*IN and '>|>', \*OUT syntax instead.  This was
-	  because some very subtle bugs might have occured if \*FOO was left
+	  because some very subtle bugs might have occurred if \*FOO was left
 	  in the wrong opened/closed state before calling run(), start() or
 	  harness().  Now, \*FOO must be open before the start() call, and
 	  '<|<' and '>|>' will close \*IN or \*OUT (or whatever) and open
-	  a pipe on it.  This is analagous to IPC/Open{2,3}.pm behaviors.
+	  a pipe on it.  This is analogous to IPC/Open{2,3}.pm behaviors.
 	- Added eg/factorial_scalar and eg/runsh.  Rewrote eg/factorial_pipe.
-	- Fixed bug that was preventing input scalar refs (ie input for the 
+	- Fixed bug that was preventing input scalar refs (ie input for the
 	  child process) from ever being read from a second time.  This
 	  caused pump() to hang.
 	- Cleaned up calculation and use of timeout values so that when
