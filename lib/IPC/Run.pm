@@ -3536,7 +3536,7 @@ value for a child process.
 
 To get the result of a particular child, do:
 
-   $h->full_result( 0 );  # first child's $? >> 8
+   $h->full_result( 0 );  # first child's $?
    $h->full_result( 1 );  # second child
 
 or
