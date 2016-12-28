@@ -22,7 +22,7 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
       run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
-      # Redirecting using psuedo-terminals instad of pipes.
+      # Redirecting using pseudo-terminals instead of pipes.
       run \@cat, '<pty<', \$in,  '>pty>', \$out_and_err;
 
    ## Scripting subprocesses (like Expect):
@@ -648,7 +648,7 @@ to a real terminal.
 
 =head2 CAVEATS
 
-Psuedo-terminals are not pipes, though they are similar.  Here are some
+Pseudo-terminals are not pipes, though they are similar.  Here are some
 differences to watch out for.
 
 =over
@@ -1081,7 +1081,7 @@ sub get_more_input();
 ###############################################################################
 
 ##
-## Error constants, not too locale-dependant
+## Error constants, not too locale-dependent
 use vars qw( $_EIO $_EAGAIN );
 use Errno qw(   EIO   EAGAIN );
 
@@ -2486,7 +2486,7 @@ sub _do_kid_and_exit {
         ## perl 5.6.0, godforsaken version that it is...not sure about 5.6.1.
         ## Part of this could be that these symbols get destructed when
         ## exiting the eval, and that destruction might be what's (wrongly)
-        ## confusing the eval{}, allowing the exception to probpogate.
+        ## confusing the eval{}, allowing the exception to propagate.
         $s1 = Symbol::gensym();
         $s2 = Symbol::gensym();
     }
@@ -2904,7 +2904,7 @@ sub _select_loop {
   SELECT:
     while ( $self->pumpable ) {
         if ( $io_occurred && $self->{break_on_io} ) {
-            _debug "exiting _select(): io occured and break_on_io set"
+            _debug "exiting _select(): io occurred and break_on_io set"
               if _debugging_details;
             last;
         }
@@ -3222,7 +3222,7 @@ each step of the script:
 =cut
 
 sub pump {
-    die "pump() takes only a a single harness as a parameter"
+    die "pump() takes only a single harness as a parameter"
       unless @_ == 1 && UNIVERSAL::isa( $_[0], __PACKAGE__ );
 
     my IPC::Run $self = shift;
@@ -4207,7 +4207,7 @@ closing the parent socket.
 
 Being a race condition, it's hard to reproduce, but I encountered it while
 testing this code on a drive share to a samba box.  In this case, it takes
-t/run.t a long time to spawn it's chile processes (the parent hangs in the
+t/run.t a long time to spawn it's child processes (the parent hangs in the
 first select for several seconds until the child emits any debugging output).
 
 I have not seen it on local drives, and can't reproduce it at will,

@@ -628,7 +628,7 @@ is( length $err ? "Bad file descriptor error" : $err, "Bad file descriptor error
 $out    = 'REPLACE ME';
 $err    = 'REPLACE ME';
 $fd_map = _map_fds;
-my $bad_file = "$in_file.nonexistant";
+my $bad_file = "$in_file.nonexistent";
 _unlink $bad_file if -e $bad_file;
 eval { $r = run \@perl, ">$out_file", "<$bad_file"; };
 like $@, qr/\Q$bad_file\E/;

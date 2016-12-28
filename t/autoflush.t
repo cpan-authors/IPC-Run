@@ -36,5 +36,5 @@ else {
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Unseting Autoflush on Windows doesn't work" );
 
-    pass('Finshed Windows test');
+    pass('Finished Windows test');
 }

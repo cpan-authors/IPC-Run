@@ -16,7 +16,7 @@ SYNOPSIS
           run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
-          # Redirecting using psuedo-terminals instad of pipes.
+          # Redirecting using pseudo-terminals instead of pipes.
           run \@cat, '<pty<', \$in,  '>pty>', \$out_and_err;
 
        ## Scripting subprocesses (like Expect):
@@ -335,7 +335,7 @@ DESCRIPTION
     reference and propagates any exceptions thrown (including exec()
     failure) back to the parent. This has several pleasant effects: any
     exceptions thrown in the child, including exec() failure, come flying
-    out of start() or run() as though they had ocurred in the parent.
+    out of start() or run() as though they had occurred in the parent.
 
     This includes exceptions your code thrown from init subs. In this
     example:
@@ -464,7 +464,7 @@ DESCRIPTION
     the parent's open file handles as dictated by your system's
     close-on-exec behavior and the $^F flag, except that processes after a
     '&' will not inherit the parent's stdin. Also note that $^F does not
-    affect file desciptors obtained via POSIX, since it only applies to
+    affect file descriptors obtained via POSIX, since it only applies to
     full-fledged Perl file handles. Such processes will have their stdin
     closed unless it has been redirected-to.
 
@@ -608,7 +608,7 @@ PSEUDO TERMINALS
     think it's connected to a real terminal.
 
   CAVEATS
-    Psuedo-terminals are not pipes, though they are similar. Here are some
+    Pseudo-terminals are not pipes, though they are similar. Here are some
     differences to watch out for.
 
     Echoing
@@ -957,7 +957,7 @@ ROUTINES
         sorry).
 
         If any exceptions are thrown, this does a "kill_kill" before
-        propogating them.
+        propagating them.
 
     signal
            ## To send it a specific signal by name ("USR1"):
@@ -1018,10 +1018,10 @@ ROUTINES
         Sends a "TERM", waits for all children to exit for up to 30 seconds,
         then sends a "KILL" to any that survived the "TERM".
 
-        Will wait for up to 30 more seconds for the OS to sucessfully "KILL"
+        Will wait for up to 30 more seconds for the OS to successfully "KILL"
         the processes.
 
-        The 30 seconds may be overriden by setting the "grace" option, this
+        The 30 seconds may be overridden by setting the "grace" option, this
         overrides both timers.
 
         The harness is then cleaned up.
@@ -1110,7 +1110,7 @@ ROUTINES
            $h->pump;
 
         Pump accepts a single parameter harness. It blocks until it delivers
-        some input or recieves some output. It returns TRUE if there is
+        some input or receives some output. It returns TRUE if there is
         still input or output to be done, FALSE otherwise.
 
         pump() will automatically call start() if need be, so you may call
@@ -1162,7 +1162,7 @@ ROUTINES
         specific children to be reaped.
 
         Only call this from a signal handler if your "perl" is recent enough
-        to have safe signal handling (5.6.1 did not, IIRC, but it was beign
+        to have safe signal handling (5.6.1 did not, IIRC, but it was being
         discussed on perl5-porters). Calling this (or doing any significant
         work) in a signal handler on older "perl"s is asking for seg faults.
 
@@ -1458,7 +1458,7 @@ TODO
     with /dev/fd or the name of a temporary file containing foo's output.
     This is like <(sub_cmd ...) found in bash and csh (IIRC).
 
-    Allow multiple harnesses to be combined as independant sets of processes
+    Allow multiple harnesses to be combined as independent sets of processes
     in to one 'meta-harness'.
 
     Allow a harness to be passed in place of an \@cmd. This would allow
@@ -1492,7 +1492,7 @@ Win32 LIMITATIONS
         really need to pass file handles, us Win32API:: GetOsFHandle() or
         ::FdGetOsFHandle() to get the integer handle and pass it to the
         child process using the command line, environment, stdin,
-        intermediary file, or other IPC mechnism. Then use that handle in
+        intermediary file, or other IPC mechanism. Then use that handle in
         the child (Win32API.pm provides ways to reconstitute Perl file
         handles from Win32 file handles).
 
@@ -1556,7 +1556,7 @@ Win32 LIMITATIONS
 
         Being a race condition, it's hard to reproduce, but I encountered it
         while testing this code on a drive share to a samba box. In this
-        case, it takes t/run.t a long time to spawn it's chile processes
+        case, it takes t/run.t a long time to spawn it's child processes
         (the parent hangs in the first select for several seconds until the
         child emits any debugging output).
 
@@ -1653,7 +1653,7 @@ LIMITATIONS
 
     The second problem is that Perl's DESTROY subs and other on-exit cleanup
     gets run in the child process. If objects are instantiated in the parent
-    before the child is forked, the the DESTROY will get run once in the
+    before the child is forked, the DESTROY will get run once in the
     parent and once in the child. When coprocess subs exit, POSIX::exit is
     called to work around this, but it means that objects that are still
     referred to at that time are not cleaned up. So setting package vars or

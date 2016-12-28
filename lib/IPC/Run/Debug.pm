@@ -29,7 +29,7 @@ but the numbers shown are still supported for backwards compatibility:
 
    0  none         disabled (special, see below)
    1  basic        what's running
-   2  data         what's being sent/recieved
+   2  data         what's being sent/received
    3  details      what's going on in more detail
    4  gory         way too much detail for most uses
    10 all          use this when submitting bug reports
@@ -123,7 +123,7 @@ sub _map_fds {
    my $in_use;
    my $dummy;
    for my $fd (0..63) {
-      ## I'd like a quicker way (less user, cpu & expecially sys and kernal
+      ## I'd like a quicker way (less user, cpu & especially sys and kernel
       ## calls) to detect open file descriptors.  Let me know...
       ## Hmmm, could do a 0 length read and check for bad file descriptor...
       ## but that segfaults on Win32
@@ -142,7 +142,7 @@ use vars qw( $parent_pid );
 
 $parent_pid = $$;
 
-## TODO: move debugging to it's own module and make it compile-time
+## TODO: move debugging to its own module and make it compile-time
 ## optimizable.
 
 ## Give kid process debugging nice names
