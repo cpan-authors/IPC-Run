@@ -22,6 +22,7 @@ BEGIN {
 
 use Test::More;
 use IPC::Run qw( :filters :filter_imp start run );
+use lib '.';
 use t::lib::Test;
 
 BEGIN {

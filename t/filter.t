@@ -21,6 +21,7 @@ BEGIN {
 }
 
 use Test::More tests => 80;
+use lib '.';
 use t::lib::Test;
 use IPC::Run qw( :filters :filter_imp );
 
