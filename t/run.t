@@ -40,6 +40,7 @@ select STDOUT;
 use Test::More tests => 268;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
+use lib '.';
 use t::lib::Test;
 
 # Must do this this late as plan uses localtime, and localtime on darwin opens
