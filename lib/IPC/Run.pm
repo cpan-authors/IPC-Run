@@ -1060,7 +1060,6 @@ use File::Spec ();
 use IO::Handle;
 require IPC::Run::IO;
 require IPC::Run::Timer;
-use UNIVERSAL ();
 
 use constant Win32_MODE => $^O =~ /os2|Win32/i;
 
