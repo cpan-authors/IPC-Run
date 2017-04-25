@@ -3399,7 +3399,7 @@ sub reap_nb {
                   if _debugging;
 
                 confess "waitpid returned the wrong PID: $pid instead of $kid->{PID}"
-                  unless $pid = $kid->{PID};
+                  unless $pid == $kid->{PID};
                 _debug "$kid->{PID} returned $?\n" if _debugging;
                 $kid->{RESULT} = $?;
             }
