@@ -37,7 +37,7 @@ $prompt = quotemeta $prompt;
 for (qw( ls ps fOoBaR pwd )) {
     $in  = $_ . "\n";
     $out = '';
-    $h->timeout(5);    # restart the timout
+    $h->timeout(5);    # restart the timeout
     pump $h until $out =~ s/\A((?s:.*))(?=^.*?$prompt(?!\n)\Z)//m;
     print map { "su: $_\n" } split( /\n/m, $1 );
 }

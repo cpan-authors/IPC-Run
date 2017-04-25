@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-io.t - Test suite excercising IPC::Run::IO with IPC::Run::run.
+io.t - Test suite exercising IPC::Run::IO with IPC::Run::run.
 
 =cut
 

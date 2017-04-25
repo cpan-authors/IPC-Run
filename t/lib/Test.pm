@@ -26,12 +26,12 @@ BEGIN {
 #the filters to be linked and tested.
 #
 #If the filter chain is to be fed multiple inputs in sequence, the second
-#parameter should be a reference to an array of thos inputs:
+#parameter should be a reference to an array of those inputs:
 #
 #   my @tests = filter_tests( "foo", [qw(1 2 3)], "123", \&filter );
 #
 #If the filter chain should produce a sequence of outputs, then the
-#thrid parameter should be a reference to an array of those outputs:
+#third parameter should be a reference to an array of those outputs:
 #
 #   my @tests = filter_tests(
 #      "foo",
