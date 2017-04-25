@@ -40,7 +40,9 @@ select STDOUT;
 use Test::More tests => 268;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
-use t::lib::Test;
+
+require './t/lib/Test.pm';
+IPC::Run::Test->import();
 
 # Must do this this late as plan uses localtime, and localtime on darwin opens
 # a file descriptor. Quite probably other operating systems do file descriptor

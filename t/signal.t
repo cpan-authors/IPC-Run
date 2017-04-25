@@ -22,7 +22,9 @@ BEGIN {
 
 use Test::More;
 use IPC::Run qw( :filters :filter_imp start run );
-use t::lib::Test;
+
+require './t/lib/Test.pm';
+IPC::Run::Test->import();
 
 BEGIN {
     if ( IPC::Run::Win32_MODE() ) {

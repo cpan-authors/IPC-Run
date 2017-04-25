@@ -1,4 +1,4 @@
-package t::lib::Test;
+package IPC::Run::Test;
 
 use strict;
 use Test::More;

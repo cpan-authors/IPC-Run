@@ -21,7 +21,8 @@ BEGIN {
 }
 
 use Test::More tests => 80;
-use t::lib::Test;
+require './t/lib/Test.pm';
+IPC::Run::Test->import();
 use IPC::Run qw( :filters :filter_imp );
 
 sub uc_filter {
