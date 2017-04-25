@@ -1,5 +1,11 @@
 Revision history for Perl extension IPC::Run
 
+0.95 Mon Apr 24 2017
+ - Spelling fixes
+ - doc fix: full_result returns $?, not $? >> 8
+ - Fix check for reaped PID in reap_nb
+ - Re-remove unnecessary use of UNIVERSAL
+
 0.94_02 Thu Apr 14 2016
  - Skip infinity test on perl below 5.8.9
 

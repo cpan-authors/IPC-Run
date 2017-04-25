@@ -4,7 +4,7 @@
       "Barrie Slaymaker <barries@slaysys.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 7.0401, CPAN::Meta::Converter version 2.150001",
+   "generated_by" : "ExtUtils::MakeMaker version 7.24, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -41,7 +41,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run"
@@ -53,5 +53,6 @@
          "url" : "https://github.com/toddr/IPC-Run"
       }
    },
-   "version" : "0.94_02"
+   "version" : "0.95",
+   "x_serialization_backend" : "JSON::PP version 2.27400_02"
 }
