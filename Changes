@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.96 Fri May 12 2017
+ - Update bug tracker to https://github.com/toddr/IPC-Run/issues
+
 0.95 Mon Apr 24 2017
  - Spelling fixes
  - doc fix: full_result returns $?, not $? >> 8

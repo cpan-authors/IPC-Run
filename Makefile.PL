@@ -68,7 +68,7 @@ WriteMakefile(
 	    },
 	    resources => {
 		license => 'http://dev.perl.org/licenses/',
-		bugtracker => 'https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run',
+		bugtracker => 'https://github.com/toddr/IPC-Run/issues',
 		repository => 'https://github.com/toddr/IPC-Run',
 	    }
 	});

@@ -53,6 +53,6 @@
          "url" : "https://github.com/toddr/IPC-Run"
       }
    },
-   "version" : "0.95",
+   "version" : "0.96",
    "x_serialization_backend" : "JSON::PP version 2.27400_02"
 }
