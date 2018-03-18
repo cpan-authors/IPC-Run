@@ -15,10 +15,10 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
    ## Using run() instead of system():
       use IPC::Run qw( run timeout );
 
-      run \@cmd, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
+      run \@cat, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
 
       # Can do I/O to sub refs and filenames, too:
-      run \@cmd, '<', "in.txt", \&out, \&err or die "cat: $?"
+      run \@cat, '<', "in.txt", \&out, \&err or die "cat: $?"
       run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
