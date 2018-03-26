@@ -1,5 +1,11 @@
 Revision history for Perl extension IPC::Run
 
+0.97 Mon Mar 26 2018
+ - Update meta and POD to point to GitHub issues not RT.
+ - Update README with pod changes.
+ - Fix variable name in synopsis - [Github #47]
+ - Fix t/run.t to work on "perl in space" - [Github #100]
+
 0.96 Fri May 12 2017
  - Update bug tracker to https://github.com/toddr/IPC-Run/issues
 
