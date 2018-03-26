@@ -4349,11 +4349,9 @@ Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 =head1 SUPPORT
 
-Bugs should always be submitted via the CPAN bug tracker
+Bugs should always be submitted via the GitHub bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run>
-
-For other issues, contact the maintainer (the first listed author)
+L<https://github.com/toddr/IPC-Run/issues>
 
 =head1 AUTHORS
 
