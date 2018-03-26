@@ -24,8 +24,8 @@ requires:
   IO::Pty: '1.08'
   Test::More: '0.47'
 resources:
-  bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run
+  bugtracker: https://github.com/toddr/IPC-Run/issues
   license: http://dev.perl.org/licenses/
   repository: https://github.com/toddr/IPC-Run
-version: '0.96'
+version: '0.97'
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'
