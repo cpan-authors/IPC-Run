@@ -1135,6 +1135,12 @@ sub _debug_fd {
     return fileno STDERR unless defined $cur_self->{DEBUG_FD};
 
     return $cur_self->{DEBUG_FD};
+
+    for my $kid ( @{ $cur_self->{KIDS} } ) {
+        for my $op ( @{ $kid->{OPS} } ) {
+            @{ $op->{FILTERS} } = ();
+        }
+    }
 }
 
 sub DESTROY {
