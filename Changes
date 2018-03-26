@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+0.98 ???
+ - Switch to using $!{EINTR}
+
 0.97 Mon Mar 26 2018
  - Update meta and POD to point to GitHub issues not RT.
  - Update README with pod changes.
