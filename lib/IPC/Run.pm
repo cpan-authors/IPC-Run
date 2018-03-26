@@ -1303,7 +1303,7 @@ sub _sysopen {
       sprintf( "O_CREAT=0x%02x ",  O_CREAT ),
       sprintf( "O_APPEND=0x%02x ", O_APPEND ),
       if _debugging_details;
-    my $r = POSIX::open( $_[0], $_[1], 0644 );
+    my $r = POSIX::open( $_[0], $_[1], 0666 );
     croak "$!: open( $_[0], ", sprintf( "0x%03x", $_[1] ), " )" unless defined $r;
     _debug "open( $_[0], ", sprintf( "0x%03x", $_[1] ), " ) = $r"
       if _debugging_data;
