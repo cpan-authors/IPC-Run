@@ -455,7 +455,7 @@ sub win32_spawn {
         $cmd->[0],
         $cmd_line,
         1,    ## Inherit handles
-        NORMAL_PRIORITY_CLASS,
+        0,    ## Inherit parent priortiy class. Was NORMAL_PRIORITY_CLASS
         ".",
     ) or croak "$!: Win32::Process::Create()";
 
