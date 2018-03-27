@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/toddr/IPC-Run.png?branch=master)](https://travis-ci.org/toddr/IPC-Run)
 
+[![Build status](https://ci.appveyor.com/api/projects/status/06yk51jwuqtfh25x?svg=true)](https://ci.appveyor.com/project/toddr/ipc-run)
+
 # NAME
 
 IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
