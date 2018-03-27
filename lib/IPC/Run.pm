@@ -2469,6 +2469,11 @@ STDIN, STDOUT, or STDERR to be guaranteed effective.
 sub close_terminal {
     ## Cast of the bonds of a controlling terminal
 
+    # Just in case the parent (I'm talking to you FCGI) had these tied.
+    untie *STDIN;
+    untie *STDOUT;
+    untie *STDERR;
+
     POSIX::setsid() || croak "POSIX::setsid() failed";
     _debug "closing stdin, out, err"
       if _debugging_details;
