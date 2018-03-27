@@ -1,10 +1,11 @@
 version: '{build}'
 shallow_clone: true
 
+branches:
+  except:
+    - /issue\d+/
 environment:
   matrix:
-    - perl_type: system
-    - perl_type: strawberry
     - perl_type: cygwin
 
 install:
@@ -14,5 +15,8 @@ install:
 
 build: off
 
+build_script:
+  - '%perl% Makefile.PL'
+  - 'make test'
 test_script:
-  - 'prove -l t t/mojo t/mojolicious'
+  - 'make test'
