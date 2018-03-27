@@ -2517,6 +2517,7 @@ sub _do_kid_and_exit {
             ## Clean up the parent's fds.
             for ( keys %{ $self->{PTYS} } ) {
                 _debug "Cleaning up parent's ptty '$_'" if _debugging_details;
+                $self->{PTYS}->{$_}->make_slave_controlling_terminal;
                 my $slave = $self->{PTYS}->{$_}->slave;
                 $closed[ $self->{PTYS}->{$_}->fileno ] = 1;
                 close $self->{PTYS}->{$_};
