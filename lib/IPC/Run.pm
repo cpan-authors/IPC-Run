@@ -2616,7 +2616,7 @@ sub _do_kid_and_exit {
     if ($@) {
         _write $self->{SYNC_WRITER_FD}, $@;
         ## Avoid DESTROY.
-        POSIX::exit 1;
+        POSIX::_exit(1);
     }
 
     ## We must be executing code in the child, otherwise exec() would have
@@ -2633,12 +2633,12 @@ sub _do_kid_and_exit {
     ## this may cause the closure to be cleaned up.  Maybe.
     $kid->{VAL} = undef;
 
-    ## Use POSIX::exit to avoid global destruction, since this might
+    ## Use POSIX::_exit to avoid global destruction, since this might
     ## cause DESTROY() to be called on objects created in the parent
     ## and thus cause double cleanup.  For instance, if DESTROY() unlinks
     ## a file in the child, we don't want the parent to suddenly miss
     ## it.
-    POSIX::exit 0;
+    POSIX::_exit(0);
 }
 
 =pod
@@ -4300,7 +4300,7 @@ non-inheritable but we don't C<exec()> for &sub processes.
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the
 child is forked, the DESTROY will get run once in the parent and once in
-the child.  When coprocess subs exit, POSIX::exit is called to work around this,
+the child.  When coprocess subs exit, POSIX::_exit is called to work around this,
 but it means that objects that are still referred to at that time are not
 cleaned up.  So setting package vars or closure vars to point to objects that
 rely on DESTROY to affect things outside the process (files, etc), will
