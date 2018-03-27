@@ -2422,8 +2422,15 @@ sub _open_pipes {
                 }
                 _debug_desc_fd( 'writing to', $pipe ) if _debugging_details;
 
-                my $c = _write( $pipe->{FD}, $$in_ref );
-                substr( $$in_ref, 0, $c, '' );
+                if ( length $$in_ref && $$in_ref ) {
+                    my $c = _write( $pipe->{FD}, $$in_ref );
+                    substr( $$in_ref, 0, $c, '' );
+                }
+                else {
+                    $self->_clobber($pipe);
+                    return undef;
+                }
+
                 return 1;
             };
             ## Output filters are the first filters
