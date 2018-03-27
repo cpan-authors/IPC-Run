@@ -1686,6 +1686,7 @@ sub harness {
                      # if an op is seen.
 
     my $cur_kid;     # references kid or handle being parsed
+    my $next_kid_close_stdin = 0;
 
     my $assumed_fd = 0;    # fd to assume in succinct mode (no redir ops)
     my $handle_num = 0;    # 1... is which handle we're parsing
@@ -1743,6 +1744,13 @@ sub harness {
                         PID    => '',
                         RESULT => undef,
                     };
+
+                    unshift @{ $cur_kid->{OPS} }, {
+                        TYPE => 'close',
+                        KFD  => 0,
+                    } if $next_kid_close_stdin;
+                    $next_kid_close_stdin = 0;
+
                     push @{ $self->{KIDS} }, $cur_kid;
                     $succinct = 1;
                 }
@@ -1945,13 +1953,10 @@ sub harness {
 
                 elsif ( $_ eq "&" ) {
                     croak "No command before '$_'" unless $cur_kid;
-                    unshift @{ $cur_kid->{OPS} }, {
-                        TYPE => 'close',
-                        KFD  => 0,
-                    };
-                    $succinct   = 1;
-                    $assumed_fd = 0;
-                    $cur_kid    = undef;
+                    $next_kid_close_stdin = 1;
+                    $succinct             = 1;
+                    $assumed_fd           = 0;
+                    $cur_kid              = undef;
                 }
 
                 elsif ( $_ eq 'init' ) {
