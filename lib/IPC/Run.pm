@@ -1599,6 +1599,8 @@ sub kill_kill {
         $self->reap_nb;
         last unless $self->_running_kids;
 
+        return 1 if !@{ $self->{PIPES} };    ## kids pending, no pipes waiting
+
         if ( $accum_delay >= $grace * 0.8 ) {
             ## No point in checking until delay has grown some.
             if ( time >= $quitting_time ) {
