@@ -27,11 +27,11 @@ sub run_echo {
     my @args = ( '/bin/echo', 'hello' );
 
     my $t = "test case '$value': '@args'";
-    diag("Running $t");
+    note("Running $t");
 
     my ( $in, $out, $err );
     my $rv = run( [@args], \$in, \$out, \$err )
       or die "Cannot run @args: $err";
     ok( $rv, "Ran $t: OK" );
-    diag($out);
+    note($out);
 }
