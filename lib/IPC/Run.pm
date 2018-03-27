@@ -1144,6 +1144,12 @@ sub DESTROY {
     my IPC::Run $self = shift;
     POSIX::close $self->{DEBUG_FD} if defined $self->{DEBUG_FD};
     $self->{DEBUG_FD} = undef;
+
+    for my $kid ( @{$self->{KIDS}} ) {
+        for my $op ( @{$kid->{OPS}} ) {
+            delete $op->{FILTERS};
+        }
+    }
 }
 
 ##
