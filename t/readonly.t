@@ -11,14 +11,23 @@ use strict;
 use warnings;
 
 use IPC::Run 'run';
-use Test::More qw( no_plan );
-use Readonly;
+use Test::More;
+
+$] > 5.014 or plan skip_all => q{IPC::Run doesn't support Readonly below 5.14};
+
+BEGIN {
+    eval 'use Readonly';
+    $INC{'Readonly.pm'} or plan skip_all => "Readonly is require for this test to work.";
+}
 
 my @lowercase = 'a' .. 'c';
 Readonly::Array my @UPPERCASE => 'A' .. 'C';
 Readonly my @MIXEDCASE        => qw( X y Z );
 
 run_echo($_) for ( @lowercase, @UPPERCASE, @MIXEDCASE );
+
+done_testing();
+exit;
 
 sub run_echo {
     my $value = shift;
