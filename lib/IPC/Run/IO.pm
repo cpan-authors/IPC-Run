@@ -110,7 +110,7 @@ sub new {
     if ( !ref $external ) {
         $self->{FILENAME} = $external;
     }
-    elsif ( ref eq 'GLOB' || UNIVERSAL::isa( $external, 'IO::Handle' ) ) {
+    elsif ( ref $external eq 'GLOB' || UNIVERSAL::isa( $external, 'IO::Handle' ) ) {
         $self->{HANDLE}     = $external;
         $self->{DONT_CLOSE} = 1;
     }
