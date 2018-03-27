@@ -4,6 +4,8 @@ author:
   - 'Barrie Slaymaker <barries@slaysys.com>'
 build_requires:
   ExtUtils::MakeMaker: '0'
+  Readonly: '0'
+  Readonly::Array: '0'
   Test::More: '0'
 configure_requires:
   ExtUtils::MakeMaker: '0'
