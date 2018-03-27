@@ -7,16 +7,16 @@ branches:
 environment:
   matrix:
     - perl_type: cygwin
-
+    - perl: activeperl
+    - perl: strawberryperl
 install:
-  - 'call .appveyor.cmd perl_setup'
-  - '%perl% -V'
-  - '%cpanm% --installdeps -n --with-develop --with-recommends .'
-
-build: off
-
+  - if %perl%==strawberryperl cinst strawberryperl
+  - if %perl%==strawberryperl set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
+  - if not %perl%==cygwinperl perl -v
+  - if     %perl%==cygwinperl c:\cygwin\bin\sh -c "/usr/bin/perl -v"
+  - cd C:\projects\%APPVEYOR_PROJECT_NAME%
 build_script:
-  - '%perl% Makefile.PL'
-  - 'make test'
-test_script:
-  - 'make test'
+  - set HARNESS_OPTIONS=c:j4
+  - 'echo "Perl: %perl%"'
+  - if     %perl%==cygwinperl   c:\cygwin\bin\sh -c "PATH=/usr/bin:/bin; perl Makefile.PL &&  make test"
+  - if not %perl%==cygwinperl                                          ( perl Makefile.PL && gmake test )
