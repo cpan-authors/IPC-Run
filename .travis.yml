@@ -1,5 +1,8 @@
 language: perl
 sudo: false
+branches:
+  except:
+    - /issue\d+/
 perl:
   - 5.8.1
   - 5.8.3
