@@ -1256,7 +1256,7 @@ sub _dup {
     croak "$!: dup( $_[0] )" unless defined $r;
     $r = 0 if $r eq '0 but true';
     _debug "dup( $_[0] ) = $r" if _debugging_details;
-    $fds{$r} = 1;
+    $fds{$r} = {};
     return $r;
 }
 
@@ -1266,7 +1266,7 @@ sub _dup2_rudely {
     croak "$!: dup2( $_[0], $_[1] )" unless defined $r;
     $r = 0 if $r eq '0 but true';
     _debug "dup2( $_[0], $_[1] ) = $r" if _debugging_details;
-    $fds{$r} = 1;
+    $fds{$r} = {};
     return $r;
 }
 
@@ -1309,7 +1309,7 @@ sub _sysopen {
     croak "$!: open( $_[0], ", sprintf( "0x%03x", $_[1] ), " )" unless defined $r;
     _debug "open( $_[0], ", sprintf( "0x%03x", $_[1] ), " ) = $r"
       if _debugging_data;
-    $fds{$r} = 1;
+    $fds{$r} = {};
     return $r;
 }
 
@@ -1320,7 +1320,7 @@ sub _pipe {
     my ( $r, $w ) = POSIX::pipe;
     croak "$!: pipe()" unless defined $r;
     _debug "pipe() = ( $r, $w ) " if _debugging_details;
-    $fds{$r} = $fds{$w} = 1;
+    @fds{$r, $w} = ( {}, {} );
     return ( $r, $w );
 }
 
@@ -1354,7 +1354,7 @@ sub _pty {
     $pty->blocking(0) or croak "$!: pty->blocking ( 0 )";
     _debug "pty() = ( ", $pty->fileno, ", ", $pty->slave->fileno, " )"
       if _debugging_details;
-    $fds{ $pty->fileno } = $fds{ $pty->slave->fileno } = 1;
+    @fds{ $pty->fileno, $pty->slave->fileno } = ( {}, {} );
     return $pty;
 }
 
@@ -2468,9 +2468,10 @@ sub _dup2_gently {
         next unless defined $_->{TFD};
         $_->{TFD} = _dup( $_->{TFD} ) if $_->{TFD} == $fd2;
     }
-    $self->{DEBUG_FD} = _dup $self->{DEBUG_FD}
-      if defined $self->{DEBUG_FD} && $self->{DEBUG_FD} == $fd2;
-
+    if ( defined $self->{DEBUG_FD} && $self->{DEBUG_FD} == $fd2 ) {
+        $self->{DEBUG_FD} = _dup $self->{DEBUG_FD};
+        $fds{$self->{DEBUG_FD}}{needed} = 1;
+    }
     _dup2_rudely( $fd1, $fd2 );
 }
 
@@ -2530,39 +2531,41 @@ sub _do_kid_and_exit {
         ## close parent FD's first so they're out of the way.
         ## Don't close STDIN, STDOUT, STDERR: they should be inherited or
         ## overwritten below.
-        my @needed = $self->{noinherit} ? () : ( 1, 1, 1 );
-        $needed[ $self->{SYNC_WRITER_FD} ] = 1;
-        $needed[ $self->{DEBUG_FD} ] = 1 if defined $self->{DEBUG_FD};
+        do { $_->{needed} = 1 for @fds{0..2} }
+           unless $self->{noinherit};
 
-        for ( @{ $kid->{OPS} } ) {
-            $needed[ $_->{TFD} ] = 1 if defined $_->{TFD};
-        }
+        $fds{$self->{SYNC_WRITER_FD}}{needed} = 1;
+        $fds{$self->{DEBUG_FD}}{needed} = 1 if defined $self->{DEBUG_FD};
+
+        $fds{$_->{TFD}}{needed} = 1
+           foreach grep { defined $_->{TFD} } @{$kid->{OPS} };
+
 
         ## TODO: use the forthcoming IO::Pty to close the terminal and
         ## make the first pty for this child the controlling terminal.
         ## This will also make it so that pty-laden kids don't cause
         ## other kids to lose stdin/stdout/stderr.
-        my @closed;
+
         if ( %{ $self->{PTYS} } ) {
             ## Clean up the parent's fds.
             for ( keys %{ $self->{PTYS} } ) {
                 _debug "Cleaning up parent's ptty '$_'" if _debugging_details;
                 $self->{PTYS}->{$_}->make_slave_controlling_terminal;
                 my $slave = $self->{PTYS}->{$_}->slave;
-                $closed[ $self->{PTYS}->{$_}->fileno ] = 1;
+ 	        delete $fds{$self->{PTYS}->{$_}->fileno};
                 close $self->{PTYS}->{$_};
                 $self->{PTYS}->{$_} = $slave;
             }
 
             close_terminal;
-            $closed[$_] = 1 for ( 0 .. 2 );
+            delete @fds{0..2};
         }
 
         for my $sibling ( @{ $self->{KIDS} } ) {
             for ( @{ $sibling->{OPS} } ) {
                 if ( $_->{TYPE} =~ /^.pty.$/ ) {
                     $_->{TFD} = $self->{PTYS}->{ $_->{PTY_ID} }->fileno;
-                    $needed[ $_->{TFD} ] = 1;
+                    $fds{$_->{TFD}}{needed} = 1;
                 }
 
                 #	    for ( $_->{FD}, ( $sibling != $kid ? $_->{TFD} : () ) ) {
@@ -2578,21 +2581,18 @@ sub _do_kid_and_exit {
         ## This is crude: we have no way of keeping track of browsing all open
         ## fds, so we scan to a fairly high fd.
         _debug "open fds: ", join " ", keys %fds if _debugging_details;
-        for ( keys %fds ) {
-            if ( !$closed[$_] && !$needed[$_] ) {
-                _close($_);
-                $closed[$_] = 1;
-            }
-        }
 
-        ## Lazy closing is so the same fd (ie the same TFD value) can be dup2'ed on
-        ## several times.
-        my @lazy_close;
+        _close( $_ ) foreach grep { ! $fds{$_}{needed} } keys %fds;
+
         for ( @{ $kid->{OPS} } ) {
             if ( defined $_->{TFD} ) {
+
+                # we're always creating KFD
+                $fds{$_->{KFD}}{needed} = 1;
+
                 unless ( $_->{TFD} == $_->{KFD} ) {
                     $self->_dup2_gently( $kid->{OPS}, $_->{TFD}, $_->{KFD} );
-                    push @lazy_close, $_->{TFD};
+                    $fds{$_->{TFD}}{lazy_close} = 1;
                 } else {
                     my $fd = _dup($_->{TFD});
                     $self->_dup2_gently( $kid->{OPS}, $fd, $_->{KFD} );
@@ -2602,12 +2602,12 @@ sub _do_kid_and_exit {
             elsif ( $_->{TYPE} eq 'dup' ) {
                 $self->_dup2_gently( $kid->{OPS}, $_->{KFD1}, $_->{KFD2} )
                   unless $_->{KFD1} == $_->{KFD2};
+                $fds{$_->{KFD2}}{needed} = 1;
             }
             elsif ( $_->{TYPE} eq 'close' ) {
                 for ( $_->{KFD} ) {
-                    if ( !$closed[$_] ) {
+                    if ( $fds{$_} ) {
                         _close($_);
-                        $closed[$_] = 1;
                         $_ = undef;
                     }
                 }
@@ -2617,12 +2617,7 @@ sub _do_kid_and_exit {
             }
         }
 
-        for (@lazy_close) {
-            unless ( $closed[$_] ) {
-                _close($_);
-                $closed[$_] = 1;
-            }
-        }
+        _close( $_ ) foreach grep { $fds{$_}{lazy_close} } keys %fds;
 
         if ( ref $kid->{VAL} ne 'CODE' ) {
             open $s1, ">&=$self->{SYNC_WRITER_FD}"
