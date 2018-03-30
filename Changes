@@ -1,5 +1,11 @@
 Revision history for Perl extension IPC::Run
 
+0.99 Fri Mar 30 2018
+ - Fixes for windows unit tests so they skip or pass.
+  t/autoflush.t
+  t/readonly.t
+  t/run_stdin-callback-return-array.t
+
 0.98 Thu Mar 29 2018
  - Switch to using $!{EINTR}
  - Honor umask for user/group permissions on a +rw file
