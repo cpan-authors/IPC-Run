@@ -32,9 +32,11 @@ else {
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Autoflush still set" );
 
+    { local $TODO = 'Seems to work on at least Strawberry Perl 5.20.0';
     STDOUT->autoflush(0);
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Unseting Autoflush on Windows doesn't work" );
+    }
 
     pass('Finished Windows test');
 }
