@@ -9,6 +9,9 @@ use IPC::Run qw( run );
 use Test::More tests => 9;
 
 my @cmd = ("true");
+if ($^O eq 'MSWin32') {
+  @cmd = ('cmd','/C','echo','y');
+}
 our ( $i, @i );
 my ( $in, @in );
 

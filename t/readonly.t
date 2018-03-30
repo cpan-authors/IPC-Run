@@ -34,6 +34,9 @@ sub run_echo {
 
     #   my @args = ( '/bin/echo', $value );
     my @args = ( '/bin/echo', 'hello' );
+    if ($^O eq 'MSWin32') {
+      @args = ('cmd','/C','echo','Hello');
+    }
 
     my $t = "test case '$value': '@args'";
     note("Running $t");
