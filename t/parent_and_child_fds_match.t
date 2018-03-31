@@ -10,7 +10,6 @@ use Data::Dumper qw( Dumper );
 use File::Temp qw( tempfile );
 use IO::Handle ();
 use IPC::Run ();
-use Test::More;
 
 if (@ARGV > 0 && $ARGV[0] eq 'child') {
     exit(child());
@@ -25,6 +24,16 @@ sub child {
 }
 
 sub parent {
+    # Load at runtime to not involve the child's run in any tests. We could
+    # alternatively move the child to its own program but it is easier to
+    # re-run ourselves by using $0.
+    require Test::More;
+    Test::More->import;
+
+    # We can't use done_testing() to account for number of tests as 5.8.9's
+    # Test::More apparently doesn't support that.
+    plan(tests => 3);
+
     # This is fd 3 since we have 0, 1, 2 taken by stdin, stdout, and stderr.
     my $fh = tempfile();
     ok($fh, 'opened file');
@@ -46,7 +55,6 @@ sub parent {
 
     ok($harness->finish, 'child process exited with success status');
 
-    done_testing();
     return 0;
 }
 
