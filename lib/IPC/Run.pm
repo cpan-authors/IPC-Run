@@ -2586,6 +2586,10 @@ sub _do_kid_and_exit {
                 unless ( $_->{TFD} == $_->{KFD} ) {
                     $self->_dup2_gently( $kid->{OPS}, $_->{TFD}, $_->{KFD} );
                     push @lazy_close, $_->{TFD};
+                } else {
+                    my $fd = _dup($_->{TFD});
+                    $self->_dup2_gently( $kid->{OPS}, $fd, $_->{KFD} );
+                    _close($fd);
                 }
             }
             elsif ( $_->{TYPE} eq 'dup' ) {

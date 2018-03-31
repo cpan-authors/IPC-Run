@@ -1,5 +1,9 @@
 Revision history for Perl extension IPC::Run
 
+1.00 ???
+ - #99 - Fix using fd in child process when it happens to be the same number in
+   the child as it was in the parent.
+
 0.99 Fri Mar 30 2018
  - Fixes for windows unit tests so they skip or pass.
   t/autoflush.t
