@@ -23,6 +23,8 @@
       "build" : {
          "requires" : {
             "ExtUtils::MakeMaker" : "0",
+            "Readonly" : "0",
+            "Readonly::Array" : "0",
             "Test::More" : "0"
          }
       },
@@ -44,7 +46,7 @@
    "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://rt.cpan.org/NoAuth/Bugs.html?Dist=IPC-Run"
+         "web" : "https://github.com/toddr/IPC-Run/issues"
       },
       "license" : [
          "http://dev.perl.org/licenses/"
@@ -53,6 +55,6 @@
          "url" : "https://github.com/toddr/IPC-Run"
       }
    },
-   "version" : "0.96",
+   "version" : "0.98",
    "x_serialization_backend" : "JSON::PP version 2.27400_02"
 }

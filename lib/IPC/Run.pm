@@ -15,10 +15,10 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
    ## Using run() instead of system():
       use IPC::Run qw( run timeout );
 
-      run \@cmd, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
+      run \@cat, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
 
       # Can do I/O to sub refs and filenames, too:
-      run \@cmd, '<', "in.txt", \&out, \&err or die "cat: $?"
+      run \@cat, '<', "in.txt", \&out, \&err or die "cat: $?"
       run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
@@ -1015,7 +1015,7 @@ use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 
 BEGIN {
-    $VERSION = '0.96';
+    $VERSION = '0.98';
     @ISA     = qw{ Exporter };
 
     ## We use @EXPORT for the end user's convenience: there's only one function
@@ -1144,6 +1144,12 @@ sub DESTROY {
     my IPC::Run $self = shift;
     POSIX::close $self->{DEBUG_FD} if defined $self->{DEBUG_FD};
     $self->{DEBUG_FD} = undef;
+
+    for my $kid ( @{$self->{KIDS}} ) {
+        for my $op ( @{$kid->{OPS}} ) {
+            delete $op->{FILTERS};
+        }
+    }
 }
 
 ##
@@ -1166,13 +1172,9 @@ sub _search_path {
         :                  '/'
     );
 
-    if (
-        Win32_MODE
+    if (   Win32_MODE
         && ( $cmd_name =~ /$dirsep/ )
-
-        #      && ( $cmd_name !~ /\..+$/ )  ## Only run if cmd_name has no extension?
-        && ( $cmd_name !~ m!\.[^\\/\.]+$! )
-      ) {
+        && ( $cmd_name !~ m!\.[^\\/\.]+$! ) ) {
 
         _debug "no extension(.exe), checking ENV{PATHEXT}" if _debugging;
         for ( split /;/, $ENV{PATHEXT} || ".COM;.BAT;.EXE" ) {
@@ -1303,7 +1305,7 @@ sub _sysopen {
       sprintf( "O_CREAT=0x%02x ",  O_CREAT ),
       sprintf( "O_APPEND=0x%02x ", O_APPEND ),
       if _debugging_details;
-    my $r = POSIX::open( $_[0], $_[1], 0644 );
+    my $r = POSIX::open( $_[0], $_[1], 0666 );
     croak "$!: open( $_[0], ", sprintf( "0x%03x", $_[1] ), " )" unless defined $r;
     _debug "open( $_[0], ", sprintf( "0x%03x", $_[1] ), " ) = $r"
       if _debugging_data;
@@ -1360,7 +1362,7 @@ sub _read {
     confess 'undef' unless defined $_[0];
     my $s = '';
     my $r = POSIX::read( $_[0], $s, 10_000 );
-    croak "$!: read( $_[0] )" if not($r) and $! != POSIX::EINTR();
+    croak "$!: read( $_[0] )" if not($r) and !$!{EINTR};
     $r ||= 0;
     _debug "read( $_[0] ) = $r chars '$s'" if _debugging_data;
     return $s;
@@ -1690,6 +1692,7 @@ sub harness {
                      # if an op is seen.
 
     my $cur_kid;     # references kid or handle being parsed
+    my $next_kid_close_stdin = 0;
 
     my $assumed_fd = 0;    # fd to assume in succinct mode (no redir ops)
     my $handle_num = 0;    # 1... is which handle we're parsing
@@ -1747,6 +1750,13 @@ sub harness {
                         PID    => '',
                         RESULT => undef,
                     };
+
+                    unshift @{ $cur_kid->{OPS} }, {
+                        TYPE => 'close',
+                        KFD  => 0,
+                    } if $next_kid_close_stdin;
+                    $next_kid_close_stdin = 0;
+
                     push @{ $self->{KIDS} }, $cur_kid;
                     $succinct = 1;
                 }
@@ -1788,7 +1798,7 @@ sub harness {
                     croak "No command before '$_'" unless $cur_kid;
                     push @{ $cur_kid->{OPS} }, {
                         TYPE => 'close',
-                        KFD => length $1 ? $1 : 0,
+                        KFD  => length $1 ? $1 : 0,
                     };
                     $succinct = !$first_parse;
                 }
@@ -1949,13 +1959,10 @@ sub harness {
 
                 elsif ( $_ eq "&" ) {
                     croak "No command before '$_'" unless $cur_kid;
-                    unshift @{ $cur_kid->{OPS} }, {
-                        TYPE => 'close',
-                        KFD  => 0,
-                    };
-                    $succinct   = 1;
-                    $assumed_fd = 0;
-                    $cur_kid    = undef;
+                    $next_kid_close_stdin = 1;
+                    $succinct             = 1;
+                    $assumed_fd           = 0;
+                    $cur_kid              = undef;
                 }
 
                 elsif ( $_ eq 'init' ) {
@@ -2426,8 +2433,15 @@ sub _open_pipes {
                 }
                 _debug_desc_fd( 'writing to', $pipe ) if _debugging_details;
 
-                my $c = _write( $pipe->{FD}, $$in_ref );
-                substr( $$in_ref, 0, $c, '' );
+                if ( length $$in_ref && $$in_ref ) {
+                    my $c = _write( $pipe->{FD}, $$in_ref );
+                    substr( $$in_ref, 0, $c, '' );
+                }
+                else {
+                    $self->_clobber($pipe);
+                    return undef;
+                }
+
                 return 1;
             };
             ## Output filters are the first filters
@@ -2465,6 +2479,11 @@ STDIN, STDOUT, or STDERR to be guaranteed effective.
 
 sub close_terminal {
     ## Cast of the bonds of a controlling terminal
+
+    # Just in case the parent (I'm talking to you FCGI) had these tied.
+    untie *STDIN;
+    untie *STDOUT;
+    untie *STDERR;
 
     POSIX::setsid() || croak "POSIX::setsid() failed";
     _debug "closing stdin, out, err"
@@ -2521,6 +2540,7 @@ sub _do_kid_and_exit {
             ## Clean up the parent's fds.
             for ( keys %{ $self->{PTYS} } ) {
                 _debug "Cleaning up parent's ptty '$_'" if _debugging_details;
+                $self->{PTYS}->{$_}->make_slave_controlling_terminal;
                 my $slave = $self->{PTYS}->{$_}->slave;
                 $closed[ $self->{PTYS}->{$_}->fileno ] = 1;
                 close $self->{PTYS}->{$_};
@@ -2624,7 +2644,7 @@ sub _do_kid_and_exit {
     if ($@) {
         _write $self->{SYNC_WRITER_FD}, $@;
         ## Avoid DESTROY.
-        POSIX::exit 1;
+        POSIX::_exit(1);
     }
 
     ## We must be executing code in the child, otherwise exec() would have
@@ -2641,12 +2661,12 @@ sub _do_kid_and_exit {
     ## this may cause the closure to be cleaned up.  Maybe.
     $kid->{VAL} = undef;
 
-    ## Use POSIX::exit to avoid global destruction, since this might
+    ## Use POSIX::_exit to avoid global destruction, since this might
     ## cause DESTROY() to be called on objects created in the parent
     ## and thus cause double cleanup.  For instance, if DESTROY() unlinks
     ## a file in the child, we don't want the parent to suddenly miss
     ## it.
-    POSIX::exit 0;
+    POSIX::_exit(0);
 }
 
 =pod
@@ -3037,7 +3057,7 @@ sub _select_loop {
         last if !$nfound && $self->{non_blocking};
 
         if ( $nfound < 0 ) {
-            if ( $! == POSIX::EINTR() ) {
+            if ( $!{EINTR} ) {
 
                 # Caught a signal before any FD went ready.  Ensure that
                 # the bit fields reflect "no FDs ready".
@@ -4308,7 +4328,7 @@ non-inheritable but we don't C<exec()> for &sub processes.
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the
 child is forked, the DESTROY will get run once in the parent and once in
-the child.  When coprocess subs exit, POSIX::exit is called to work around this,
+the child.  When coprocess subs exit, POSIX::_exit is called to work around this,
 but it means that objects that are still referred to at that time are not
 cleaned up.  So setting package vars or closure vars to point to objects that
 rely on DESTROY to affect things outside the process (files, etc), will
@@ -4353,11 +4373,9 @@ Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 =head1 SUPPORT
 
-Bugs should always be submitted via the CPAN bug tracker
+Bugs should always be submitted via the GitHub bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run>
-
-For other issues, contact the maintainer (the first listed author)
+L<https://github.com/toddr/IPC-Run/issues>
 
 =head1 AUTHORS
 

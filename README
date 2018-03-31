@@ -9,10 +9,10 @@ SYNOPSIS
        ## Using run() instead of system():
           use IPC::Run qw( run timeout );
 
-          run \@cmd, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
+          run \@cat, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
 
           # Can do I/O to sub refs and filenames, too:
-          run \@cmd, '<', "in.txt", \&out, \&err or die "cat: $?"
+          run \@cat, '<', "in.txt", \&out, \&err or die "cat: $?"
           run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
@@ -106,10 +106,10 @@ SYNOPSIS
           run io( \*HANDLE,   'r', \$recv );
 
 DESCRIPTION
-    IPC::Run allows you run and interact with child processes using files,
-    pipes, and pseudo-ttys. Both system()-style and scripted usages are
-    supported and may be mixed. Likewise, functional and OO API styles are
-    both supported and may be mixed.
+    IPC::Run allows you to run and interact with child processes using
+    files, pipes, and pseudo-ttys. Both system()-style and scripted usages
+    are supported and may be mixed. Likewise, functional and OO API styles
+    are both supported and may be mixed.
 
     Various redirection operators reminiscent of those seen on common Unix
     and DOS command lines are provided.
@@ -524,9 +524,9 @@ OBSTINATE CHILDREN
     that stdin, stdout, or stderr are not connected to a tty, assuming that
     they are being run in batch mode. Whether this helps or hurts depends on
     which optimizations change. And there's often no way of telling what a
-    program does in these areas other than trial and error and,
-    occasionally, reading the source. This includes different versions and
-    implementations of the same program.
+    program does in these areas other than trial and error and occasionally,
+    reading the source. This includes different versions and implementations
+    of the same program.
 
     All hope is not lost, however. Most programs behave in reasonably
     tractable manners, once you figure out what it's trying to do.
@@ -940,303 +940,313 @@ RETURN VALUES
     their exit codes.
 
 ROUTINES
-    run Run takes a harness or harness specification and runs it, pumping
-        all input to the child(ren), closing the input pipes when no more
-        input is available, collecting all output that arrives, until the
-        pipes delivering output are closed, then waiting for the children to
-        exit and reaping their result codes.
+        run Run takes a harness or harness specification and runs it,
+            pumping all input to the child(ren), closing the input pipes
+            when no more input is available, collecting all output that
+            arrives, until the pipes delivering output are closed, then
+            waiting for the children to exit and reaping their result codes.
 
-        You may think of "run( ... )" as being like
+            You may think of "run( ... )" as being like
 
-           start( ... )->finish();
+               start( ... )->finish();
 
-        , though there is one subtle difference: run() does not set
-        \$input_scalars to '' like finish() does. If an exception is thrown
-        from run(), all children will be killed off "gently", and then
-        "annihilated" if they do not go gently (in to that dark night.
-        sorry).
+            , though there is one subtle difference: run() does not set
+            \$input_scalars to '' like finish() does. If an exception is
+            thrown from run(), all children will be killed off "gently", and
+            then "annihilated" if they do not go gently (in to that dark
+            night. sorry).
 
-        If any exceptions are thrown, this does a "kill_kill" before
-        propagating them.
+            If any exceptions are thrown, this does a "kill_kill" before
+            propagating them.
 
-    signal
-           ## To send it a specific signal by name ("USR1"):
-           signal $h, "USR1";
-           $h->signal ( "USR1" );
+        signal
+               ## To send it a specific signal by name ("USR1"):
+               signal $h, "USR1";
+               $h->signal ( "USR1" );
 
-        If $signal is provided and defined, sends a signal to all child
-        processes. Try not to send numeric signals, use "KILL" instead of 9,
-        for instance. Numeric signals aren't portable.
+            If $signal is provided and defined, sends a signal to all child
+            processes. Try not to send numeric signals, use "KILL" instead
+            of 9, for instance. Numeric signals aren't portable.
 
-        Throws an exception if $signal is undef.
+            Throws an exception if $signal is undef.
+
+            This will *not* clean up the harness, "finish" it if you kill
+            it.
 
-        This will *not* clean up the harness, "finish" it if you kill it.
+            Normally TERM kills a process gracefully (this is what the
+            command line utility "kill" does by default), INT is sent by one
+            of the keys "^C", "Backspace" or "<Del>", and "QUIT" is used to
+            kill a process and make it coredump.
+
+            The "HUP" signal is often used to get a process to "restart",
+            rereading config files, and "USR1" and "USR2" for really
+            application-specific things.
+
+            Often, running "kill -l" (that's a lower case "L") on the
+            command line will list the signals present on your operating
+            system.
+
+            WARNING: The signal subsystem is not at all portable. We *may*
+            offer to simulate "TERM" and "KILL" on some operating systems,
+            submit code to me if you want this.
+
+            WARNING 2: Up to and including perl v5.6.1, doing almost
+            anything in a signal handler could be dangerous. The most safe
+            code avoids all mallocs and system calls, usually by
+            preallocating a flag before entering the signal handler,
+            altering the flag's value in the handler, and responding to the
+            changed value in the main system:
 
-        Normally TERM kills a process gracefully (this is what the command
-        line utility "kill" does by default), INT is sent by one of the keys
-        "^C", "Backspace" or "<Del>", and "QUIT" is used to kill a process
-        and make it coredump.
+               my $got_usr1 = 0;
+               sub usr1_handler { ++$got_signal }
 
-        The "HUP" signal is often used to get a process to "restart",
-        rereading config files, and "USR1" and "USR2" for really
-        application-specific things.
+               $SIG{USR1} = \&usr1_handler;
+               while () { sleep 1; print "GOT IT" while $got_usr1--; }
 
-        Often, running "kill -l" (that's a lower case "L") on the command
-        line will list the signals present on your operating system.
+            Even this approach is perilous if ++ and -- aren't atomic on
+            your system (I've never heard of this on any modern CPU large
+            enough to run perl).
 
-        WARNING: The signal subsystem is not at all portable. We *may* offer
-        to simulate "TERM" and "KILL" on some operating systems, submit code
-        to me if you want this.
+        kill_kill
+               ## To kill off a process:
+               $h->kill_kill;
+               kill_kill $h;
 
-        WARNING 2: Up to and including perl v5.6.1, doing almost anything in
-        a signal handler could be dangerous. The most safe code avoids all
-        mallocs and system calls, usually by preallocating a flag before
-        entering the signal handler, altering the flag's value in the
-        handler, and responding to the changed value in the main system:
+               ## To specify the grace period other than 30 seconds:
+               kill_kill $h, grace => 5;
 
-           my $got_usr1 = 0;
-           sub usr1_handler { ++$got_signal }
+               ## To send QUIT instead of KILL if a process refuses to die:
+               kill_kill $h, coup_d_grace => "QUIT";
 
-           $SIG{USR1} = \&usr1_handler;
-           while () { sleep 1; print "GOT IT" while $got_usr1--; }
+            Sends a "TERM", waits for all children to exit for up to 30
+            seconds, then sends a "KILL" to any that survived the "TERM".
 
-        Even this approach is perilous if ++ and -- aren't atomic on your
-        system (I've never heard of this on any modern CPU large enough to
-        run perl).
+            Will wait for up to 30 more seconds for the OS to successfully
+            "KILL" the processes.
 
-    kill_kill
-           ## To kill off a process:
-           $h->kill_kill;
-           kill_kill $h;
+            The 30 seconds may be overridden by setting the "grace" option,
+            this overrides both timers.
 
-           ## To specify the grace period other than 30 seconds:
-           kill_kill $h, grace => 5;
+            The harness is then cleaned up.
 
-           ## To send QUIT instead of KILL if a process refuses to die:
-           kill_kill $h, coup_d_grace => "QUIT";
+            The doubled name indicates that this function may kill again and
+            avoids colliding with the core Perl "kill" function.
 
-        Sends a "TERM", waits for all children to exit for up to 30 seconds,
-        then sends a "KILL" to any that survived the "TERM".
+            Returns a 1 if the "TERM" was sufficient, or a 0 if "KILL" was
+            required. Throws an exception if "KILL" did not permit the
+            children to be reaped.
 
-        Will wait for up to 30 more seconds for the OS to successfully "KILL"
-        the processes.
+            NOTE: The grace period is actually up to 1 second longer than
+            that given. This is because the granularity of "time" is 1
+            second. Let me know if you need finer granularity, we can
+            leverage Time::HiRes here.
 
-        The 30 seconds may be overridden by setting the "grace" option, this
-        overrides both timers.
+            Win32: Win32 does not know how to send real signals, so "TERM"
+            is a full-force kill on Win32. Thus all talk of grace periods,
+            etc. do not apply to Win32.
 
-        The harness is then cleaned up.
+        harness
+            Takes a harness specification and returns a harness. This
+            harness is blessed in to IPC::Run, allowing you to use method
+            call syntax for run(), start(), et al if you like.
 
-        The doubled name indicates that this function may kill again and
-        avoids colliding with the core Perl "kill" function.
+            harness() is provided so that you can pre-build harnesses if you
+            would like to, but it's not required..
 
-        Returns a 1 if the "TERM" was sufficient, or a 0 if "KILL" was
-        required. Throws an exception if "KILL" did not permit the children
-        to be reaped.
+            You may proceed to run(), start() or pump() after calling
+            harness() (pump() calls start() if need be). Alternatively, you
+            may pass your harness specification to run() or start() and let
+            them harness() for you. You can't pass harness specifications to
+            pump(), though.
 
-        NOTE: The grace period is actually up to 1 second longer than that
-        given. This is because the granularity of "time" is 1 second. Let me
-        know if you need finer granularity, we can leverage Time::HiRes
-        here.
+        close_terminal
+            This is used as (or in) an init sub to cast off the bonds of a
+            controlling terminal. It must precede all other redirection ops
+            that affect STDIN, STDOUT, or STDERR to be guaranteed effective.
 
-        Win32: Win32 does not know how to send real signals, so "TERM" is a
-        full-force kill on Win32. Thus all talk of grace periods, etc. do
-        not apply to Win32.
+        start
+               $h = start(
+                  \@cmd, \$in, \$out, ...,
+                  timeout( 30, name => "process timeout" ),
+                  $stall_timeout = timeout( 10, name => "stall timeout"   ),
+               );
 
-    harness
-        Takes a harness specification and returns a harness. This harness is
-        blessed in to IPC::Run, allowing you to use method call syntax for
-        run(), start(), et al if you like.
+               $h = start \@cmd, '<', \$in, '|', \@cmd2, ...;
 
-        harness() is provided so that you can pre-build harnesses if you
-        would like to, but it's not required..
+            start() accepts a harness or harness specification and returns a
+            harness after building all of the pipes and launching (via
+            fork()/exec(), or, maybe someday, spawn()) all the child
+            processes. It does not send or receive any data on the pipes,
+            see pump() and finish() for that.
 
-        You may proceed to run(), start() or pump() after calling harness()
-        (pump() calls start() if need be). Alternatively, you may pass your
-        harness specification to run() or start() and let them harness() for
-        you. You can't pass harness specifications to pump(), though.
+            You may call harness() and then pass it's result to start() if
+            you like, but you only need to if it helps you structure or tune
+            your application. If you do call harness(), you may skip start()
+            and proceed directly to pump.
 
-    close_terminal
-        This is used as (or in) an init sub to cast off the bonds of a
-        controlling terminal. It must precede all other redirection ops that
-        affect STDIN, STDOUT, or STDERR to be guaranteed effective.
+            start() also starts all timers in the harness. See
+            IPC::Run::Timer for more information.
 
-    start
-           $h = start(
-              \@cmd, \$in, \$out, ...,
-              timeout( 30, name => "process timeout" ),
-              $stall_timeout = timeout( 10, name => "stall timeout"   ),
-           );
+            start() flushes STDOUT and STDERR to help you avoid duplicate
+            output. It has no way of asking Perl to flush all your open
+            filehandles, so you are going to need to flush any others you
+            have open. Sorry.
 
-           $h = start \@cmd, '<', \$in, '|', \@cmd2, ...;
+            Here's how if you don't want to alter the state of $| for your
+            filehandle:
 
-        start() accepts a harness or harness specification and returns a
-        harness after building all of the pipes and launching (via
-        fork()/exec(), or, maybe someday, spawn()) all the child processes.
-        It does not send or receive any data on the pipes, see pump() and
-        finish() for that.
+               $ofh = select HANDLE; $of = $|; $| = 1; $| = $of; select $ofh;
 
-        You may call harness() and then pass it's result to start() if you
-        like, but you only need to if it helps you structure or tune your
-        application. If you do call harness(), you may skip start() and
-        proceed directly to pump.
+            If you don't mind leaving output unbuffered on HANDLE, you can
+            do the slightly shorter
 
-        start() also starts all timers in the harness. See IPC::Run::Timer
-        for more information.
+               $ofh = select HANDLE; $| = 1; select $ofh;
 
-        start() flushes STDOUT and STDERR to help you avoid duplicate
-        output. It has no way of asking Perl to flush all your open
-        filehandles, so you are going to need to flush any others you have
-        open. Sorry.
+            Or, you can use IO::Handle's flush() method:
 
-        Here's how if you don't want to alter the state of $| for your
-        filehandle:
+               use IO::Handle;
+               flush HANDLE;
 
-           $ofh = select HANDLE; $of = $|; $| = 1; $| = $of; select $ofh;
+            Perl needs the equivalent of C's fflush( (FILE *)NULL ).
 
-        If you don't mind leaving output unbuffered on HANDLE, you can do
-        the slightly shorter
+        adopt
+            Experimental feature. NOT FUNCTIONAL YET, NEED TO CLOSE FDS
+            BETTER IN CHILDREN. SEE t/adopt.t for a test suite.
 
-           $ofh = select HANDLE; $| = 1; select $ofh;
+        pump
+               pump $h;
+               $h->pump;
 
-        Or, you can use IO::Handle's flush() method:
+            Pump accepts a single parameter harness. It blocks until it
+            delivers some input or receives some output. It returns TRUE if
+            there is still input or output to be done, FALSE otherwise.
 
-           use IO::Handle;
-           flush HANDLE;
+            pump() will automatically call start() if need be, so you may
+            call harness() then proceed to pump() if that helps you
+            structure your application.
 
-        Perl needs the equivalent of C's fflush( (FILE *)NULL ).
+            If pump() is called after all harnessed activities have
+            completed, a "process ended prematurely" exception to be thrown.
+            This allows for simple scripting of external applications
+            without having to add lots of error handling code at each step
+            of the script:
 
-    pump
-           pump $h;
-           $h->pump;
+               $h = harness \@smbclient, \$in, \$out, $err;
 
-        Pump accepts a single parameter harness. It blocks until it delivers
-        some input or receives some output. It returns TRUE if there is
-        still input or output to be done, FALSE otherwise.
+               $in = "cd /foo\n";
+               $h->pump until $out =~ /^smb.*> \Z/m;
+               die "error cding to /foo:\n$out" if $out =~ "ERR";
+               $out = '';
 
-        pump() will automatically call start() if need be, so you may call
-        harness() then proceed to pump() if that helps you structure your
-        application.
+               $in = "mget *\n";
+               $h->pump until $out =~ /^smb.*> \Z/m;
+               die "error retrieving files:\n$out" if $out =~ "ERR";
 
-        If pump() is called after all harnessed activities have completed, a
-        "process ended prematurely" exception to be thrown. This allows for
-        simple scripting of external applications without having to add lots
-        of error handling code at each step of the script:
+               $h->finish;
 
-           $h = harness \@smbclient, \$in, \$out, $err;
+               warn $err if $err;
 
-           $in = "cd /foo\n";
-           $h->pump until $out =~ /^smb.*> \Z/m;
-           die "error cding to /foo:\n$out" if $out =~ "ERR";
-           $out = '';
+        pump_nb
+               pump_nb $h;
+               $h->pump_nb;
 
-           $in = "mget *\n";
-           $h->pump until $out =~ /^smb.*> \Z/m;
-           die "error retrieving files:\n$out" if $out =~ "ERR";
+            "pump() non-blocking", pumps if anything's ready to be pumped,
+            returns immediately otherwise. This is useful if you're doing
+            some long-running task in the foreground, but don't want to
+            starve any child processes.
 
-           $h->finish;
+        pumpable
+            Returns TRUE if calling pump() won't throw an immediate "process
+            ended prematurely" exception. This means that there are open I/O
+            channels or active processes. May yield the parent processes'
+            time slice for 0.01 second if all pipes are to the child and all
+            are paused. In this case we can't tell if the child is dead, so
+            we yield the processor and then attempt to reap the child in a
+            nonblocking way.
 
-           warn $err if $err;
+        reap_nb
+            Attempts to reap child processes, but does not block.
 
-    pump_nb
-           pump_nb $h;
-           $h->pump_nb;
+            Does not currently take any parameters, one day it will allow
+            specific children to be reaped.
 
-        "pump() non-blocking", pumps if anything's ready to be pumped,
-        returns immediately otherwise. This is useful if you're doing some
-        long-running task in the foreground, but don't want to starve any
-        child processes.
+            Only call this from a signal handler if your "perl" is recent
+            enough to have safe signal handling (5.6.1 did not, IIRC, but it
+            was being discussed on perl5-porters). Calling this (or doing
+            any significant work) in a signal handler on older "perl"s is
+            asking for seg faults.
 
-    pumpable
-        Returns TRUE if calling pump() won't throw an immediate "process
-        ended prematurely" exception. This means that there are open I/O
-        channels or active processes. May yield the parent processes' time
-        slice for 0.01 second if all pipes are to the child and all are
-        paused. In this case we can't tell if the child is dead, so we yield
-        the processor and then attempt to reap the child in a nonblocking
-        way.
+        finish
+            This must be called after the last start() or pump() call for a
+            harness, or your system will accumulate defunct processes and
+            you may "leak" file descriptors.
 
-    reap_nb
-        Attempts to reap child processes, but does not block.
+            finish() returns TRUE if all children returned 0 (and were not
+            signaled and did not coredump, ie ! $?), and FALSE otherwise
+            (this is like run(), and the opposite of system()).
 
-        Does not currently take any parameters, one day it will allow
-        specific children to be reaped.
+            Once a harness has been finished, it may be run() or start()ed
+            again, including by pump()s auto-start.
 
-        Only call this from a signal handler if your "perl" is recent enough
-        to have safe signal handling (5.6.1 did not, IIRC, but it was being
-        discussed on perl5-porters). Calling this (or doing any significant
-        work) in a signal handler on older "perl"s is asking for seg faults.
+            If this throws an exception rather than a normal exit, the
+            harness may be left in an unstable state, it's best to kill the
+            harness to get rid of all the child processes, etc.
 
-    finish
-        This must be called after the last start() or pump() call for a
-        harness, or your system will accumulate defunct processes and you
-        may "leak" file descriptors.
+            Specifically, if a timeout expires in finish(), finish() will
+            not kill all the children. Call "<$h-"kill_kill>> in this case
+            if you care. This differs from the behavior of "run".
 
-        finish() returns TRUE if all children returned 0 (and were not
-        signaled and did not coredump, ie ! $?), and FALSE otherwise (this
-        is like run(), and the opposite of system()).
+        result
+               $h->result;
 
-        Once a harness has been finished, it may be run() or start()ed
-        again, including by pump()s auto-start.
+            Returns the first non-zero result code (ie $? >> 8). See
+            "full_result" to get the $? value for a child process.
 
-        If this throws an exception rather than a normal exit, the harness
-        may be left in an unstable state, it's best to kill the harness to
-        get rid of all the child processes, etc.
+            To get the result of a particular child, do:
 
-        Specifically, if a timeout expires in finish(), finish() will not
-        kill all the children. Call "<$h-"kill_kill>> in this case if you
-        care. This differs from the behavior of "run".
+               $h->result( 0 );  # first child's $? >> 8
+               $h->result( 1 );  # second child
 
-    result
-           $h->result;
+            or
 
-        Returns the first non-zero result code (ie $? >> 8). See
-        "full_result" to get the $? value for a child process.
+               ($h->results)[0]
+               ($h->results)[1]
 
-        To get the result of a particular child, do:
+            Returns undef if no child processes were spawned and no child
+            number was specified. Throws an exception if an out-of-range
+            child number is passed.
 
-           $h->result( 0 );  # first child's $? >> 8
-           $h->result( 1 );  # second child
+        results
+            Returns a list of child exit values. See "full_results" if you
+            want to know if a signal killed the child.
 
-        or
+            Throws an exception if the harness is not in a finished state.
 
-           ($h->results)[0]
-           ($h->results)[1]
+        full_result
+               $h->full_result;
 
-        Returns undef if no child processes were spawned and no child number
-        was specified. Throws an exception if an out-of-range child number
-        is passed.
+            Returns the first non-zero $?. See "result" to get the first $?
+            >> 8 value for a child process.
 
-    results
-        Returns a list of child exit values. See "full_results" if you want
-        to know if a signal killed the child.
+            To get the result of a particular child, do:
 
-        Throws an exception if the harness is not in a finished state.
+               $h->full_result( 0 );  # first child's $?
+               $h->full_result( 1 );  # second child
 
-    full_result
-           $h->full_result;
+            or
 
-        Returns the first non-zero $?. See "result" to get the first $? >> 8
-        value for a child process.
+               ($h->full_results)[0]
+               ($h->full_results)[1]
 
-        To get the result of a particular child, do:
+            Returns undef if no child processes were spawned and no child
+            number was specified. Throws an exception if an out-of-range
+            child number is passed.
 
-           $h->full_result( 0 );  # first child's $? >> 8
-           $h->full_result( 1 );  # second child
+        full_results
+            Returns a list of child exit values as returned by "wait". See
+            "results" if you don't care about coredumps or signals.
 
-        or
-
-           ($h->full_results)[0]
-           ($h->full_results)[1]
-
-        Returns undef if no child processes were spawned and no child number
-        was specified. Throws an exception if an out-of-range child number
-        is passed.
-
-    full_results
-        Returns a list of child exit values as returned by "wait". See
-        "results" if you don't care about coredumps or signals.
-
-        Throws an exception if the harness is not in a finished state.
+            Throws an exception if the harness is not in a finished state.
 
 FILTERS
     These filters are used to modify input our output between a child
@@ -1317,6 +1327,24 @@ FILTERS
                  1;
               }
            };
+
+    new_string_source
+        TODO: Needs confirmation. Was previously undocumented. in this
+        module.
+
+        This is a filter which is exportable. Returns a sub which appends
+        the data passed in to the output buffer and returns 1 if data was
+        appended. 0 if it was an empty string and undef if no data was
+        passed.
+
+        NOTE: Any additional variables passed to new_string_source will be
+        passed to the sub every time it's called and appended to the output.
+
+    new_string_sink
+        TODO: Needs confirmation. Was previously undocumented.
+
+        This is a filter which is exportable. Returns a sub which pops the
+        data out of the input stream and pushes it onto the string.
 
     io  Takes a filename or filehandle, a redirection operator, optional
         filters, and a source or destination (depends on the redirection
@@ -1653,12 +1681,12 @@ LIMITATIONS
 
     The second problem is that Perl's DESTROY subs and other on-exit cleanup
     gets run in the child process. If objects are instantiated in the parent
-    before the child is forked, the DESTROY will get run once in the
-    parent and once in the child. When coprocess subs exit, POSIX::exit is
-    called to work around this, but it means that objects that are still
-    referred to at that time are not cleaned up. So setting package vars or
-    closure vars to point to objects that rely on DESTROY to affect things
-    outside the process (files, etc), will lead to bugs.
+    before the child is forked, the DESTROY will get run once in the parent
+    and once in the child. When coprocess subs exit, POSIX::_exit is called
+    to work around this, but it means that objects that are still referred
+    to at that time are not cleaned up. So setting package vars or closure
+    vars to point to objects that rely on DESTROY to affect things outside
+    the process (files, etc), will lead to bugs.
 
     I goofed on the syntax: "<pipe" vs. "<pty<" and ">filename" are both
     oddities.
@@ -1690,11 +1718,9 @@ INSPIRATION
     Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 SUPPORT
-    Bugs should always be submitted via the CPAN bug tracker
+    Bugs should always be submitted via the GitHub bug tracker
 
-    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=IPC-Run>
-
-    For other issues, contact the maintainer (the first listed author)
+    <https://github.com/toddr/IPC-Run/issues>
 
 AUTHORS
     Adam Kennedy <adamk@cpan.org>

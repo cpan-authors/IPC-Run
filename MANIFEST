@@ -20,14 +20,20 @@ lib/IPC/Run/Win32Pump.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
+MANIFEST.SKIP
+META.json
+META.yml			Module meta-data (added by MakeMaker)
 README
+README.md
 t/97_meta.t
 t/98_pod.t
 t/98_pod_coverage.t
 t/99_perl_minimum_version.t
 t/adopt.t
+t/autoflush.t
 t/binmode.t
 t/bogus.t
+t/eintr.t
 t/filter.t
 t/harness.t
 t/io.t
@@ -36,11 +42,13 @@ t/lib/Test.pm
 t/parallel.t
 t/pty.t
 t/pump.t
+t/readonly.t
 t/run.t
+t/run_stdin-callback-return-array.t
 t/signal.t
 t/timeout.t
 t/timer.t
-t/windows_search_path.t
+t/utf8.t
 t/win32_compile.t
+t/windows_search_path.t
 TODO
-META.yml                                 Module meta-data (added by MakeMaker)

@@ -73,7 +73,7 @@ use IPC::Run qw( Win32_MODE );
 use vars qw{$VERSION};
 
 BEGIN {
-    $VERSION = '0.96';
+    $VERSION = '0.98';
     if (Win32_MODE) {
         eval "use IPC::Run::Win32Helper; require IPC::Run::Win32IO; 1"
           or ( $@ && die )
@@ -110,7 +110,7 @@ sub new {
     if ( !ref $external ) {
         $self->{FILENAME} = $external;
     }
-    elsif ( ref eq 'GLOB' || UNIVERSAL::isa( $external, 'IO::Handle' ) ) {
+    elsif ( ref $external eq 'GLOB' || UNIVERSAL::isa( $external, 'IO::Handle' ) ) {
         $self->{HANDLE}     = $external;
         $self->{DONT_CLOSE} = 1;
     }

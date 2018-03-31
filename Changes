@@ -1,7 +1,28 @@
 Revision history for Perl extension IPC::Run
 
- - GitHub #99 - Fix using fd in child process when it happens to be the same
-   number in the child as it was in the parent.
+ - #99 - Fix using fd in child process when it happens to be the same number in
+   the child as it was in the parent.
+
+0.98 Thu Mar 29 2018
+ - Switch to using $!{EINTR}
+ - Honor umask for user/group permissions on a +rw file
+ - Remove commented code from RT 50739
+ - #63 - Patch for fixing _write on invalid objects
+ - #54 - Make slave the controlling terminal so more programs can be called from IPC::Run reliably
+ - #53 - Prevent Not a GLOB reference in close_terminal by untieing before close
+ - #46 - '&' closing the stdin of the right process.
+ - #41 - Do POSIX::_exit not ::exit
+ - #40 - Assure child Win32 processes have same priority as parent
+ - #38 - Add unit test for passing use of Readonly.pm
+ - #39 - Fix GLOB test in IPC::Run::IO->new
+ - #86 - Fix for memory leak [rt.cpan.org #57990]
+ - MANIFEST was updated. New tests may start shipping now.
+
+0.97 Mon Mar 26 2018
+ - Update meta and POD to point to GitHub issues not RT.
+ - Update README with pod changes.
+ - Fix variable name in synopsis - [Github #47]
+ - Fix t/run.t to work on "perl in space" - [Github #100]
 
 0.96 Fri May 12 2017
  - Update bug tracker to https://github.com/toddr/IPC-Run/issues

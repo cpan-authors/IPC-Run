@@ -176,7 +176,7 @@ $fd_map = _map_fds;
 ##
 ## Calling the local system shell
 ##
-ok( run qq{$perl -e exit} );
+ok( run qq{"$perl" -e exit} );
 is( $?, 0 );
 
 is( _map_fds, $fd_map );
@@ -186,7 +186,7 @@ SKIP: {
         skip( "$^O's shell returns 0 even if last command doesn't", 3 );
     }
 
-    ok( !run(qq{$perl -e 'exit(42)'}) );
+    ok( !run(qq{"$perl" -e 'exit(42)'}) );
     ok($?);
     is( $? >> 8, 42 );
 }

@@ -25,7 +25,7 @@ use IO::Handle;
 use vars qw{ $VERSION @ISA @EXPORT };
 
 BEGIN {
-    $VERSION = '0.96';
+    $VERSION = '0.98';
     @ISA     = qw( Exporter );
     @EXPORT  = qw(
       win32_spawn
@@ -455,7 +455,7 @@ sub win32_spawn {
         $cmd->[0],
         $cmd_line,
         1,    ## Inherit handles
-        NORMAL_PRIORITY_CLASS,
+        0,    ## Inherit parent priortiy class. Was NORMAL_PRIORITY_CLASS
         ".",
     ) or croak "$!: Win32::Process::Create()";
 
