@@ -74,7 +74,7 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
    # Create pipes for you to read / write (like IPC::Open2 & 3).
       $h = start
          \@cat,
-            '<pipe', \*IN,
+            '<pipe', \*IN, # may also be a lexical filehandle e.g. \my $infh
             '>pipe', \*OUT,
             '2>pipe', \*ERR 
          or die "cat returned $?";
@@ -725,7 +725,7 @@ The SHNP field indicates what parameters an operator can take:
       these operators (and only these).
    H: \*HANDLE or IO::Handle for caller to open, and close
    N: "file name".
-   P: \*HANDLE opened by IPC::Run as the parent end of a pipe, but read
+   P: \*HANDLE or lexical filehandle opened by IPC::Run as the parent end of a pipe, but read
       and written to and closed by the caller (like IPC::Open3).
 
 =over
