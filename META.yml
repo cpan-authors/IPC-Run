@@ -29,5 +29,5 @@ resources:
   bugtracker: https://github.com/toddr/IPC-Run/issues
   license: http://dev.perl.org/licenses/
   repository: https://github.com/toddr/IPC-Run
-version: '0.99'
+version: '20180523.0'
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'
