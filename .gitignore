@@ -1,7 +1,7 @@
 /Makefile
 /blib/
 /pm_to_blib
-/IPC-Run-0*
+/IPC-Run-20*
 /.DS_Store
 /Makefile.old
 /cover_db/
