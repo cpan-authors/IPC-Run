@@ -63,11 +63,11 @@ WriteMakefile(
     clean      => { FILES    => 'IPC-Run-*' },
     META_MERGE => {
         recommends => {
-            'IO::Pty' => '1.08',
+            'IO::Pty'  => '1.08',
+            'Readonly' => 0,
         },
         build_requires => {
             'Test::More'      => 0,    # For testing
-            'Readonly'        => 0,
             'Readonly::Array' => 0,
         },
         resources => {

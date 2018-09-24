@@ -4,13 +4,12 @@ author:
   - 'Barrie Slaymaker <barries@slaysys.com>'
 build_requires:
   ExtUtils::MakeMaker: '0'
-  Readonly: '0'
   Readonly::Array: '0'
   Test::More: '0'
 configure_requires:
   ExtUtils::MakeMaker: '0'
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 7.24, CPAN::Meta::Converter version 2.150010'
+generated_by: 'ExtUtils::MakeMaker version 7.34, CPAN::Meta::Converter version 2.150010'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -22,6 +21,7 @@ no_index:
     - inc
 recommends:
   IO::Pty: '1.08'
+  Readonly: '0'
 requires:
   IO::Pty: '1.08'
   Test::More: '0.47'

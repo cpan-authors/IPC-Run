@@ -17,7 +17,7 @@ $] > 5.014 or plan skip_all => q{IPC::Run doesn't support Readonly below 5.14};
 
 BEGIN {
     eval 'use Readonly';
-    $INC{'Readonly.pm'} or plan skip_all => "Readonly is require for this test to work.";
+    $INC{'Readonly.pm'} or plan skip_all => "Readonly is required for this test to work.";
 }
 
 my @lowercase = 'a' .. 'c';
