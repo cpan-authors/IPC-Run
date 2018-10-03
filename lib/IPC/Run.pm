@@ -3510,18 +3510,25 @@ sub _assert_finished {
     croak "Harness not finished running" unless $self->{STATE} == _finished;
 }
 
+sub _child_result {
+    my IPC::Run $self = shift;
+
+    my ($which) = @_;
+    croak(
+        "Only ",
+        scalar( @{ $self->{KIDS} } ),
+        " child processes, no process $which"
+    ) unless $which >= 0 && $which <= $#{ $self->{KIDS} };
+    return $self->{KIDS}->[$which]->{RESULT};
+}
+
 sub result {
     &_assert_finished;
     my IPC::Run $self = shift;
 
     if (@_) {
         my ($which) = @_;
-        croak(
-            "Only ",
-            scalar( @{ $self->{KIDS} } ),
-            " child processes, no process $which"
-        ) unless $which >= 0 && $which <= $#{ $self->{KIDS} };
-        return $self->{KIDS}->[$which]->{RESULT} >> 8;
+        return $self->_child_result($which) >> 8;
     }
     else {
         return undef unless @{ $self->{KIDS} };
@@ -3575,14 +3582,19 @@ specified.  Throws an exception if an out-of-range child number is passed.
 =cut
 
 sub full_result {
-    goto &result if @_ > 1;
     &_assert_finished;
 
     my IPC::Run $self = shift;
 
-    return undef unless @{ $self->{KIDS} };
-    for ( @{ $self->{KIDS} } ) {
-        return $_->{RESULT} if $_->{RESULT};
+    if (@_) {
+        my ($which) = @_;
+        return $self->_child_result($which);
+    }
+    else {
+        return undef unless @{ $self->{KIDS} };
+        for ( @{ $self->{KIDS} } ) {
+            return $_->{RESULT} if $_->{RESULT};
+        }
     }
 }
 
