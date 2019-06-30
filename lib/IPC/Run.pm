@@ -2493,7 +2493,7 @@ sub close_terminal {
     untie *STDOUT;
     untie *STDERR;
 
-    POSIX::setsid() || croak "POSIX::setsid() failed";
+    POSIX::setsid() == -1 and croak "POSIX::setsid() failed";
     _debug "closing stdin, out, err"
       if _debugging_details;
     close STDIN;
