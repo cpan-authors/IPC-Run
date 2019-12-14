@@ -112,6 +112,11 @@ SKIP: {
     if ($platform_skip) {
         skip( $platform_skip, 9 );
     }
+
+    # May force opening /var/lib/sss/mc/group on some systems (see
+    # https://github.com/toddr/IPC-Run/issues/130)
+    {my $pty = IO::Pty->new}
+
     $out    = 'REPLACE ME';
     $?      = 99;
     $fd_map = _map_fds;
