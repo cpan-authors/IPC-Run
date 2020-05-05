@@ -1589,7 +1589,14 @@ sub kill_kill {
       join " ", keys %options
       if keys %options;
 
-    $self->signal("TERM");
+    if (Win32_MODE) {
+	# immediate brutal death for Win32
+	# TERM has unfortunate side-effects
+	$self->signal("KILL")
+    }
+    else {
+	$self->signal("TERM");
+    }
 
     my $quitting_time = time + $grace;
     my $delay         = 0.01;
