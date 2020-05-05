@@ -13,16 +13,21 @@ use strict;
 BEGIN {
     $|  = 1;
     $^W = 1;
-    if ( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
 }
 
 ## Separate from run.t so run.t is not too slow.
-use Test::More tests => 26;
+use Test::More;
 use IPC::Run qw( harness timeout );
+
+BEGIN {
+    if ( IPC::Run::Win32_MODE() ) {
+        plan skip_all => 'Skipping on Win32';
+        exit(0);
+    }
+    else {
+        plan tests => 26;
+    }
+}
 
 my $h;
 my $t;

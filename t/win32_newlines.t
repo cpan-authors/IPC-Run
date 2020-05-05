@@ -21,15 +21,20 @@ BEGIN {
 BEGIN {
     $|  = 1;
     $^W = 1;
-    if ( $ENV{PERL_CORE} ) {
-        chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
-        unshift @INC, 'lib', '../..';
-        $^X = '../../../t/' . $^X;
-    }
 }
 
-use Test::More tests => 10;
+use Test::More;
 use IPC::Run 'run';
+
+BEGIN {
+    if ( !IPC::Run::Win32_MODE() ) {
+        plan skip_all => 'Skipping when not on Win32';
+        exit(0);
+    }
+    else {
+        plan tests => 10;
+    }
+}
 
 $ENV{IPC_SUB_PROCESS} = 1;
 for my $i ( 0 .. $#{ lines() } ) {
