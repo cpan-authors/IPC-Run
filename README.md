@@ -1,6 +1,5 @@
-[![Build Status](https://travis-ci.org/toddr/IPC-Run.png?branch=master)](https://travis-ci.org/toddr/IPC-Run)
+![linux](https://github.com/toddr/IPC-Run/workflows/linux/badge.svg) ![windows](https://github.com/toddr/IPC-Run/workflows/windows/badge.svg) ![macos](https://github.com/toddr/IPC-Run/workflows/macos/badge.svg)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/06yk51jwuqtfh25x?svg=true)](https://ci.appveyor.com/project/toddr/ipc-run)
 
 # NAME
 
