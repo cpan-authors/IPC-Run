@@ -9,3 +9,4 @@ cpanfile
 ^MYMETA.json
 ^MYMETA.yml
 ^Makefile$
+\.github/

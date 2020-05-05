@@ -1,8 +1,8 @@
-abuse/blocking_debug_with_sub_coprocess
-abuse/blocking_writes
-abuse/broken_pipe_on_bad_executable_name
-abuse/timers
-Changes
+Changelog
+eg/abuse/blocking_debug_with_sub_coprocess
+eg/abuse/blocking_writes
+eg/abuse/broken_pipe_on_bad_executable_name
+eg/abuse/timers
 eg/factorial
 eg/factorial_pipe
 eg/factorial_scalar
@@ -21,18 +21,13 @@ LICENSE
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-META.json
-META.yml			Module meta-data (added by MakeMaker)
-README
 README.md
-t/97_meta.t
-t/98_pod.t
-t/98_pod_coverage.t
-t/99_perl_minimum_version.t
 t/adopt.t
 t/autoflush.t
+t/autovivifyfh.t
 t/binmode.t
 t/bogus.t
+t/child_fd_inadvertently_closed.t
 t/eintr.t
 t/filter.t
 t/harness.t
@@ -40,6 +35,7 @@ t/io.t
 t/kill_kill.t
 t/lib/Test.pm
 t/parallel.t
+t/parent_and_child_fds_match.t
 t/pty.t
 t/pump.t
 t/readonly.t
@@ -50,5 +46,8 @@ t/timeout.t
 t/timer.t
 t/utf8.t
 t/win32_compile.t
+t/win32_newlines.t
 t/windows_search_path.t
-TODO
+xt/98_pod.t
+xt/98_pod_coverage.t
+xt/99_perl_minimum_version.t
