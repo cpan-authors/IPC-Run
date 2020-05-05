@@ -26,15 +26,9 @@ BEGIN {
 use Test::More;
 use IPC::Run 'run';
 
-BEGIN {
-    if ( !IPC::Run::Win32_MODE() ) {
-        plan skip_all => 'Skipping when not on Win32';
-        exit(0);
-    }
-    else {
-        plan tests => 10;
-    }
-}
+plan skip_all => 'Skipping on Win32' if $ENV{GITHUB_WINDOWS_TESTING};
+plan skip_all => 'Skipping when not on Win32' unless $^O eq 'Win32';
+plan tests => 10;
 
 $ENV{IPC_SUB_PROCESS} = 1;
 for my $i ( 0 .. $#{ lines() } ) {

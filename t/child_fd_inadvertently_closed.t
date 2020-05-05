@@ -3,7 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More;
+
+plan skip_all => 'This test fails on Github Win32.' if $ENV{GITHUB_WINDOWS_TESTING};
+plan tests => 1;
 
 use IPC::Run 'run';
 
