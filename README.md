@@ -14,10 +14,10 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
     ## Using run() instead of system():
        use IPC::Run qw( run timeout );
 
-       run \@cat, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?"
+       run \@cat, \$in, \$out, \$err, timeout( 10 ) or die "cat: $?";
 
        # Can do I/O to sub refs and filenames, too:
-       run \@cat, '<', "in.txt", \&out, \&err or die "cat: $?"
+       run \@cat, '<', "in.txt", \&out, \&err or die "cat: $?";
        run \@cat, '<', "in.txt", '>>', "out.txt", '2>>', "err.txt";
 
 
@@ -73,7 +73,7 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
     # Create pipes for you to read / write (like IPC::Open2 & 3).
        $h = start
           \@cat,
-             '<pipe', \*IN,
+             '<pipe', \*IN, # may also be a lexical filehandle e.g. \my $infh
              '>pipe', \*OUT,
              '2>pipe', \*ERR 
           or die "cat returned $?";
@@ -83,7 +83,7 @@ IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
        finish $h;
 
     # Mixing input and output modes
-       run \@cat, 'in.txt', \&catch_some_out, \*ERR_LOG );
+       run \@cat, 'in.txt', \&catch_some_out, \*ERR_LOG;
 
     # Other redirection constructs
        run \@cat, '>&', \$out_and_err;
@@ -705,7 +705,7 @@ The SHNP field indicates what parameters an operator can take:
        these operators (and only these).
     H: \*HANDLE or IO::Handle for caller to open, and close
     N: "file name".
-    P: \*HANDLE opened by IPC::Run as the parent end of a pipe, but read
+    P: \*HANDLE or lexical filehandle opened by IPC::Run as the parent end of a pipe, but read
        and written to and closed by the caller (like IPC::Open3).
 
 - Redirecting input: \[n\]<, \[n\]&lt;pipe
