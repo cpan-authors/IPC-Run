@@ -1,5 +1,15 @@
 Revision history for Perl extension IPC::Run
 
+
+20200505.0 Tue May 5 2020
+ - #125 - Fix syntax errors in POD examples
+ - #127 - Switch Readonly testing requirement to a recommends
+ - #129 - Fix full_result to always return $?
+ - #136 - kill_kill: Immediately KILL the child process as documented for Win32.
+ - Switch to github actions for CI testing
+ - Re-structure shipped files into eg
+ - Move author tests into xt and test them separately.
+
 20180523.0 Wed May 23 2018
  - #99 - Fix using fd in child process when it happens to be the same number in
    the child as it was in the parent.
