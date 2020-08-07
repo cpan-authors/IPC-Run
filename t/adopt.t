@@ -9,6 +9,7 @@ adopt.t - Test suite for IPC::Run::adopt
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

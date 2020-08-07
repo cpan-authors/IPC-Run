@@ -9,6 +9,7 @@ win32_compile.t - See if IPC::Run::Win32Helper compiles, even on Unix
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;
@@ -82,7 +83,11 @@ BEGIN {
     use Exporter;
 }
 
-sub Socket::IPPROTO_TCP() { undef }
+{
+    use Socket ();
+    no warnings 'redefine';
+    sub Socket::IPPROTO_TCP() { return }
+}
 
 package main;
 

@@ -19,6 +19,7 @@ BEGIN {
 }
 
 use strict;
+use warnings;
 use Test::More;
 use IPC::Run ();
 

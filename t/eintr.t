@@ -9,6 +9,7 @@ eintr.t - Test select() failing with EINTR
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

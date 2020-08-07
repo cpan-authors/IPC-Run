@@ -9,6 +9,7 @@ signal.t - Test suite IPC::Run->signal
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

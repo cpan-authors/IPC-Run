@@ -158,6 +158,7 @@ pragma.
 =cut
 
 use strict;
+use warnings;
 use Carp;
 use Fcntl;
 use Symbol;

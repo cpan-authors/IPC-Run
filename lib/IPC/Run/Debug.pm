@@ -67,6 +67,7 @@ Both of those are untested.
 ## it can be suppressed by "use IPC::Run ();".
 
 use strict;
+use warnings;
 use Exporter;
 use vars qw{$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS};
 

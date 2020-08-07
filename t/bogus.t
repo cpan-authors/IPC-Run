@@ -9,6 +9,7 @@ bogus.t - test bogus file cases.
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

@@ -63,6 +63,7 @@ out of Perl, this class I<no longer> uses the fields pragma.
 ## at some point.  Don't know how far how fast.
 
 use strict;
+use warnings;
 use Carp;
 use Fcntl;
 use Symbol;

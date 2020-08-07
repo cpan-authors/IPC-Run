@@ -9,6 +9,7 @@ binary.t - Test suite for IPC::Run binary functionality
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

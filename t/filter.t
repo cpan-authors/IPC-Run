@@ -9,6 +9,7 @@ filter.t - Test suite for IPC::Run filter scaffolding
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

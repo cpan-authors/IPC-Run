@@ -9,6 +9,7 @@ timeout.t - Test suite for IPC::Run timeouts
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

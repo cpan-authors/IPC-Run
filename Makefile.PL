@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 use ExtUtils::MakeMaker;
 
 # Calculate the dependencies
@@ -56,7 +59,7 @@ WriteMakefile(
     VERSION_FROM => 'lib/IPC/Run.pm',
     ( $ExtUtils::MakeMaker::VERSION >= 6.3002 ? ( 'LICENSE' => 'perl', ) : () ),
     PREREQ_PM => {
-        Test::More => '0.47',
+        'Test::More' => '0.47',
         %PREREQ_PM,
     },
     dist       => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

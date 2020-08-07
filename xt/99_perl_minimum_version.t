@@ -2,6 +2,7 @@
 
 # Test that our declared minimum Perl version matches our syntax
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

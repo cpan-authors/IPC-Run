@@ -9,6 +9,7 @@ harness.t - Test suite for IPC::Run::harness
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

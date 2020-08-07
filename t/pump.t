@@ -9,6 +9,7 @@ pump.t - Test suite for IPC::Run::run, etc.
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

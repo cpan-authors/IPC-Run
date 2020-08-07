@@ -9,6 +9,7 @@ parallel.t - Test suite for running multiple processes in parallel.
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

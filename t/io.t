@@ -9,6 +9,7 @@ io.t - Test suite exercising IPC::Run::IO with IPC::Run::run.
 =cut
 
 use strict;
+use warnings;
 
 BEGIN {
     $|  = 1;

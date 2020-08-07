@@ -1,6 +1,7 @@
 package IPC::Run::Test;
 
 use strict;
+use warnings;
 use Test::More;
 use Exporter;
 use IPC::Run qw{ harness };
