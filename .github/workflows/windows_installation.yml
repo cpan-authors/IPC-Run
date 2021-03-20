@@ -25,4 +25,12 @@ jobs:
 
     - name: Install Module
       run: |
-        cpanm IPC::Run
+        cpan
+        look IPC::Run
+        perl Makefile.PL
+        dmake
+        dmake test
+        dmake install
+        
+        
+        
