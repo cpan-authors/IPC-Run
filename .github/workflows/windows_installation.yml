@@ -1,0 +1,28 @@
+name: Windows_Installation
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Install and setup Perl
+      run: |
+          choco install strawberryperl
+          echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" >> $GITHUB_PATH
+    
+    - name: Check perl version
+      run: perl -v
+
+    - name: Install Module
+      run: |
+        cpanm IPC::Run
