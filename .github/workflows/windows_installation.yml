@@ -23,14 +23,7 @@ jobs:
     - name: Check perl version
       run: perl -v
 
-    - name: Install Module
+    - name: Uninstall/Install Module
       run: |
-        cpan
-        look IPC::Run
-        perl Makefile.PL
-        dmake
-        dmake test
-        dmake install
-        
-        
-        
+        cpanm --uninstall IPC::Run
+        cpanm IPC::Run
