@@ -1,7 +1,5 @@
 name: Windows_Installation
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches:
@@ -22,5 +20,5 @@ jobs:
           perl-version: '5.30'
           distribution: strawberry
       - run: perl -V
-      - name: Uninstall Module
+      - name: Uninstall and Install Module
         run: curl https://cpanmin.us | perl - --verbose --reinstall IPC::Run
