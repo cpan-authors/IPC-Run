@@ -15,15 +15,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Install and setup Perl
-      run: |
-          choco install strawberryperl
-          echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" >> $GITHUB_PATH
-    
-    - name: Check perl version
-      run: perl -v
-
-    - name: Uninstall/Install Module
-      run: |
-        cpanm --uninstall IPC::Run
-        cpanm IPC::Run
+      - uses: actions/checkout@v2
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.30'
+          distribution: strawberry
+      - run: perl -V
+      - name: Uninstall/Install Module
+        run: |
+          cpanm --uninstall IPC::Run
+          cpanm IPC::Run
