@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 268;
+use Test::More tests => 272;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
 
@@ -209,6 +209,31 @@ is $? >> 8, 42;
 
 is( _map_fds, $fd_map );
 $fd_map = _map_fds;
+
+##
+## Arguments bearing most bytes, excluding NUL (unsupported) and BEL (noisy and
+## not otherwise special).  Arguments bearing special sequences of bytes.
+##
+{
+    local $ENV{PERL_UNICODE};
+    delete $ENV{PERL_UNICODE};
+
+    my @bytes = map { $_ == 7 ? () : pack( 'C', $_ ); } 1 .. 0xFF;
+    $r = run(
+        [ $perl, '-e', 'binmode STDOUT; print join "\0", @ARGV', @bytes ],
+        '>', \$out
+    );
+    eok( $out, join "\0", @bytes );
+
+    my $sequences = qq{\\"\\az\\\\"\\\\\\};
+    foreach my $payload ( join( '', @bytes ), $sequences, "$sequences\n" ) {
+        $r = run(
+            [ $perl, '-e', 'binmode STDOUT; print @ARGV', $payload ],
+            '>', \$out
+        );
+        eok( $out, $payload );
+    }
+}
 
 ##
 ## A function
