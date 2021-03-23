@@ -40,6 +40,7 @@ require POSIX;
 
 use Text::ParseWords;
 use Win32::Process;
+use Win32::ShellQuote ();
 use IPC::Run::Debug;
 use Win32API::File qw(
   FdGetOsFHandle
@@ -323,6 +324,11 @@ trying to be a little cross-platform here.  The only difference is
 that "\" is *not* treated as an escape except when it precedes 
 punctuation, since it's used all over the place in DOS path specs.
 
+TODO: strip caret escapes?
+
+TODO: use
+https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments
+
 TODO: globbing? probably not (it's unDOSish).
 
 TODO: shebang emulation? Probably, but perhaps that should be part
@@ -442,11 +448,7 @@ sub win32_spawn {
     }
 
     my $process;
-    my $cmd_line = join " ", map {
-        ( my $s = $_ ) =~ s/"/"""/g;
-        $s = qq{"$s"} if /[\"\s]|^$/;
-        $s;
-    } @$cmd;
+    my $cmd_line = Win32::ShellQuote::quote_native(@$cmd);
 
     _debug "cmd line: ", $cmd_line
       if _debugging;

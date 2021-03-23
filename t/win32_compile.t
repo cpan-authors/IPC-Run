@@ -35,7 +35,8 @@ BEGIN {
         plan( skip_all => "android does not support getprotobyname()" );
     }
 
-    $INC{$_} = 1 for qw( Win32/Process.pm Win32API/File.pm );
+    $INC{$_} = 1 for qw(
+      Win32/Process.pm Win32/ShellQuote.pm Win32API/File.pm );
 
     package Win32API::File;
 
