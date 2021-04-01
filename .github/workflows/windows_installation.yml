@@ -1,0 +1,24 @@
+name: Windows_Installation
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.32'
+          distribution: strawberry
+      - run: perl -V
+      - name: Uninstall and Install Module
+        run: curl https://cpanmin.us | perl - --verbose --reinstall IPC::Run
