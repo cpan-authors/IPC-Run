@@ -36,7 +36,20 @@ BEGIN {
     }
 
     $INC{$_} = 1 for qw(
-      Win32/Process.pm Win32/ShellQuote.pm Win32API/File.pm );
+      Win32.pm Win32/Process.pm Win32/ShellQuote.pm Win32API/File.pm );
+
+    package Win32;
+
+    use vars qw( @ISA @EXPORT );
+
+    @ISA    = qw( Exporter );
+    @EXPORT = qw(
+      CSIDL_SYSTEM
+    );
+
+    eval "sub $_ {}" for @EXPORT;
+
+    use Exporter;
 
     package Win32API::File;
 

@@ -4162,6 +4162,34 @@ High resolution timeouts.
 
 =over
 
+=item argument-passing rules are program-specific
+
+Win32 programs receive all arguments in a single "command line" string.
+IPC::Run assembles this string so programs using L<standard command line parsing
+rules|https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments>
+will see an C<argv> that matches the array reference specifying the command.
+Some programs use different rules to parse their command line.  Notable examples
+include F<cmd.exe>, F<cscript.exe>, and Cygwin programs called from non-Cygwin
+programs.  Use L<Win32::Process>, not IPC::Run, to call these and other
+nonstandard programs.
+
+=item batch files
+
+Properly escaping a batch file argument depends on how the script will use that
+argument, because some uses experience multiple levels of caret (escape
+character) removal.  Avoid calling batch files with arguments, particularly when
+the argument values originate outside your program or contain non-alphanumeric
+characters.  Perl scripts and PowerShell scripts are sound alternatives.  If you
+do use batch file arguments, IPC::Run escapes them so the batch file can pass
+them, unquoted, to a program having standard command line parsing rules.  If the
+batch file enables delayed environment variable expansion, it must disable that
+feature before expanding its arguments.  For example, if F<foo.cmd> contains
+C<perl %*>, C<run ['foo.cmd', @list]> will create a Perl process in which
+C<@ARGV> matches C<@list>.  Prepending a C<setlocal enabledelayedexpansion> line
+would make the batch file malfunction, silently.  Another silent-malfunction
+example is C<run ['outer.bat', @list]> for F<outer.bat> containing C<foo.cmd
+%*>.
+
 =item Fails on Win9X
 
 If you want Win9X support, you'll have to debug it or fund me because I
