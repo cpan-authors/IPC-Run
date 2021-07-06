@@ -523,7 +523,12 @@ sub win32_spawn {
         1,    ## Inherit handles
         0,    ## Inherit parent priortiy class. Was NORMAL_PRIORITY_CLASS
         ".",
-    ) or croak "$!: Win32::Process::Create()";
+      )
+      or do {
+        my $err = Win32::FormatMessage( Win32::GetLastError() );
+        $err =~ s/\r?\n$//s;
+        croak "$err: Win32::Process::Create()";
+      };
 
     for my $orig_fd ( keys %saved ) {
         IPC::Run::_dup2_rudely( $saved{$orig_fd}, $orig_fd );
