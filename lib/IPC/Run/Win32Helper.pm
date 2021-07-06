@@ -409,7 +409,11 @@ sub win32_spawn {
 
     my ( $app, $cmd_line );
     my $need_pct = 0;
-    if ( $cmd->[0] !~ /\.(bat|cmd) *$/i ) {
+    if ( UNIVERSAL::isa( $cmd, 'IPC::Run::Win32Process' ) ) {
+        $app      = $cmd->{lpApplicationName};
+        $cmd_line = $cmd->{lpCommandLine};
+    }
+    elsif ( $cmd->[0] !~ /\.(bat|cmd) *$/i ) {
         $app      = $cmd->[0];
         $cmd_line = Win32::ShellQuote::quote_native(@$cmd);
     }

@@ -16,6 +16,7 @@ lib/IPC/Run/IO.pm
 lib/IPC/Run/Timer.pm
 lib/IPC/Run/Win32Helper.pm
 lib/IPC/Run/Win32IO.pm
+lib/IPC/Run/Win32Process.pm
 lib/IPC/Run/Win32Pump.pm
 LICENSE
 Makefile.PL

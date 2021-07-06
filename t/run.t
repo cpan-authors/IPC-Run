@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 286;
+use Test::More tests => 288;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
 
@@ -342,6 +342,36 @@ SKIP: {
     run( [ $rel, 'arg' ], '>', \$out );
     eok( $out, 'arg' );
     chdir $initial_cwd;
+}
+
+##
+## IPC::Run::Win32Process
+##
+SKIP: {
+    if ( !IPC::Run::Win32_MODE() ) {
+        skip( "cmd.exe is specific to Win32", 2 );
+    }
+
+    use File::Spec ();
+    require Win32;
+    require IPC::Run::Win32Process;
+
+    run(
+        IPC::Run::Win32Process->new( $ENV{COMSPEC}, q{cmd.exe /c echo ""} ),
+        '>', \$out
+    );
+    eok( $out, qq{""\n} );
+
+    my $find_exe = File::Spec->catfile(
+        Win32::GetFolderPath( Win32::CSIDL_SYSTEM() ),
+        'find.exe'
+    );
+    run(
+        IPC::Run::Win32Process->new( $ENV{COMSPEC}, q{cmd.exe /c echo ""} ),
+        '|', IPC::Run::Win32Process->new( $find_exe, q{find_exe """"""} ),
+        '>', \$out
+    );
+    eok( $out, qq{""\n} );
 }
 
 ##
