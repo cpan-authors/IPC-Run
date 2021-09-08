@@ -106,6 +106,13 @@ my $text = "hello world\n";
 my $exp;
 my $platform_skip = $^O =~ /(?:dragonfly|aix|freebsd|openbsd|netbsd|darwin)/ ? "$^O deadlocks on this test" : "";
 
+# May force opening /var/lib/sss/mc/group on some systems (see
+# https://github.com/toddr/IPC-Run/issues/130)
+# OpenBSD libc devname(3) opens /var/run/dev.db and keeps it open.
+# As this would confuse open file descriptor checks, open it in
+# advance.
+{my $pty = IO::Pty->new}
+
 ##
 ## stdin only
 ##
@@ -113,10 +120,6 @@ SKIP: {
     if ($platform_skip) {
         skip( $platform_skip, 9 );
     }
-
-    # May force opening /var/lib/sss/mc/group on some systems (see
-    # https://github.com/toddr/IPC-Run/issues/130)
-    {my $pty = IO::Pty->new}
 
     $out    = 'REPLACE ME';
     $?      = 99;
