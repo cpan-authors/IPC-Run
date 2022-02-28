@@ -135,7 +135,7 @@ on NT 4.0.  See L</Win32 LIMITATIONS>.
 
 If you need pty support, IPC::Run should work well enough most of the
 time, but IO::Pty is being improved, and IPC::Run will be improved to
-use IO::Pty's new features when it is release.
+use IO::Pty's new features when it is released.
 
 The basic problem is that the pty needs to initialize itself before the
 parent writes to the master pty, or the data written gets lost.  So
