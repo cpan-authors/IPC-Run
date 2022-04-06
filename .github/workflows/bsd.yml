@@ -1,0 +1,47 @@
+name: BSDs
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  BSDs:
+    runs-on: macos-10.15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - name: freebsd
+            version: '13.0'
+            pkginstall: pkg install -y p5-ExtUtils-MakeMaker
+          #- name: freebsd
+          #  version: '12.2'
+          #  pkginstall: pkg install -y p5-ExtUtils-MakeMaker
+
+          # Tests currently fail on OpenBSD:
+          #- name: openbsd
+          #  version: '6.9'
+          #  pkginstall: pkg_add curl p5-ExtUtils-MakeMaker
+
+    steps:
+      - uses: actions/checkout@main
+        with:
+          submodules: recursive
+
+      - name: Test on ${{ matrix.os.name }}
+        uses: cross-platform-actions/action@v0.3.1
+        with:
+          operating_system: ${{ matrix.os.name }}
+          version: ${{ matrix.os.version }}
+          shell: bash
+          run: |
+            sudo ${{ matrix.os.pkginstall }}
+            curl -L https://cpanmin.us | sudo perl - --notest --installdeps --with-configure --with-develop .
+            perl Makefile.PL
+            make
+            prove -wlvmb t
