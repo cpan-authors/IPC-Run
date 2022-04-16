@@ -1,12 +1,10 @@
 name: Windows_Installation
 
 on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-  pull_request:
+  # Manual runs only.  This test uses the CPAN version of IPC::Run, not Perl
+  # code at the current commit.  This test would fail even for a commit that,
+  # once released, would lead to this test passing.
+  workflow_dispatch:
 
 jobs:
   build:
