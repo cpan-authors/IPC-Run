@@ -11,7 +11,7 @@ use IPC::Run;
     sub IPC::Run::Win32_MODE { 1 }
 }
 
-my $ismsys = $^O eq 'msys';
+my $ismsys = $^O eq 'msys';     # save it before being ovrwritten below
 
 is( IPC::Run::Win32_MODE, 1, "We're win32 mode?" );
 $^O = 'Win32';
@@ -27,12 +27,15 @@ my @tests = qw(
 );
 
 if ($ismsys) {
-	ok(1); ok(1); # compensate for the 2 tests not run in msys
+    { local $TODO = "Windows/msys does not accept .BAT as executables"; }
+    SKIP: {
+        skip "Windows/msys does not accept .BAT as executables", 2;
+    }
 }
 else {
-	push @tests, qw(
-  ./5.11.5/temp ./5.11.5/temp.BAT
-	);
+    push @tests, qw(
+      ./5.11.5/temp ./5.11.5/temp.BAT
+    );
 }
 
 while (@tests) {
