@@ -11,8 +11,6 @@ use IPC::Run;
     sub IPC::Run::Win32_MODE { 1 }
 }
 
-my $ismsys = $^O eq 'msys';     # save it before being ovrwritten below
-
 is( IPC::Run::Win32_MODE, 1, "We're win32 mode?" );
 $^O = 'Win32';
 
@@ -22,21 +20,10 @@ my @tests = qw(
   ./temp ./temp.EXE
   .\\temp .\\temp.EXE
   ./5.11.5/temp ./5.11.5/temp.EXE
+  ./5.11.5/temp ./5.11.5/temp.BAT
   ./5.11.5/temp ./5.11.5/temp.COM
 
 );
-
-if ($ismsys) {
-    { local $TODO = "Windows/msys does not accept .BAT as executables"; }
-    SKIP: {
-        skip "Windows/msys does not accept .BAT as executables", 2;
-    }
-}
-else {
-    push @tests, qw(
-      ./5.11.5/temp ./5.11.5/temp.BAT
-    );
-}
 
 while (@tests) {
     my $path   = shift @tests;
@@ -44,8 +31,15 @@ while (@tests) {
 
     touch($result);
     my $got = eval { IPC::Run::_search_path($path) };
-    is( $@,   '',      "No error calling _search_path for '$path'" );
-    is( $got, $result, "Executable $result found" );
+
+    # see https://github.com/toddr/IPC-Run/pull/155 conversation for details
+    SKIP: {
+        skip qq{TODO: on msys or Cygwin noacl mounts, "-x $result" is false}, 2
+            if ($result =~ /BAT$/ && !-x $result);
+
+        is( $@,   '',      "No error calling _search_path for '$path'" );
+        is( $got, $result, "Executable $result found" );
+    }
     unlink $result;
 }
 
