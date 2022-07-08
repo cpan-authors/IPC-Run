@@ -16,6 +16,7 @@ if ( $^O ne 'MSWin32' ) {
     }
 }
 else {
+    $PREREQ_PM{'Win32'}             = '0.27';
     $PREREQ_PM{'Win32::Process'}    = '0.14';
     $PREREQ_PM{'Win32::ShellQuote'} = 0;
     $PREREQ_PM{'Win32API::File'}    = '0.0901';

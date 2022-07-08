@@ -413,8 +413,8 @@ to the systems' shell:
 
 or a list of commands, io operations, and/or timers/timeouts to execute.
 Consecutive commands must be separated by a pipe operator '|' or an '&'.
-External commands are passed in as array references, and, on systems
-supporting fork(), Perl code may be passed in as subs:
+External commands are passed in as array references or L<IPC::Run::Win32Process>
+objects.  On systems supporting fork(), Perl code may be passed in as subs:
 
    run \@cmd;
    run \@cmd1, '|', \@cmd2;
@@ -1240,6 +1240,33 @@ sub _search_path {
     croak "Command '$cmd_name' not found in " . join( ", ", @searched_in );
 }
 
+# Translate a command or CODE reference (a $kid->{VAL}) to a list of strings
+# suitable for passing to _debug().
+sub _debugstrings {
+    my $operand = shift;
+    if ( !defined $operand ) {
+        return '<undef>';
+    }
+
+    my $ref = ref $operand;
+    if ( !$ref ) {
+        return length $operand < 50
+          ? "'$operand'"
+          : join( '', "'", substr( $operand, 0, 10 ), "...'" );
+    }
+    elsif ( $ref eq 'ARRAY' ) {
+        return (
+            '[ ',
+            join( " ", map /[^\w.-]/ ? "'$_'" : $_, @$operand ),
+            ' ]'
+        );
+    }
+    elsif ( UNIVERSAL::isa( $operand, 'IPC::Run::Win32Process' ) ) {
+        return "$operand";
+    }
+    return $ref;
+}
+
 sub _empty($) { !( defined $_[0] && length $_[0] ) }
 
 ## 'safe' versions of otherwise fun things to do. See also IPC::Run::Win32Helper.
@@ -1374,6 +1401,9 @@ sub _read {
 sub _spawn {
     my IPC::Run $self = shift;
     my ($kid) = @_;
+
+    croak "Can't spawn IPC::Run::Win32Process except on Win32"
+      if UNIVERSAL::isa( $kid->{VAL}, 'IPC::Run::Win32Process' );
 
     _debug "opening sync pipe ", $kid->{PID} if _debugging_details;
     my $sync_reader_fd;
@@ -1730,24 +1760,12 @@ sub harness {
         for ( shift @args ) {
             eval {
                 $first_parse = 1;
-                _debug(
-                    "parsing ",
-                    defined $_
-                    ? ref $_ eq 'ARRAY'
-                          ? ( '[ ', join( ', ', map "'$_'", @$_ ), ' ]' )
-                          : (
-                              ref $_
-                                || (
-                                  length $_ < 50
-                                  ? "'$_'"
-                                  : join( '', "'", substr( $_, 0, 10 ), "...'" )
-                                )
-                          )
-                    : '<undef>'
-                ) if _debugging;
+                _debug( "parsing ", _debugstrings($_) ) if _debugging;
 
               REPARSE:
-                if ( ref eq 'ARRAY' || ( !$cur_kid && ref eq 'CODE' ) ) {
+                if (   ref eq 'ARRAY'
+                    || UNIVERSAL::isa( $_, 'IPC::Run::Win32Process' )
+                    || ( !$cur_kid && ref eq 'CODE' ) ) {
                     croak "Process control symbol ('|', '&') missing" if $cur_kid;
                     croak "Can't spawn a subroutine on Win32"
                       if Win32_MODE && ref eq "CODE";
@@ -2077,7 +2095,7 @@ sub _open_pipes {
     ## Loop through the kids and their OPS, interpreting any that require
     ## parent-side actions.
     for my $kid ( @{ $self->{KIDS} } ) {
-        unless ( ref $kid->{VAL} eq 'CODE' ) {
+        if ( ref $kid->{VAL} eq 'ARRAY' ) {
             $kid->{PATH} = _search_path $kid->{VAL}->[0];
         }
         if ( defined $pipe_read_fd ) {
@@ -2789,14 +2807,8 @@ sub start {
         { my $ofh = select STDERR; my $of = $|; $| = 1; $| = $of; select $ofh; }
         for my $kid ( @{ $self->{KIDS} } ) {
             $kid->{RESULT} = undef;
-            _debug "child: ",
-              ref( $kid->{VAL} ) eq "CODE"
-              ? "CODE ref"
-              : (
-                "`",
-                join( " ", map /[^\w.-]/ ? "'$_'" : $_, @{ $kid->{VAL} } ),
-                "`"
-              ) if _debugging_details;
+            _debug "child: ", _debugstrings( $kid->{VAL} )
+              if _debugging_details;
             eval {
                 croak "simulated failure of fork"
                   if $self->{_simulate_fork_failure};
@@ -2807,17 +2819,20 @@ sub start {
 ## TODO: Test and debug spawning code.  Someday.
                     _debug(
                         'spawning ',
-                        join(
-                            ' ',
-                            map( "'$_'",
-                                ( $kid->{PATH}, @{ $kid->{VAL} }[ 1 .. $#{ $kid->{VAL} } ] ) )
+                        _debugstrings(
+                            [
+                                $kid->{PATH},
+                                @{ $kid->{VAL} }[ 1 .. $#{ $kid->{VAL} } ]
+                            ]
                         )
-                    ) if _debugging;
+                    ) if $kid->{PATH} && _debugging;
                     ## The external kid wouldn't know what to do with it anyway.
                     ## This is only used by the "helper" pump processes on Win32.
                     _dont_inherit( $self->{DEBUG_FD} );
                     ( $kid->{PID}, $kid->{PROCESS} ) = IPC::Run::Win32Helper::win32_spawn(
-                        [ $kid->{PATH}, @{ $kid->{VAL} }[ 1 .. $#{ $kid->{VAL} } ] ],
+                        ref( $kid->{VAL} ) eq "ARRAY"
+                        ? [ $kid->{PATH}, @{ $kid->{VAL} }[ 1 .. $#{ $kid->{VAL} } ] ]
+                        : $kid->{VAL},
                         $kid->{OPS},
                     );
                     _debug "spawn() = ", $kid->{PID} if _debugging;
@@ -4161,6 +4176,34 @@ High resolution timeouts.
 =head1 Win32 LIMITATIONS
 
 =over
+
+=item argument-passing rules are program-specific
+
+Win32 programs receive all arguments in a single "command line" string.
+IPC::Run assembles this string so programs using L<standard command line parsing
+rules|https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments>
+will see an C<argv> that matches the array reference specifying the command.
+Some programs use different rules to parse their command line.  Notable examples
+include F<cmd.exe>, F<cscript.exe>, and Cygwin programs called from non-Cygwin
+programs.  Use L<IPC::Run::Win32Process> to call these and other nonstandard
+programs.
+
+=item batch files
+
+Properly escaping a batch file argument depends on how the script will use that
+argument, because some uses experience multiple levels of caret (escape
+character) removal.  Avoid calling batch files with arguments, particularly when
+the argument values originate outside your program or contain non-alphanumeric
+characters.  Perl scripts and PowerShell scripts are sound alternatives.  If you
+do use batch file arguments, IPC::Run escapes them so the batch file can pass
+them, unquoted, to a program having standard command line parsing rules.  If the
+batch file enables delayed environment variable expansion, it must disable that
+feature before expanding its arguments.  For example, if F<foo.cmd> contains
+C<perl %*>, C<run ['foo.cmd', @list]> will create a Perl process in which
+C<@ARGV> matches C<@list>.  Prepending a C<setlocal enabledelayedexpansion> line
+would make the batch file malfunction, silently.  Another silent-malfunction
+example is C<run ['outer.bat', @list]> for F<outer.bat> containing C<foo.cmd
+%*>.
 
 =item Fails on Win9X
 

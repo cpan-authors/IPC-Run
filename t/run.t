@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 272;
+use Test::More tests => 288;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
 
@@ -214,25 +214,164 @@ $fd_map = _map_fds;
 ## Arguments bearing most bytes, excluding NUL (unsupported) and BEL (noisy and
 ## not otherwise special).  Arguments bearing special sequences of bytes.
 ##
-{
+sub bytes_tests {
+    my ( $printer, $bytes, $sequences ) = @_;
+
     local $ENV{PERL_UNICODE};
     delete $ENV{PERL_UNICODE};
 
-    my @bytes = map { $_ == 7 ? () : pack( 'C', $_ ); } 1 .. 0xFF;
-    $r = run(
-        [ $perl, '-e', 'binmode STDOUT; print join "\0", @ARGV', @bytes ],
-        '>', \$out
-    );
-    eok( $out, join "\0", @bytes );
+    run( [ @$printer, @$bytes ], '>', \$out );
+    eok( $out, join "\0", @$bytes );
 
-    my $sequences = qq{\\"\\az\\\\"\\\\\\};
-    foreach my $payload ( join( '', @bytes ), $sequences, "$sequences\n" ) {
-        $r = run(
-            [ $perl, '-e', 'binmode STDOUT; print @ARGV', $payload ],
-            '>', \$out
-        );
+    foreach my $payload ( join( '', @$bytes ), @$sequences ) {
+        run( [ @$printer, $payload ], '>', \$out );
         eok( $out, $payload );
     }
+}
+
+my @bytes = map { $_ == 7 ? () : pack( 'C', $_ ); } 1 .. 0xFF;
+my $sequence = qq{\\"\\az\\\\"\\\\\\};
+bytes_tests(
+    [ $perl, '-e', 'binmode STDOUT; print join "\0", @ARGV' ],
+    \@bytes, [ $sequence, "$sequence\n" ]
+);
+
+##
+## Executing Cygwin Perl (from any Perl)
+##
+SKIP: {
+    # It's tempting to enable these automatically when c:/cygwin64/bin/perl
+    # exists.  However, a hostile user could create that file on a system having
+    # no Cygwin installation.
+    skip( 'set TEST_CYGWIN_PERL=c:/cygwin64/bin/perl to test executing Cygwin from non-Cygwin', 3 )
+      unless $ENV{TEST_CYGWIN_PERL};
+
+    # Cygwin mishandles arguments containing non-ASCII bytes, even under
+    # LANG=POSIX.  (It might handle them correctly if they're valid utf8 or if
+    # one installs a non-utf8 locale.)  Cygwin also mishandles "\\\\x a" and
+    # other lpCommandLine fragments with multiple backslashes.  (Cygwin programs
+    # executing other Cygwin programs pass the argv outside lpCommandLine,
+    # bypassing the problem.)  Don't test any of those.
+    my @cygbytes = map { $_ == 7 ? () : pack( 'C', $_ ); } 1 .. 0x7F;
+    bytes_tests(
+        [
+            $ENV{TEST_CYGWIN_PERL},
+            '-e', 'binmode STDOUT; print join "\0", @ARGV'
+        ],
+        \@cygbytes,
+        [$sequence]
+    );
+}
+
+##
+## Win32 batch files
+##
+SKIP: {
+    if ( !IPC::Run::Win32_MODE() ) {
+        skip( "batch files are specific to Win32", 11 );
+    }
+
+    use Cwd        ();
+    use File::Spec ();
+    use File::Temp ();
+    require Win32::ShellQuote;
+
+    my $parent_dir = File::Temp::tempdir( CLEANUP => 1 );
+    my $simple = File::Spec->catfile( $parent_dir, 'simple.bat' );
+    my $dir = File::Spec->catdir( $parent_dir, 'sub dir' );
+    mkdir $dir;
+
+    # List bytes that are valid in file names and potentially interesting to
+    # test.  Exclude the colon, which selects a non-default "file stream".
+    # Exclude ASCII alphanumeric bytes, which are uninteresting and would make
+    # the name too long.
+    my $file_name_bytes = join '', map {
+        my $chr = pack( 'C', $_ );
+        my $chr_file = File::Spec->catfile( $dir, "name_$chr.bat" );
+        $chr !~ /[:a-zA-Z0-9]/ && open( my $fh, '>', $chr_file ) ? ($chr) : ();
+    } 1 .. 0xFF;
+    my $bat          = File::Spec->catfile( $dir, 'SCRIPT FILE.BAT' );
+    my $cmd_basename = "SCRIPT ^&%SYSTEMROOT%!ipcrunpct!${file_name_bytes}.cmd  ";
+    my $cmd          = File::Spec->catfile( $dir, $cmd_basename );
+    my $bat_source   = sprintf(
+        qq{\@echo off\n"%s" -e %s %%*},
+        $perl,
+        Win32::ShellQuote::quote_cmd('binmode STDOUT; print join "\0", @ARGV')
+    );
+
+    # Fill batch files and check their handling of trivial arguments.
+    foreach my $f ( $simple, $bat, $cmd ) {
+        spit( $f, $bat_source );
+        run( [ $f, qw(xyz 1 23) ], '>', \$out );
+        eok( $out, join( "\0", qw(xyz 1 23) ) );
+    }
+
+    # Zero arguments
+    run( [$simple], '>', \$out );
+    eok( $out, '' );
+
+    # Forbidden character in batch file argument
+    eval { run( [ $simple, "foo\nbar" ], '>', \$out ); };
+    like( $@, qr/newline/ );
+
+    # Missing COMSPEC
+    {
+        local $ENV{COMSPEC};
+        run( [ $simple, 'arg' ], '>', \$out );
+        eok( $out, 'arg' );
+    }
+
+    # Environment variable collision
+    {
+        local $ENV{'somevar^^^'} = 'FAIL';
+        run( [ $simple, '%somevar%' ], '>', \$out );
+        eok( $out, '%somevar%' );
+    }
+
+    ## As above, except that cmd.exe does not cope with \r or \n.
+    bytes_tests(
+        [$cmd],
+        [ grep { $_ ne "\r" && $_ ne "\n" } @bytes ], [$sequence]
+    );
+
+    # Relative path doesn't begin with a volume specification, so it exercises
+    # different cmd.exe behavior.  See https://stackoverflow.com/a/4095133.
+    my $initial_cwd = Cwd::getcwd;
+    chdir $parent_dir;
+    my $rel = File::Spec->catfile( 'sub dir', $cmd_basename );
+    run( [ $rel, 'arg' ], '>', \$out );
+    eok( $out, 'arg' );
+    chdir $initial_cwd;
+}
+
+##
+## IPC::Run::Win32Process
+##
+SKIP: {
+    if ( !IPC::Run::Win32_MODE() ) {
+        skip( "cmd.exe is specific to Win32", 2 );
+    }
+
+    use File::Spec ();
+    require Win32;
+    require IPC::Run::Win32Process;
+
+    run(
+        IPC::Run::Win32Process->new( $ENV{COMSPEC}, q{cmd.exe /c echo ""} ),
+        '>', \$out
+    );
+    eok( $out, qq{""\n} );
+
+    my $find_exe = File::Spec->catfile(
+        Win32::GetFolderPath( Win32::CSIDL_SYSTEM() ),
+        'find.exe'
+    );
+    run(
+        IPC::Run::Win32Process->new( $ENV{COMSPEC}, q{cmd.exe /c echo ""} ),
+        '|', IPC::Run::Win32Process->new( $find_exe, q{find_exe """"""} ),
+        '>', \$out
+    );
+    eok( $out, qq{""\n} );
 }
 
 ##
