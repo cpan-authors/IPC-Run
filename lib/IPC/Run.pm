@@ -1273,6 +1273,40 @@ sub _empty($) { !( defined $_[0] && length $_[0] ) }
 sub _close {
     confess 'undef' unless defined $_[0];
     my $fd = $_[0] =~ /^\d+$/ ? $_[0] : fileno $_[0];
+    if (Win32_MODE) {
+
+        # Perl close() or POSIX::close() on the read end of a pipe hangs if
+        # another process is in a read attempt on the same pipe
+        # (https://github.com/Perl/perl5/issues/19963).  Since IPC::Run creates
+        # pipes and shares them with user-defined kids, it's affected.  Work
+        # around that by first using dup2() to replace the FD with a non-pipe.
+        # Unfortunately, for socket FDs, dup2() closes the SOCKET with
+        # CloseHandle().  CloseHandle() documentation leaves its behavior
+        # undefined for sockets.  However, tests on Windows Server 2022 did not
+        # leak memory, leak ports, or reveal any other obvious trouble.
+        #
+        # No failure here is fatal.  (_close() has worked that way, either due
+        # to a principle or just due to a history of callers passing closed
+        # FDs.)  croak() on EMFILE would be a bad user experience.  Better to
+        # proceed and hope that $fd is not a being-read pipe.
+        #
+        # Since start() and other user-facing methods _close() many FDs, we
+        # could optimize this by opening and closing the non-pipe FD just once
+        # per method call.  The overhead of this simple approach was in the
+        # noise, however.
+        my $nul_fd = POSIX::open 'NUL';
+        if ( !defined $nul_fd ) {
+            _debug "open( NUL ) = ERROR $!" if _debugging_details;
+        }
+        else {
+            my $r = POSIX::dup2( $nul_fd, $fd );
+            _debug "dup2( $nul_fd, $fd ) = ERROR $!"
+              if _debugging_details && !defined $r;
+            $r = POSIX::close $nul_fd;
+            _debug "close( $nul_fd (NUL) ) = ERROR $!"
+              if _debugging_details && !defined $r;
+        }
+    }
     my $r = POSIX::close $fd;
     $r = $r ? '' : " ERROR $!";
     delete $fds{$fd};
@@ -2836,6 +2870,11 @@ sub start {
                         $kid->{OPS},
                     );
                     _debug "spawn() = ", $kid->{PID} if _debugging;
+                    if ($self->{_sleep_after_win32_spawn}) {
+                      sleep $self->{_sleep_after_win32_spawn};
+                      _debug "after sleep $self->{_sleep_after_win32_spawn}"
+                          if _debugging;
+                    }
                 }
             };
             if ($@) {

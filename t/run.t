@@ -1028,6 +1028,9 @@ $fd_map = _map_fds;
 $h      = start(
     [ @perl, '-pe', 'BEGIN { $| = 1 } print STDERR uc($_)' ],
     \$in, \$out, \$err,
+
+    # hangs w/o fix for https://github.com/toddr/IPC-Run/issues/77
+    _sleep_after_win32_spawn => 1,
 );
 isa_ok( $h, 'IPC::Run' );
 is( $?, 99 );
