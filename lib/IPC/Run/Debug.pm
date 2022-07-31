@@ -237,7 +237,7 @@ sub _debug {
       " ",
       join(
          "",
-         defined $IPC::Run::cur_self ? "#$IPC::Run::cur_self->{ID}" : (),
+         defined $IPC::Run::cur_self->{ID} ? "#$IPC::Run::cur_self->{ID}" : (),
          "($$)",
       ),
       defined $debug_name && length $debug_name ? $debug_name        : (),
