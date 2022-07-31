@@ -45,7 +45,7 @@ sub parent {
     my $fh = tempfile();
     ok($fh, 'opened file');
 
-    my @command = ($0, 'child');
+    my @command = ($^X, $0, 'child');
 
     my $stdout = sub { note_output("stdout", $_); return; };
     my $stderr = sub { note_output("stderr", $_); return; };

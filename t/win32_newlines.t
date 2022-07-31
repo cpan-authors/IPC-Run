@@ -36,7 +36,7 @@ for my $i ( 0 .. $#{ lines() } ) {
     $ENV{IPC_SUB_INDEX} = $i;
     for my $report_in ( 1, 0 ) {
         $ENV{IPC_SUB_PROCESS_REPORT_IN} = $report_in;
-        run [ "perl", __FILE__ ], "<", \$line, ">", \my $out;
+        run [ $^X, __FILE__ ], "<", \$line, ">", \my $out;
         $out = perlstring $out if not $report_in;
         my $print_line = perlstring $line;
         is $out, $print_line,

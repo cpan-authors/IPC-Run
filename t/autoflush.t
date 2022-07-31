@@ -9,7 +9,7 @@ if ( $^O !~ /Win32/ ) {
     my $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Autoflush set" );
 
-    IPC::Run::run( [ 'perl', '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
+    IPC::Run::run( [ $^X, '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
 
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Autoflush still set" );
@@ -18,7 +18,7 @@ if ( $^O !~ /Win32/ ) {
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 0", "Autoflush unset" );
 
-    IPC::Run::run( [ 'perl', '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
+    IPC::Run::run( [ $^X, '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
 
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 0", "Autoflush still unset" );
@@ -27,7 +27,7 @@ else {
     my $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Autoflush set" );
 
-    IPC::Run::run( [ 'perl', '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
+    IPC::Run::run( [ $^X, '-V' ], '1>', "/dev/null", '2>', "/dev/null" );
 
     $flush = sprintf( "AUTOFLUSH %s: %d", select, $| );
     is( $flush, "AUTOFLUSH main::STDOUT: 1", "Autoflush still set" );
