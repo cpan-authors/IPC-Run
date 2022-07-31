@@ -6,6 +6,8 @@ on:
   # once released, would lead to this test passing.
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   build:
     runs-on: windows-latest

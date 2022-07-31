@@ -9,6 +9,8 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   perl:
     runs-on: ubuntu-latest
