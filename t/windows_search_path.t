@@ -31,6 +31,10 @@ while (@tests) {
 
     touch($result);
     my $got = eval { IPC::Run::_search_path($path) };
+
+    # see https://github.com/toddr/IPC-Run/pull/155 conversation for details
+    local $TODO = qq{on msys noacl mounts, "-x $result" is false}
+      if $result =~ /BAT$/ && !-x $result;
     is( $@,   '',      "No error calling _search_path for '$path'" );
     is( $got, $result, "Executable $result found" );
     unlink $result;
