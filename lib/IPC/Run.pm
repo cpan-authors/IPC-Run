@@ -1016,7 +1016,7 @@ use Exporter ();
 use vars qw{$VERSION @ISA @FILTER_IMP @FILTERS @API @EXPORT_OK %EXPORT_TAGS};
 
 BEGIN {
-    $VERSION = '20200505.0';
+    $VERSION = '20220801.0';
     @ISA     = qw{ Exporter };
 
     ## We use @EXPORT for the end user's convenience: there's only one function
