@@ -74,7 +74,6 @@ use Win32API::File qw(
   SetHandleInformation
   SetFilePointer
   HANDLE_FLAG_INHERIT
-  INVALID_HANDLE_VALUE
 
   createFile
   WriteFile
@@ -100,7 +99,6 @@ BEGIN {
         IPPROTO_TCP,
         TCP_NODELAY,
         HANDLE_FLAG_INHERIT,
-        INVALID_HANDLE_VALUE,
     );
 }
 

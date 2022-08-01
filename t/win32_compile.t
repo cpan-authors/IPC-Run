@@ -65,7 +65,6 @@ BEGIN {
       SetFilePointer
 
       HANDLE_FLAG_INHERIT
-      INVALID_HANDLE_VALUE
 
       createFile
       WriteFile
