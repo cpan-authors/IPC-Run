@@ -10,7 +10,7 @@ use Test::More tests => 9;
 
 my @cmd = ("true");
 if ($^O eq 'MSWin32') {
-  @cmd = ('cmd','/C','echo','y');
+  @cmd = ( $^X, '-e', 'exit 0' );
 }
 our ( $i, @i );
 my ( $in, @in );
