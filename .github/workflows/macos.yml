@@ -29,7 +29,8 @@ jobs:
         uses: perl-actions/install-with-cpm@v1.3
         with:
           cpanfile: "cpanfile"
-          args: "--configure-timeout=600"  # IO-Tty-1.16 exceeded 60s default
+          # IO-Tty-1.16 exceeded 60s default
+          args: "--configure-timeout=600 --with-recommends --with-suggests"
           sudo: false
       - name: Makefile.PL
         run: perl Makefile.PL
