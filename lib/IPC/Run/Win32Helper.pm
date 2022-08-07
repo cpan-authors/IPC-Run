@@ -48,8 +48,13 @@ use Win32API::File qw(
   FdGetOsFHandle
   SetHandleInformation
   HANDLE_FLAG_INHERIT
-  INVALID_HANDLE_VALUE
 );
+
+# Replace Win32API::File::INVALID_HANDLE_VALUE, which does not match the C ABI
+# on 64-bit builds (https://github.com/chorny/Win32API-File/issues/13).
+use constant C_ABI_INVALID_HANDLE_VALUE => length( pack 'P', undef ) == 4
+  ? 0xffffffff
+  : 0xffffffff << 32 | 0xffffffff;
 
 ## Takes an fd or a GLOB ref, never never never a Win32 handle.
 sub _dont_inherit {
@@ -59,7 +64,11 @@ sub _dont_inherit {
         $fd = fileno $fd if ref $fd;
         _debug "disabling inheritance of ", $fd if _debugging_details;
         my $osfh = FdGetOsFHandle $fd;
-        croak $^E if !defined $osfh || $osfh == INVALID_HANDLE_VALUE;
+
+        # Contrary to documentation, $! has the failure reason
+        # (https://github.com/chorny/Win32API-File/issues/14)
+        croak "$!: FdGetOsFHandle( $fd )"
+          if !defined $osfh || $osfh == C_ABI_INVALID_HANDLE_VALUE;
 
         SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 0 );
     }
@@ -72,7 +81,11 @@ sub _inherit {    #### REMOVE
         $fd = fileno $fd if ref $fd;    #### REMOVE
         _debug "enabling inheritance of ", $fd if _debugging_details;    #### REMOVE
         my $osfh = FdGetOsFHandle $fd;                                   #### REMOVE
-        croak $^E if !defined $osfh || $osfh == INVALID_HANDLE_VALUE;    #### REMOVE
+
+        # Contrary to documentation, $! has the failure reason
+        # (https://github.com/chorny/Win32API-File/issues/14)
+        croak "$!: FdGetOsFHandle( $fd )"
+          if !defined $osfh || $osfh == C_ABI_INVALID_HANDLE_VALUE;
         #### REMOVE
         SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 1 );           #### REMOVE
     }    #### REMOVE
@@ -366,8 +379,6 @@ C<Win32API::FdGetOsFHandle($fd)> and passing it to the child using the command
 line, the environment, or any other IPC mechanism (it's a plain old integer).
 The child can then use C<OsFHandleOpen()> or C<OsFHandleOpenFd()> and possibly
 C<<open FOO ">&BAR">> or C<<open FOO ">&$fd>> as need be.  Ach, the pain!
-
-Remember to check the Win32 handle against INVALID_HANDLE_VALUE.
 
 =cut
 

@@ -117,21 +117,40 @@ sub _debugging_not_optimized() { 0 }
 STUBS
 
 use POSIX ();
+use constant Win32_MODE => $^O =~ /os2|Win32/i;
+
+# Replace Win32API::File::INVALID_HANDLE_VALUE, which does not match the C ABI
+# on 64-bit builds (https://github.com/chorny/Win32API-File/issues/13).
+use constant C_ABI_INVALID_HANDLE_VALUE => length( pack 'P', undef ) == 4
+  ? 0xffffffff
+  : 0xffffffff << 32 | 0xffffffff;
+
+sub _fd_is_open {
+   my ($fd) = @_;
+   if (Win32_MODE) {
+      # Many OS functions can crash on closed FDs.  POSIX::close() can hang on
+      # the read end of a pipe (https://github.com/Perl/perl5/issues/19963).
+      # Borrow Gnulib's strategy.
+      require Win32API::File;
+      return Win32API::File::FdGetOsFHandle($fd) != C_ABI_INVALID_HANDLE_VALUE;
+   }
+   else {
+      ## I'd like a quicker way (less user, cpu & especially sys and kernel
+      ## calls) to detect open file descriptors.  Let me know...
+      ## Hmmm, could do a 0 length read and check for bad file descriptor...
+      my $test_fd = POSIX::dup( $fd );
+      my $in_use = defined $test_fd;
+      POSIX::close $test_fd if $in_use;
+      return $in_use;
+   }
+}
 
 sub _map_fds {
    my $map = '';
    my $digit = 0;
-   my $in_use;
    my $dummy;
    for my $fd (0..63) {
-      ## I'd like a quicker way (less user, cpu & especially sys and kernel
-      ## calls) to detect open file descriptors.  Let me know...
-      ## Hmmm, could do a 0 length read and check for bad file descriptor...
-      ## but that segfaults on Win32
-      my $test_fd = POSIX::dup( $fd );
-      $in_use = defined $test_fd;
-      POSIX::close $test_fd if $in_use;
-      $map .= $in_use ? $digit : '-';
+      $map .= _fd_is_open($fd) ? $digit : '-';
       $digit = 0 if ++$digit > 9;
    }
    warn "No fds open???" unless $map =~ /\d/;
