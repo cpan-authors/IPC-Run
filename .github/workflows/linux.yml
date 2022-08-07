@@ -36,6 +36,7 @@ jobs:
         uses: perl-actions/install-with-cpm@v1.3
         with:
           cpanfile: "cpanfile"
+          args: "--configure-timeout=600"
           sudo: false
       - run: perl Makefile.PL
       - run: make test
