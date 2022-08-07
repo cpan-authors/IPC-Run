@@ -31,7 +31,7 @@ use warnings;
 use vars qw{$VERSION};
 
 BEGIN {
-    $VERSION = '20220801.0';
+    $VERSION = '20220807.0';
 }
 
 use Win32API::File qw(

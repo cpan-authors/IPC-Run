@@ -55,7 +55,7 @@ use overload '""' => sub {
 use vars qw{$VERSION};
 
 BEGIN {
-    $VERSION = '20220801.0';
+    $VERSION = '20220807.0';
 }
 
 =item new

@@ -1,6 +1,6 @@
 Revision history for Perl extension IPC::Run
 
-20220801.0 Mon Aug 1 2022
+20220807.0 Mon Aug 1 2022
  If your applications rely on portability to Windows, see new documentation
  sections "argument-passing rules are program-specific" and "batch files".  This
  release fixes bugs in runs of Windows programs that use standard command line
