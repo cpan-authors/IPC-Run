@@ -52,6 +52,12 @@ use overload '""' => sub {
     );
 };
 
+use vars qw{$VERSION};
+
+BEGIN {
+    $VERSION = '20220801.0';
+}
+
 =item new
 
    IPC::Run::Win32Process->new( $lpApplicationName, $lpCommandLine );
