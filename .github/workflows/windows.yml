@@ -31,6 +31,12 @@ jobs:
       - uses: actions/checkout@master
       - name: perl -V
         run: perl -V
+      - name: uses install-with-cpm
+        uses: perl-actions/install-with-cpm@v1.3
+        with:
+          cpanfile: "cpanfile"
+          args: "--configure-timeout=600 --with-recommends --with-suggests"
+          sudo: false
       - name: Makefile.PL
         run: perl Makefile.PL
       - name: make test
