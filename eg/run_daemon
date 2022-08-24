@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 ## An example of how to daemonize.  See the IPC::Run LIMITATIONS section for
 ## some reasons why this can be a bit dangerous.
