@@ -1,4 +1,4 @@
-#!/usr/local/lib/perl -w
+#!/usr/bin/perl -w
 
 use strict;
 use IPC::Run qw( :all );
