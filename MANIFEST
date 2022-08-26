@@ -40,6 +40,7 @@ t/parent_and_child_fds_match.t
 t/pty.t
 t/pump.t
 t/readonly.t
+t/result.t
 t/run.t
 t/run_stdin-callback-return-array.t
 t/signal.t
