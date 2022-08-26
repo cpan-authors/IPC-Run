@@ -4,11 +4,11 @@ use strict;
 use warnings;
 
 use Test::More;
-
-plan skip_all => 'This test fails on Github Win32.' if $ENV{GITHUB_WINDOWS_TESTING};
-plan tests => 1;
-
 use IPC::Run 'run';
+
+plan skip_all => "$^O does not allow redirection of file descriptors > 2"
+  if IPC::Run::Win32_MODE();
+plan tests => 1;
 
 use File::Temp;
 use IO::Handle;

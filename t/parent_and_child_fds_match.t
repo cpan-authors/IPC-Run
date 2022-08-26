@@ -6,13 +6,6 @@
 use strict;
 use warnings;
 
-BEGIN {
-    if($ENV{GITHUB_WINDOWS_TESTING}) {
-        print "1..0 # SKIP This test fails on Github Win32.\n";
-        exit 0;
-    }
-}
-
 use Data::Dumper;
 use File::Temp qw( tempfile );
 use IO::Handle ();
@@ -37,6 +30,8 @@ sub parent {
     require Test::More;
     Test::More->import;
 
+    plan(skip_all => "$^O does not allow redirection of file descriptors > 2")
+      if IPC::Run::Win32_MODE();
     # We can't use done_testing() to account for number of tests as 5.8.9's
     # Test::More apparently doesn't support that.
     plan(tests => 3);

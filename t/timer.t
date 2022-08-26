@@ -20,7 +20,6 @@ use Test::More;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
 
-plan skip_all => 'Skipping on Win32' if $ENV{GITHUB_WINDOWS_TESTING};
 plan tests => 77;
 
 

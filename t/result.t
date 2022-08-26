@@ -12,7 +12,8 @@ my $h = harness( \@cmd1, '&', \@cmd2, '&', \@cmd3 );
 $h->run;
 
 TODO: {
-    local $TODO = 'Github testing on windows seems to be doing something wierd.' if $ENV{GITHUB_WINDOWS_TESTING};
+    local $TODO = 'https://github.com/toddr/IPC-Run/issues/161'
+      if IPC::Run::Win32_MODE();
     is_deeply( [$h->results], [ 0, 0, 42 ], 'Results of all processes');
     is( $h->result, 42, 'First non-zero result' );
     is( $h->result( 0 ), 0, 'Result of the first process' );

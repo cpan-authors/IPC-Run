@@ -18,7 +18,6 @@ jobs:
       AUTHOR_TESTING: 0
       AUTOMATED_TESTING: 1
       RELEASE_TESTING: 0
-      GITHUB_WINDOWS_TESTING: 1
 
     runs-on: windows-latest
 
