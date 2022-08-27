@@ -1161,6 +1161,9 @@ my %cmd_cache;
 
 sub _search_path {
     my ($cmd_name) = @_;
+
+    croak "can't find empty command" unless length $cmd_name;
+
     if ( File::Spec->file_name_is_absolute($cmd_name) && -x $cmd_name ) {
         _debug "'", $cmd_name, "' is absolute"
           if _debugging_details;
