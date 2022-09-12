@@ -3452,7 +3452,7 @@ be left in an unstable state, it's best to kill the harness to get rid
 of all the child processes, etc.
 
 Specifically, if a timeout expires in finish(), finish() will not
-kill all the children.  Call C<<$h->kill_kill>> in this case if you care.
+kill all the children.  Call C<< $h->kill_kill >> in this case if you care.
 This differs from the behavior of L</run>.
 
 =cut
