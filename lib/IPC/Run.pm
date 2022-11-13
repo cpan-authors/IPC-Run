@@ -3458,15 +3458,24 @@ sub reap_nb {
             _debug "kid $kid->{NUM} ($kid->{PID}) exited"
               if _debugging;
 
-            $kid->{PROCESS}->GetExitCode( $kid->{RESULT} )
+            my $native_result;
+            $kid->{PROCESS}->GetExitCode($native_result)
               or croak "$! while GetExitCode()ing for Win32 process";
 
-            unless ( defined $kid->{RESULT} ) {
+            unless ( defined $native_result ) {
                 $kid->{RESULT} = "0 but true";
                 $? = $kid->{RESULT} = 0x0F;
             }
             else {
-                $? = $kid->{RESULT} << 8;
+                my $win32_full_result = $native_result << 8;
+                if ( $win32_full_result >> 8 != $native_result ) {
+
+                    # !USE_64_BIT_INT build and exit code > 0xFFFFFF
+                    require Math::BigInt;
+                    $win32_full_result = Math::BigInt->new($native_result);
+                    $win32_full_result->blsft(8);
+                }
+                $? = $kid->{RESULT} = $win32_full_result;
             }
         }
         else {
@@ -4291,6 +4300,10 @@ be implemented one day, do chdir() and %ENV changes can be made.
 Win32 does not fully support signals.  signal() is likely to cause errors
 unless sending a signal that Perl emulates, and C<kill_kill()> is immediately
 fatal (there is no grace period).
+
+=item C<$?> cannot represent all Win32 exit codes
+
+Prefer C<full_result( ... )>, C<result( ... )>, or other IPC::Run methods.
 
 =item helper processes
 
