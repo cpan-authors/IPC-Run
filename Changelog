@@ -1,5 +1,18 @@
 Revision history for Perl extension IPC::Run
 
+NEXT
+ Windows now matches other platforms in that a child calling exit(N) causes
+ result() to return N and full_result() to return N << 8.  On Windows, before
+ this change, result() was returning N >> 8, and full_result() was returning N.
+ Programs having workarounds for this may need to condition those workarounds on
+ $IPC::Run::VERSION.
+ - #157 - On Windows, avoid hang under IPCRUNDEBUG.
+ - Refresh "cpanfile" from Makefile.PL, to allow use on Windows.
+ - #163 - Normalize shebangs to /usr/bin/perl
+ - Fix or skip all tests recently seen to fail on Windows.
+ - Include t/result.t in releases.
+ - #168 - Make full_result() and result() Windows behavior match non-Windows.
+
 20220807.0 Mon Aug 1 2022
  If your applications rely on portability to Windows, see new documentation
  sections "argument-passing rules are program-specific" and "batch files".  This
