@@ -131,7 +131,7 @@ to be mentioned right up front:
 
     If you need pty support, IPC::Run should work well enough most of the
     time, but IO::Pty is being improved, and IPC::Run will be improved to
-    use IO::Pty's new features when it is release.
+    use IO::Pty's new features when it is released.
 
     The basic problem is that the pty needs to initialize itself before the
     parent writes to the master pty, or the data written gets lost.  So
@@ -407,8 +407,8 @@ to the systems' shell:
 
 or a list of commands, io operations, and/or timers/timeouts to execute.
 Consecutive commands must be separated by a pipe operator '|' or an '&'.
-External commands are passed in as array references, and, on systems
-supporting fork(), Perl code may be passed in as subs:
+External commands are passed in as array references or [IPC::Run::Win32Process](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AWin32Process)
+objects.  On systems supporting fork(), Perl code may be passed in as subs:
 
     run \@cmd;
     run \@cmd1, '|', \@cmd2;
@@ -421,13 +421,13 @@ supporting fork(), Perl code may be passed in as subs:
 shell pipe.  '&' does not.  Child processes to the right of a '&'
 will have their stdin closed unless it's redirected-to.
 
-[IPC::Run::IO](https://metacpan.org/pod/IPC::Run::IO) objects may be passed in as well, whether or not
+[IPC::Run::IO](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AIO) objects may be passed in as well, whether or not
 child processes are also specified:
 
     run io( "infile", ">", \$in ), io( "outfile", "<", \$in );
        
 
-as can [IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer) objects:
+as can [IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer) objects:
 
     run \@cmd, io( "outfile", "<", \$in ), timeout( 10 );
 
@@ -1119,7 +1119,7 @@ in their exit codes.
 >     If you do call harness(), you may skip start() and proceed directly to
 >     pump.
 >
->     start() also starts all timers in the harness.  See [IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer)
+>     start() also starts all timers in the harness.  See [IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer)
 >     for more information.
 >
 >     start() flushes STDOUT and STDERR to help you avoid duplicate output.
@@ -1227,7 +1227,7 @@ in their exit codes.
 >     of all the child processes, etc.
 >
 >     Specifically, if a timeout expires in finish(), finish() will not
->     kill all the children.  Call `<$h-`kill\_kill>> in this case if you care.
+>     kill all the children.  Call `$h->kill_kill` in this case if you care.
 >     This differs from the behavior of ["run"](#run).
 >
 > - result
@@ -1405,7 +1405,7 @@ process and a scalar or subroutine endpoint.
     See ["timeout"](#timeout) for building timers that throw exceptions on
     expiration.
 
-    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer#timer) for details.
+    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer#timer) for details.
 
 - timeout
 
@@ -1455,7 +1455,7 @@ process and a scalar or subroutine endpoint.
 
     See ["timer"](#timer) for building non-fatal timers.
 
-    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer#timer) for details.
+    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer#timer) for details.
 
 # FILTER IMPLEMENTATION FUNCTIONS
 
@@ -1540,6 +1540,34 @@ High resolution timeouts.
 
 # Win32 LIMITATIONS
 
+- argument-passing rules are program-specific
+
+    Win32 programs receive all arguments in a single "command line" string.
+    IPC::Run assembles this string so programs using [standard command line parsing
+    rules](https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments)
+    will see an `argv` that matches the array reference specifying the command.
+    Some programs use different rules to parse their command line.  Notable examples
+    include `cmd.exe`, `cscript.exe`, and Cygwin programs called from non-Cygwin
+    programs.  Use [IPC::Run::Win32Process](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AWin32Process) to call these and other nonstandard
+    programs.
+
+- batch files
+
+    Properly escaping a batch file argument depends on how the script will use that
+    argument, because some uses experience multiple levels of caret (escape
+    character) removal.  Avoid calling batch files with arguments, particularly when
+    the argument values originate outside your program or contain non-alphanumeric
+    characters.  Perl scripts and PowerShell scripts are sound alternatives.  If you
+    do use batch file arguments, IPC::Run escapes them so the batch file can pass
+    them, unquoted, to a program having standard command line parsing rules.  If the
+    batch file enables delayed environment variable expansion, it must disable that
+    feature before expanding its arguments.  For example, if `foo.cmd` contains
+    `perl %*`, `run ['foo.cmd', @list]` will create a Perl process in which
+    `@ARGV` matches `@list`.  Prepending a `setlocal enabledelayedexpansion` line
+    would make the batch file malfunction, silently.  Another silent-malfunction
+    example is `run ['outer.bat', @list]` for `outer.bat` containing `foo.cmd
+    %*`.
+
 - Fails on Win9X
 
     If you want Win9X support, you'll have to debug it or fund me because I
@@ -1587,6 +1615,10 @@ High resolution timeouts.
     Win32 does not fully support signals.  signal() is likely to cause errors
     unless sending a signal that Perl emulates, and `kill_kill()` is immediately
     fatal (there is no grace period).
+
+- `$?` cannot represent all Win32 exit codes
+
+    Prefer `full_result( ... )`, `result( ... )`, or other IPC::Run methods.
 
 - helper processes
 
