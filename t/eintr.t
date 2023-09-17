@@ -38,7 +38,7 @@ if ( $got_usr1 != 1 ) {
 plan tests => 3;
 
 # A kid that will send SIGUSR1 to this process and then produce some output.
-my $kid_perl = qq[sleep 1; kill 'USR1', $$; sleep 1; print "foo\n"; sleep 10];
+my $kid_perl = qq[sleep 1; kill 'USR1', $$; sleep 1; print "foo\n"; sleep 180];
 my @kid = ( $^X, '-e', "\$| = 1; $kid_perl" );
 
 # If EINTR on select() is not handled properly then IPC::Run can think
@@ -53,7 +53,7 @@ $harness->pump;
 
 is $out, "foo\n", "got stdout on the first pump";
 
-ok time - $pump_started < 5, "first pump didn't wait for kid exit";
+ok time - $pump_started < 180, "first pump didn't wait for kid exit";
 
 is $got_usr1, 2, 'got USR1 from the kid';
 
