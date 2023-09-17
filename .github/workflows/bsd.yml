@@ -13,7 +13,9 @@ permissions: {}
 
 jobs:
   BSDs:
-    runs-on: macos-10.15
+    # Run BSDs using macOS nested virtualization:
+    # https://github.com/cross-platform-actions/action#under-the-hood
+    runs-on: macOS-latest
 
     strategy:
       fail-fast: false
