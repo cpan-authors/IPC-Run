@@ -520,7 +520,7 @@ that variable:
     print $out;
 
 Scalars used in incremental (start()/pump()/finish()) applications are treated
-as queues: input is removed from input scalers, resulting in them dwindling
+as queues: input is removed from input scalars, resulting in them dwindling
 to '', and output is appended to output scalars.  This is not true of 
 harnesses run() in batch mode.
 
@@ -667,7 +667,7 @@ differences to watch out for.
 
     Child processes harnessed to a pseudo terminal have their stdin, stdout,
     and stderr completely closed before any redirection operators take
-    effect.  This casts of the bonds of the controlling terminal.  This is
+    effect.  This casts off the bonds of the controlling terminal.  This is
     not done when using pipes.
 
     Right now, this affects all children in a harness that has a pty in use,

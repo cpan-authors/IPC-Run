@@ -137,7 +137,7 @@ sub _new_internal {
     my ( $type, $kfd, $pty_id, $internal, $binmode, @filters ) = @_;
 
     # Older perls (<=5.00503, at least) don't do list assign to
-    # psuedo-hashes well.
+    # pseudo-hashes well.
     $self->{TYPE}   = $type;
     $self->{KFD}    = $kfd;
     $self->{PTY_ID} = $pty_id;

@@ -64,5 +64,5 @@ SKIP: {
     );
     pump $h until $out =~ /running/;
     my $needed = $h->kill_kill( grace => 1 );
-    ok( $needed, 'Did not need kill_kill' );
+    ok( $needed, 'Did need kill_kill' );
 }

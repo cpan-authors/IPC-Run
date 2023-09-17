@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-pty.t - Test suite for IPC::Run's pty (psuedo-terminal) support
+pty.t - Test suite for IPC::Run's pty (pseudo-terminal) support
 
 =head1 DESCRIPTION
 

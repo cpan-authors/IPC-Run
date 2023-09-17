@@ -532,7 +532,7 @@ sub win32_spawn {
         $app,
         $cmd_line,
         1,    ## Inherit handles
-        0,    ## Inherit parent priortiy class. Was NORMAL_PRIORITY_CLASS
+        0,    ## Inherit parent priority class. Was NORMAL_PRIORITY_CLASS
         ".",
       )
       or do {
