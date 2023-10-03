@@ -33,7 +33,7 @@ require POSIX;
 use vars qw{$VERSION};
 
 BEGIN {
-    $VERSION = '20220807.0';
+    $VERSION = '20231003.0';
 }
 
 use Socket qw( IPPROTO_TCP TCP_NODELAY );

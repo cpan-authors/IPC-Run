@@ -1,6 +1,6 @@
 Revision history for Perl extension IPC::Run
 
-NEXT
+20231003.0 Mon Oct 2 2023
  Windows now matches other platforms in that a child calling exit(N) causes
  result() to return N and full_result() to return N << 8.  On Windows, before
  this change, result() was returning N >> 8, and full_result() was returning N.
