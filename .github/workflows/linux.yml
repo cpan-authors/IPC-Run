@@ -31,9 +31,9 @@ jobs:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: uses install-with-cpm
-        uses: perl-actions/install-with-cpm@v1.3
+        uses: perl-actions/install-with-cpm@stable
         with:
           cpanfile: "cpanfile"
           args: "--configure-timeout=600 --with-recommends --with-suggests"
@@ -57,7 +57,7 @@ jobs:
       image: perldocker/perl-tester:latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: perl -V
         run: perl -V
       - name: Install Dependencies

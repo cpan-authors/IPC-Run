@@ -34,7 +34,7 @@ jobs:
           #  pkginstall: pkg_add curl p5-ExtUtils-MakeMaker
 
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 

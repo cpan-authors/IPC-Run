@@ -27,11 +27,11 @@ jobs:
         perl-version: [latest]
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       - name: perl -V
         run: perl -V
       - name: uses install-with-cpm
-        uses: perl-actions/install-with-cpm@v1.3
+        uses: perl-actions/install-with-cpm@stable
         with:
           cpanfile: "cpanfile"
           args: "--configure-timeout=600 --with-recommends --with-suggests"
