@@ -27,7 +27,7 @@ jobs:
         perl-version: [latest]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: perl -V
         run: perl -V
       - name: uses install-with-cpm

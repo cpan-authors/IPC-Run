@@ -31,7 +31,7 @@ jobs:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@stable
         with:
@@ -57,7 +57,7 @@ jobs:
       image: perldocker/perl-tester:latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
