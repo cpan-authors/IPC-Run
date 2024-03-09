@@ -350,7 +350,7 @@ Revision history for Perl extension IPC::Run
 	- The debug file descriptor is built by dup()ing STDERR in the parent and
 	  passing it to the kids.  This keeps us from needing to worry about
 	  debugging info in the select() loop and removes unnecessary complications.
-	  Still needs a bit of work: it should be dup()ed in _open_pipes and it's
+	  Still needs a bit of work: it should be dup()ed in _open_pipes and its
 	  value should be stored in the harness, not a global.
 	- child processes are now a little more clearly identified in debug output.
 	- Some debugging messages are now clearer.

@@ -373,7 +373,7 @@ Cannot redirect higher file descriptors due to lack of support for this in the
 Win32 environment.
 
 This can be worked around by marking a handle as inheritable in the
-parent (or leaving it marked; this is the default in perl), obtaining it's
+parent (or leaving it marked; this is the default in perl), obtaining its
 Win32 handle with C<Win32API::GetOSFHandle(FH)> or
 C<Win32API::FdGetOsFHandle($fd)> and passing it to the child using the command
 line, the environment, or any other IPC mechanism (it's a plain old integer).

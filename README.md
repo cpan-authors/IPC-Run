@@ -578,7 +578,7 @@ Here are some of the issues you might need to be aware of.
     This can make it hard to guarantee that your output parser won't be fooled
     into early termination of results.
 
-    To help work around this, you can see if the program can alter it's 
+    To help work around this, you can see if the program can alter its
     prompt, and use something you feel is never going to occur in actual
     practice.
 
@@ -611,7 +611,7 @@ Here are some of the issues you might need to be aware of.
 
     Some programs don't prompt unless stdin or stdout is a tty.  See if you can
     turn prompting back on.  If not, see if you can come up with a command that
-    you can issue after every real command and look for it's output, as
+    you can issue after every real command and look for its output, as
     IPC::ChildSafe does.   There are two filters included with IPC::Run that
     can help with doing this: appender and chunker (see new\_appender() and
     new\_chunker()).
@@ -833,7 +833,7 @@ The SHNP field indicates what parameters an operator can take:
     The subroutine will be called each time some data is read from the child.
 
     The >pipe operator is different in concept than the other '>' operators,
-    although it's syntax is similar:
+    although its syntax is similar:
 
         $h = start \@cat, $in, '>pipe', \*OUT, '2>pipe', \*ERR;
         $in = "hello world\n";
@@ -1114,7 +1114,7 @@ in their exit codes.
 >     someday, spawn()) all the child processes.  It does not send or receive any
 >     data on the pipes, see pump() and finish() for that.
 >
->     You may call harness() and then pass it's result to start() if you like,
+>     You may call harness() and then pass its result to start() if you like,
 >     but you only need to if it helps you structure or tune your application.
 >     If you do call harness(), you may skip start() and proceed directly to
 >     pump.
@@ -1663,7 +1663,7 @@ High resolution timeouts.
 
     Being a race condition, it's hard to reproduce, but I encountered it while
     testing this code on a drive share to a samba box.  In this case, it takes
-    t/run.t a long time to spawn it's child processes (the parent hangs in the
+    t/run.t a long time to spawn its child processes (the parent hangs in the
     first select for several seconds until the child emits any debugging output).
 
     I have not seen it on local drives, and can't reproduce it at will,

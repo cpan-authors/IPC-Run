@@ -127,7 +127,7 @@ sub filter_tests($;@) {
         is(
             scalar @input,
             0,
-            "$name didn't consume it's input"
+            "$name didn't consume its input"
         );
     }
 
