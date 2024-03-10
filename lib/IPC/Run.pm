@@ -3589,8 +3589,10 @@ sub finish {
 
     # We don't alter $self->{clear_ins}, start() and run() control it.
 
-    while ( $self->pumpable ) {
-        $self->_select_loop($options);
+    if ( %{ $self->{PTYS} } || @{ $self->{PIPES} } || @{ $self->{TIMERS} } ) {
+        while ( $self->pumpable ) {
+            $self->_select_loop($options);
+        }
     }
     $self->_cleanup;
 
