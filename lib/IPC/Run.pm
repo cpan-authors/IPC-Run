@@ -3477,59 +3477,67 @@ sub reap_nb {
     ## Oh, and this keeps us from reaping other children the process
     ## may have spawned.
     for my $kid ( @{ $self->{KIDS} } ) {
-        if (Win32_MODE) {
-            next if !defined $kid->{PROCESS} || defined $kid->{RESULT};
-            unless ( $kid->{PROCESS}->Wait(0) ) {
-                _debug "kid $kid->{NUM} ($kid->{PID}) still running"
-                  if _debugging_details;
-                next;
-            }
+        _waitpid($kid);
+    }
+}
 
+# Support routine (non-method) for waitpid() or platform's equivalent.  Sets $?
+# and $_[0]->{RESULT} iff the kid exited.
+sub _waitpid {
+    my $kid = shift;
+
+    if (Win32_MODE) {
+        return if !defined $kid->{PROCESS} || defined $kid->{RESULT};
+        unless ( $kid->{PROCESS}->Wait(0) ) {
+            _debug "kid $kid->{NUM} ($kid->{PID}) still running"
+              if _debugging_details;
+            return;
+        }
+
+        _debug "kid $kid->{NUM} ($kid->{PID}) exited"
+          if _debugging;
+
+        my $native_result;
+        $kid->{PROCESS}->GetExitCode($native_result)
+          or croak "$! while GetExitCode()ing for Win32 process";
+
+        unless ( defined $native_result ) {
+            $kid->{RESULT} = "0 but true";
+            $? = $kid->{RESULT} = 0x0F;
+        }
+        else {
+            my $win32_full_result = $native_result << 8;
+            if ( $win32_full_result >> 8 != $native_result ) {
+
+                # !USE_64_BIT_INT build and exit code > 0xFFFFFF
+                require Math::BigInt;
+                $win32_full_result = Math::BigInt->new($native_result);
+                $win32_full_result->blsft(8);
+            }
+            $? = $kid->{RESULT} = $win32_full_result;
+        }
+    }
+    else {
+        return if !defined $kid->{PID} || defined $kid->{RESULT};
+        my $pid = waitpid $kid->{PID}, POSIX::WNOHANG();
+        unless ($pid) {
+            _debug "$kid->{NUM} ($kid->{PID}) still running"
+              if _debugging_details;
+            return;
+        }
+
+        if ( $pid < 0 ) {
+            _debug "No such process: $kid->{PID}\n" if _debugging;
+            $kid->{RESULT} = "unknown result, unknown PID";
+        }
+        else {
             _debug "kid $kid->{NUM} ($kid->{PID}) exited"
               if _debugging;
 
-            my $native_result;
-            $kid->{PROCESS}->GetExitCode($native_result)
-              or croak "$! while GetExitCode()ing for Win32 process";
-
-            unless ( defined $native_result ) {
-                $kid->{RESULT} = "0 but true";
-                $? = $kid->{RESULT} = 0x0F;
-            }
-            else {
-                my $win32_full_result = $native_result << 8;
-                if ( $win32_full_result >> 8 != $native_result ) {
-
-                    # !USE_64_BIT_INT build and exit code > 0xFFFFFF
-                    require Math::BigInt;
-                    $win32_full_result = Math::BigInt->new($native_result);
-                    $win32_full_result->blsft(8);
-                }
-                $? = $kid->{RESULT} = $win32_full_result;
-            }
-        }
-        else {
-            next if !defined $kid->{PID} || defined $kid->{RESULT};
-            my $pid = waitpid $kid->{PID}, POSIX::WNOHANG();
-            unless ($pid) {
-                _debug "$kid->{NUM} ($kid->{PID}) still running"
-                  if _debugging_details;
-                next;
-            }
-
-            if ( $pid < 0 ) {
-                _debug "No such process: $kid->{PID}\n" if _debugging;
-                $kid->{RESULT} = "unknown result, unknown PID";
-            }
-            else {
-                _debug "kid $kid->{NUM} ($kid->{PID}) exited"
-                  if _debugging;
-
-                confess "waitpid returned the wrong PID: $pid instead of $kid->{PID}"
-                  unless $pid == $kid->{PID};
-                _debug "$kid->{PID} returned $?\n" if _debugging;
-                $kid->{RESULT} = $?;
-            }
+            confess "waitpid returned the wrong PID: $pid instead of $kid->{PID}"
+              unless $pid == $kid->{PID};
+            _debug "$kid->{PID} returned $?\n" if _debugging;
+            $kid->{RESULT} = $?;
         }
     }
 }
