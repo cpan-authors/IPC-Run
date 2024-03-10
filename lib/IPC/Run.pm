@@ -2987,7 +2987,8 @@ sub _select_loop {
 
     my $io_occurred;
 
-    my $not_forever = 0.01;
+    my $min_select_timeout = 0.01;
+    my $not_forever        = $min_select_timeout;
 
   SELECT:
     while ( $self->pumpable ) {
@@ -3065,9 +3066,16 @@ sub _select_loop {
             ## No I/O will wake the select loop up, but we have children
             ## lingering, so we need to poll them with a short timeout.
             ## Otherwise, assume more input will be coming.
-            $timeout = $not_forever;
-            $not_forever *= 2;
-            $not_forever = 0.5 if $not_forever >= 0.5;
+
+            if ( !Win32_MODE || $self->{RIN} || $self->{WIN} || $self->{EIN} ) {
+                $timeout = $not_forever;
+                $not_forever *= 2;
+                $not_forever = 0.5 if $not_forever >= 0.5;
+            }
+            else {
+                # see above rationale for Windows-specific behavior
+                $timeout = $min_select_timeout;
+            }
         }
 
         ## Make sure we don't block forever in select() because inputs are
@@ -3083,9 +3091,14 @@ sub _select_loop {
             }
 
             ## Otherwise, assume more input will be coming.
-            $timeout = $not_forever;
-            $not_forever *= 2;
-            $not_forever = 0.5 if $not_forever >= 0.5;
+            if ( !Win32_MODE || $self->{RIN} || $self->{WIN} || $self->{EIN} ) {
+                $timeout = $not_forever;
+                $not_forever *= 2;
+                $not_forever = 0.5 if $not_forever >= 0.5;
+            }
+            else {
+                $timeout = $min_select_timeout;
+            }
         }
 
         _debug 'timeout=', defined $timeout ? $timeout : 'forever'
