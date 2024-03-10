@@ -3256,8 +3256,8 @@ sub _cleanup {
     ## _clobber modifies PIPES
     $self->_clobber( $self->{PIPES}->[0] ) while @{ $self->{PIPES} };
 
+    # reap kids
     for my $kid ( @{ $self->{KIDS} } ) {
-        _debug "cleaning up kid ", $kid->{NUM} if _debugging_details;
         if ( !length $kid->{PID} ) {
             _debug 'never ran child ', $kid->{NUM}, ", can't reap"
               if _debugging;
@@ -3266,14 +3266,15 @@ sub _cleanup {
                   if defined $op->{TFD} && !defined $op->{TEMP_FILE_HANDLE};
             }
         }
-        elsif ( !defined $kid->{RESULT} ) {
-            _debug 'reaping child ', $kid->{NUM}, ' (pid ', $kid->{PID}, ')'
-              if _debugging;
-            my $pid = waitpid $kid->{PID}, 0;
-            $kid->{RESULT} = $?;
-            _debug 'reaped ', $pid, ', $?=', $kid->{RESULT}
-              if _debugging;
+        else {
+            _waitpid( $kid, 0 );
         }
+    }
+
+    # OPS cleanup.  Kids may share an OPS object; search for "also to write".
+    # Example harness: run(['echo',1], '&', ['echo',2], '>', \$out).  Hence,
+    # this starts after the last reap.
+    for my $kid ( @{ $self->{KIDS} } ) {
 
         #      if ( defined $kid->{DEBUG_FD} ) {
         #	 die;
@@ -3283,7 +3284,7 @@ sub _cleanup {
         #         $kid->{DEBUG_FD} = undef;
         #      }
 
-        _debug "cleaning up filters" if _debugging_details;
+        _debug "cleaning up filters at kid ", $kid->{NUM} if _debugging_details;
         for my $op ( @{ $kid->{OPS} } ) {
             @{ $op->{FILTERS} } = grep {
                 my $filter = $_;
@@ -3477,18 +3478,23 @@ sub reap_nb {
     ## Oh, and this keeps us from reaping other children the process
     ## may have spawned.
     for my $kid ( @{ $self->{KIDS} } ) {
-        _waitpid($kid);
+        _waitpid( $kid, 1 );
     }
 }
 
 # Support routine (non-method) for waitpid() or platform's equivalent.  Sets $?
 # and $_[0]->{RESULT} iff the kid exited.
 sub _waitpid {
-    my $kid = shift;
+    my ( $kid, $nohang ) = @_;
 
     if (Win32_MODE) {
+        require Win32::Process;
+
         return if !defined $kid->{PROCESS} || defined $kid->{RESULT};
-        unless ( $kid->{PROCESS}->Wait(0) ) {
+        my $wait_timeout = $nohang ? 0 : Win32::Process::INFINITE();
+        unless ( $kid->{PROCESS}->Wait($wait_timeout) ) {
+            confess "kid $kid->{PID} still running after indefinite wait"
+              unless $nohang;
             _debug "kid $kid->{NUM} ($kid->{PID}) still running"
               if _debugging_details;
             return;
@@ -3519,8 +3525,10 @@ sub _waitpid {
     }
     else {
         return if !defined $kid->{PID} || defined $kid->{RESULT};
-        my $pid = waitpid $kid->{PID}, POSIX::WNOHANG();
+        my $pid = waitpid $kid->{PID}, $nohang ? POSIX::WNOHANG() : 0;
         unless ($pid) {
+            confess "kid $kid->{PID} still running after indefinite wait"
+              unless $nohang;
             _debug "$kid->{NUM} ($kid->{PID}) still running"
               if _debugging_details;
             return;
