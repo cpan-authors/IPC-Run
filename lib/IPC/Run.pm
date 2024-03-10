@@ -2985,6 +2985,23 @@ sub _clobber {
 sub _select_loop {
     my IPC::Run $self = shift;
 
+    # With !defined $SIG{CHLD} (the default), Perl restarts any select() that
+    # SIGCHLD interrupts.  Install a no-op handler, to make select() terminate
+    # with EINTR, accelerating our reaction.  This doesn't help if SIGCHLD
+    # arrives just before the select() call; https://cr.yp.to/docs/selfpipe.html
+    # is a way to close that race condition.  It doesn't help on Windows, where
+    # we substitute a low timeout in zero-FD (timeout-only) select().  That
+    # spends CPU to achieve responsiveness.  We could do better there with a
+    # C-language module that calls OpenProcess(), WSAEventSelect(), and
+    # WaitForMultipleObjects().
+    #
+    # If non-IPC::Run code has installed a handler, via $SIG{CHLD} assignment or
+    # via POSIX::sigaction(), this statement takes no action, and the existing
+    # handler helps just like this one would.  The cap on $not_forever helps
+    # when non-IPC::Run code has blocked SIGCHLD, e.g. via POSIX::sigprocmask().
+    local $SIG{CHLD} = sub { }
+      unless defined $SIG{CHLD};
+
     my $io_occurred;
 
     my $min_select_timeout = 0.01;
