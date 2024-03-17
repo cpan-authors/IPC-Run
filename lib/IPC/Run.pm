@@ -121,6 +121,129 @@ may be mixed.
 Various redirection operators reminiscent of those seen on common Unix and DOS
 command lines are provided.
 
+=head1 SIMPLE QUICKSTART
+
+Here's a quick guide to basic usage of using IPC::Run's C<run()> function.
+
+=head2 Capturing output and errors from an external command
+
+Say you want to run a command in your shell. We'll use C<ls> for
+simplicity, although there are far better ways to get a list of files, such
+as the C<glob()> function or the L<File::Find> module.
+
+The basic form of C<run()> has the command and its arguments passed as an
+arrayref in the first argument. The command cannot be a single string.
+
+    @cmd = [ 'ls', '-a', '-l', '-r', '-t' ];    # Yes
+    @cmd = ( 'ls -a -l -r -t' );                # No
+
+After the command, pass a scalar reference C<\$in> for the input to pass
+in, and scalar references C<\$out> and C<\$err> to receive the content of
+stdout and stderr.
+
+    use IPC::Run qw( run );
+
+    @cmd = qw( ls -l -a -r -t );
+    run( \@cmd, \$in, \$out, \$err ) or die $?;
+
+    print("\$err is ", length($err), " bytes long\n");
+    print($err, "\n");
+
+    print("\$out is ", length($out), " bytes long\n");
+    print($out, "\n");
+
+Running this will show something like:
+
+    $err is 0 bytes long
+
+    $out is 1410 bytes long
+    total 392
+    drwxr-xr-x    3 andy  staff     96 Mar 17 11:53 .github
+    -rw-r--r--    1 andy  staff    158 Mar 17 11:53 .gitignore
+    ... etc ...
+
+Note that C<$out> and C<$err> are always defined after a call to C<run()>,
+even if they receive no data.
+
+=head2 Passing input to the external program
+
+If you have input to pass in, put it in the C<$in> variables.  For example,
+to use the C<wc> command to count lines, words and characters in a block of
+text:
+
+    $in = <<'CARROLL';
+    'Twas brillig, and the slithy toves
+        Did gyre and gimble in the wabe:
+    All mimsy were the borogoves,
+        And the mome raths outgrabe.
+    CARROLL
+
+    @cmd = qw( wc );
+    run( \@cmd, \$in, \$out, \$err ) or die $?;
+    print "$out";
+
+This gives the output:
+
+           4      23     140
+
+=head2 Handling errors
+
+It's important to check the return code of C<run()> to see if the command
+ran successfully. C<run()> returns a boolean true on success, and false on
+failure. Note that this is the opposite of Perl's C<system()>, which
+returns 0 on success and a non-zero value on failures.
+
+For the specific subprocess error code, check C<$?> directly.
+
+    @cmd = qw( tar xzvf nonexistent.tar );
+    if ( !run( \@cmd, \$in, \$out, \$err ) ) {
+        print "\$? = $?\n";
+        print "err = $err\n";
+    }
+
+Running this gives:
+
+    $? = 256
+    err = tar: Error opening archive: Failed to open 'nonexistent.tar'
+
+If the program does not exist, then C<run()> will C<die> and won't return
+at all.  For example:
+
+    @cmd = qw( bogus-command );
+    my $rc = run( \@cmd, \$in, \$out, \$err );
+    print "run returned ", ($rc ? "true" : "false"), "\n";
+
+Running this doesn't make it to the C<print> statement.
+
+    Command 'bogus-command' not found in [ list of paths ] at program.pl line N.
+
+To handle the possibility of a non-existent program, call C<run()> inside
+an C<eval>.
+
+    my $rc;
+    eval { $rc = run( \@cmd, \$in, \$out, \$out ); 1; };
+    if ( !defined($rc) ) {
+        print "run died: $@\n";
+    }
+    else {
+        if ( $rc ) {
+            print "run returned true\n";
+        }
+        else {
+            print "run returned false\n";
+            print "\$? = $?\n";
+        }
+    }
+
+=head2 And beyond
+
+That's the basics of using C<run()> as a replacment for C<system()>. If
+you'd like to do more, such as having subprocesses communicate with each
+other, setting timeouts on long-running processes, kill running
+subprocesses, redirecting output, closing file descriptors and much much MUCH more, read on.
+
+=head1 THE DETAILS
+
 Before digging in to the details a few LIMITATIONS are important enough
 to be mentioned right up front:
 
@@ -157,8 +280,6 @@ under the hood:
                                       # the helper processes.
 
 =back
-
-We now return you to your regularly scheduled documentation.
 
 =head2 Harnesses
 
