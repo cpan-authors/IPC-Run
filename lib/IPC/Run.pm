@@ -237,10 +237,10 @@ an C<eval>.
 
 =head2 And beyond
 
-That's the basics of using C<run()> as a replacment for C<system()>. If
-you'd like to do more, such as having subprocesses communicate with each
-other, setting timeouts on long-running processes, kill running
-subprocesses, redirecting output, closing file descriptors and much much MUCH more, read on.
+That's the basics of using C<run()> as a replacement for C<system()>. If you'd
+like to do more, such as having subprocesses communicate with each other,
+setting timeouts on long-running processes, kill running subprocesses,
+redirecting output, closing file descriptors and much much MUCH more, read on.
 
 =head1 THE DETAILS
 
