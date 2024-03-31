@@ -2985,9 +2985,27 @@ sub _clobber {
 sub _select_loop {
     my IPC::Run $self = shift;
 
+    # With !defined $SIG{CHLD} (the default), Perl restarts any select() that
+    # SIGCHLD interrupts.  Install a no-op handler, to make select() terminate
+    # with EINTR, accelerating our reaction.  This doesn't help if SIGCHLD
+    # arrives just before the select() call; https://cr.yp.to/docs/selfpipe.html
+    # is a way to close that race condition.  It doesn't help on Windows, where
+    # we substitute a low timeout in zero-FD (timeout-only) select().  That
+    # spends CPU to achieve responsiveness.  We could do better there with a
+    # C-language module that calls OpenProcess(), WSAEventSelect(), and
+    # WaitForMultipleObjects().
+    #
+    # If non-IPC::Run code has installed a handler, via $SIG{CHLD} assignment or
+    # via POSIX::sigaction(), this statement takes no action, and the existing
+    # handler helps just like this one would.  The cap on $not_forever helps
+    # when non-IPC::Run code has blocked SIGCHLD, e.g. via POSIX::sigprocmask().
+    local $SIG{CHLD} = sub { }
+      unless defined $SIG{CHLD};
+
     my $io_occurred;
 
-    my $not_forever = 0.01;
+    my $min_select_timeout = 0.01;
+    my $not_forever        = $min_select_timeout;
 
   SELECT:
     while ( $self->pumpable ) {
@@ -3065,9 +3083,16 @@ sub _select_loop {
             ## No I/O will wake the select loop up, but we have children
             ## lingering, so we need to poll them with a short timeout.
             ## Otherwise, assume more input will be coming.
-            $timeout = $not_forever;
-            $not_forever *= 2;
-            $not_forever = 0.5 if $not_forever >= 0.5;
+
+            if ( !Win32_MODE || $self->{RIN} || $self->{WIN} || $self->{EIN} ) {
+                $timeout = $not_forever;
+                $not_forever *= 2;
+                $not_forever = 0.5 if $not_forever >= 0.5;
+            }
+            else {
+                # see above rationale for Windows-specific behavior
+                $timeout = $min_select_timeout;
+            }
         }
 
         ## Make sure we don't block forever in select() because inputs are
@@ -3083,9 +3108,14 @@ sub _select_loop {
             }
 
             ## Otherwise, assume more input will be coming.
-            $timeout = $not_forever;
-            $not_forever *= 2;
-            $not_forever = 0.5 if $not_forever >= 0.5;
+            if ( !Win32_MODE || $self->{RIN} || $self->{WIN} || $self->{EIN} ) {
+                $timeout = $not_forever;
+                $not_forever *= 2;
+                $not_forever = 0.5 if $not_forever >= 0.5;
+            }
+            else {
+                $timeout = $min_select_timeout;
+            }
         }
 
         _debug 'timeout=', defined $timeout ? $timeout : 'forever'
@@ -3226,8 +3256,8 @@ sub _cleanup {
     ## _clobber modifies PIPES
     $self->_clobber( $self->{PIPES}->[0] ) while @{ $self->{PIPES} };
 
+    # reap kids
     for my $kid ( @{ $self->{KIDS} } ) {
-        _debug "cleaning up kid ", $kid->{NUM} if _debugging_details;
         if ( !length $kid->{PID} ) {
             _debug 'never ran child ', $kid->{NUM}, ", can't reap"
               if _debugging;
@@ -3236,14 +3266,15 @@ sub _cleanup {
                   if defined $op->{TFD} && !defined $op->{TEMP_FILE_HANDLE};
             }
         }
-        elsif ( !defined $kid->{RESULT} ) {
-            _debug 'reaping child ', $kid->{NUM}, ' (pid ', $kid->{PID}, ')'
-              if _debugging;
-            my $pid = waitpid $kid->{PID}, 0;
-            $kid->{RESULT} = $?;
-            _debug 'reaped ', $pid, ', $?=', $kid->{RESULT}
-              if _debugging;
+        else {
+            _waitpid( $kid, 0 );
         }
+    }
+
+    # OPS cleanup.  Kids may share an OPS object; search for "also to write".
+    # Example harness: run(['echo',1], '&', ['echo',2], '>', \$out).  Hence,
+    # this starts after the last reap.
+    for my $kid ( @{ $self->{KIDS} } ) {
 
         #      if ( defined $kid->{DEBUG_FD} ) {
         #	 die;
@@ -3253,7 +3284,7 @@ sub _cleanup {
         #         $kid->{DEBUG_FD} = undef;
         #      }
 
-        _debug "cleaning up filters" if _debugging_details;
+        _debug "cleaning up filters at kid ", $kid->{NUM} if _debugging_details;
         for my $op ( @{ $kid->{OPS} } ) {
             @{ $op->{FILTERS} } = grep {
                 my $filter = $_;
@@ -3447,59 +3478,74 @@ sub reap_nb {
     ## Oh, and this keeps us from reaping other children the process
     ## may have spawned.
     for my $kid ( @{ $self->{KIDS} } ) {
-        if (Win32_MODE) {
-            next if !defined $kid->{PROCESS} || defined $kid->{RESULT};
-            unless ( $kid->{PROCESS}->Wait(0) ) {
-                _debug "kid $kid->{NUM} ($kid->{PID}) still running"
-                  if _debugging_details;
-                next;
-            }
+        _waitpid( $kid, 1 );
+    }
+}
 
+# Support routine (non-method) for waitpid() or platform's equivalent.  Sets $?
+# and $_[0]->{RESULT} iff the kid exited.
+sub _waitpid {
+    my ( $kid, $nohang ) = @_;
+
+    if (Win32_MODE) {
+        require Win32::Process;
+
+        return if !defined $kid->{PROCESS} || defined $kid->{RESULT};
+        my $wait_timeout = $nohang ? 0 : Win32::Process::INFINITE();
+        unless ( $kid->{PROCESS}->Wait($wait_timeout) ) {
+            confess "kid $kid->{PID} still running after indefinite wait"
+              unless $nohang;
+            _debug "kid $kid->{NUM} ($kid->{PID}) still running"
+              if _debugging_details;
+            return;
+        }
+
+        _debug "kid $kid->{NUM} ($kid->{PID}) exited"
+          if _debugging;
+
+        my $native_result;
+        $kid->{PROCESS}->GetExitCode($native_result)
+          or croak "$! while GetExitCode()ing for Win32 process";
+
+        unless ( defined $native_result ) {
+            $kid->{RESULT} = "0 but true";
+            $? = $kid->{RESULT} = 0x0F;
+        }
+        else {
+            my $win32_full_result = $native_result << 8;
+            if ( $win32_full_result >> 8 != $native_result ) {
+
+                # !USE_64_BIT_INT build and exit code > 0xFFFFFF
+                require Math::BigInt;
+                $win32_full_result = Math::BigInt->new($native_result);
+                $win32_full_result->blsft(8);
+            }
+            $? = $kid->{RESULT} = $win32_full_result;
+        }
+    }
+    else {
+        return if !defined $kid->{PID} || defined $kid->{RESULT};
+        my $pid = waitpid $kid->{PID}, $nohang ? POSIX::WNOHANG() : 0;
+        unless ($pid) {
+            confess "kid $kid->{PID} still running after indefinite wait"
+              unless $nohang;
+            _debug "$kid->{NUM} ($kid->{PID}) still running"
+              if _debugging_details;
+            return;
+        }
+
+        if ( $pid < 0 ) {
+            _debug "No such process: $kid->{PID}\n" if _debugging;
+            $kid->{RESULT} = "unknown result, unknown PID";
+        }
+        else {
             _debug "kid $kid->{NUM} ($kid->{PID}) exited"
               if _debugging;
 
-            my $native_result;
-            $kid->{PROCESS}->GetExitCode($native_result)
-              or croak "$! while GetExitCode()ing for Win32 process";
-
-            unless ( defined $native_result ) {
-                $kid->{RESULT} = "0 but true";
-                $? = $kid->{RESULT} = 0x0F;
-            }
-            else {
-                my $win32_full_result = $native_result << 8;
-                if ( $win32_full_result >> 8 != $native_result ) {
-
-                    # !USE_64_BIT_INT build and exit code > 0xFFFFFF
-                    require Math::BigInt;
-                    $win32_full_result = Math::BigInt->new($native_result);
-                    $win32_full_result->blsft(8);
-                }
-                $? = $kid->{RESULT} = $win32_full_result;
-            }
-        }
-        else {
-            next if !defined $kid->{PID} || defined $kid->{RESULT};
-            my $pid = waitpid $kid->{PID}, POSIX::WNOHANG();
-            unless ($pid) {
-                _debug "$kid->{NUM} ($kid->{PID}) still running"
-                  if _debugging_details;
-                next;
-            }
-
-            if ( $pid < 0 ) {
-                _debug "No such process: $kid->{PID}\n" if _debugging;
-                $kid->{RESULT} = "unknown result, unknown PID";
-            }
-            else {
-                _debug "kid $kid->{NUM} ($kid->{PID}) exited"
-                  if _debugging;
-
-                confess "waitpid returned the wrong PID: $pid instead of $kid->{PID}"
-                  unless $pid == $kid->{PID};
-                _debug "$kid->{PID} returned $?\n" if _debugging;
-                $kid->{RESULT} = $?;
-            }
+            confess "waitpid returned the wrong PID: $pid instead of $kid->{PID}"
+              unless $pid == $kid->{PID};
+            _debug "$kid->{PID} returned $?\n" if _debugging;
+            $kid->{RESULT} = $?;
         }
     }
 }
@@ -3543,8 +3589,10 @@ sub finish {
 
     # We don't alter $self->{clear_ins}, start() and run() control it.
 
-    while ( $self->pumpable ) {
-        $self->_select_loop($options);
+    if ( %{ $self->{PTYS} } || @{ $self->{PIPES} } || @{ $self->{TIMERS} } ) {
+        while ( $self->pumpable ) {
+            $self->_select_loop($options);
+        }
     }
     $self->_cleanup;
 
