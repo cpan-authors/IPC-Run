@@ -21,17 +21,16 @@ jobs:
       matrix:
         os:
           - name: freebsd
-            version: '13.0'
+            version: '14.0'
             pkginstall: pkg install -y p5-ExtUtils-MakeMaker
-          #- name: freebsd
-          #  version: '12.2'
-          #  pkginstall: pkg install -y p5-ExtUtils-MakeMaker
 
-          # Tests currently fail on OpenBSD:
-          #- name: openbsd
-          #  version: '6.9'
-          #  pkginstall: pkg_add curl p5-ExtUtils-MakeMaker
+          - name: openbsd
+            version: '7.5'
+            pkginstall: echo no packages required
 
+          - name: netbsd
+            version: '9.3'
+            pkginstall: pkgin -y install perl || true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,6 +44,7 @@ jobs:
           shell: bash
           run: |
             sudo ${{ matrix.os.pkginstall }}
+            /usr/sbin/pkg_info || true
             curl -L https://cpanmin.us | sudo perl - --notest --installdeps --with-configure --with-develop .
             perl Makefile.PL
             make
