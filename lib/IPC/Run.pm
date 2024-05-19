@@ -1746,7 +1746,7 @@ The harness is then cleaned up.
 The doubled name indicates that this function may kill again and avoids
 colliding with the core Perl C<kill> function.
 
-Returns a 1 if the C<TERM> was sufficient, or a 0 if C<KILL> was 
+Returns undef if the C<TERM> was sufficient, or a 1 if C<KILL> was 
 required.  Throws an exception if C<KILL> did not permit the children
 to be reaped.
 
