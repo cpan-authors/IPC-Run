@@ -13,9 +13,8 @@ permissions: {}
 
 jobs:
   BSDs:
-    # Run BSDs using macOS nested virtualization:
-    # https://github.com/cross-platform-actions/action#under-the-hood
-    runs-on: macOS-latest
+    # Run BSDs using virtualization
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -39,7 +38,7 @@ jobs:
           submodules: recursive
 
       - name: Test on ${{ matrix.os.name }}
-        uses: cross-platform-actions/action@a4a7327f8112bc2513a07701786a0c3c1193583a  # v0.23.0
+        uses: cross-platform-actions/action@b2e15da1e667187766fff4945d20b98ac7055576  # v0.24.0
         with:
           operating_system: ${{ matrix.os.name }}
           version: ${{ matrix.os.version }}
