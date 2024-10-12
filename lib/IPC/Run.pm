@@ -1545,8 +1545,11 @@ sub _pty {
 sub _read {
     confess 'undef' unless defined $_[0];
     my $s = '';
-    my $r = POSIX::read( $_[0], $s, 10_000 );
-    croak "$!: read( $_[0] )" if not($r) and !$!{EINTR};
+    my $r;
+    do {
+        $r = POSIX::read( $_[0], $s, 10_000 );
+    } while ( !defined($r) && $!{EINTR} );
+    croak "$!: read( $_[0] )" unless defined($r);
     $r ||= 0;
     _debug "read( $_[0] ) = $r chars '$s'" if _debugging_data;
     return $s;
@@ -1567,6 +1570,13 @@ sub _spawn {
     croak "$! during fork" unless defined $kid->{PID};
 
     unless ( $kid->{PID} ) {
+        if ( $self->{_sigusr1_after_fork} ) {
+
+            # sleep 10ms to improve chance of parent starting read() before it
+            # handles the signal we're about to send.
+            select undef, undef, undef, 0.01;
+            kill 'USR1', getppid;
+        }
         ## _do_kid_and_exit closes sync_reader_fd since it closes all unwanted and
         ## unloved fds.
         $self->_do_kid_and_exit($kid);
