@@ -34,14 +34,22 @@ else {
 
 # Test 1
 SCOPE: {
+    my $out;
     my $h = IPC::Run::start(
         [
             $^X,
             '-e',
-            'sleep while 1',
-        ]
+            '$|=1;print "running\n";sleep while 1',
+        ],
+        \undef,
+        \$out
     );
 
+    # On most platforms, we don't need to wait to read the "running" message.
+    # On NetBSD 10.0, not waiting led to us often issuing kill(kid, SIGTERM)
+    # before the end of the child's exec().  Per https://gnats.netbsd.org/58268,
+    # NetBSD then discarded the signal.
+    pump $h until $out =~ /running/;
     my $needed = $h->kill_kill;
     ok( !$needed, 'Did not need kill_kill' );
 }
