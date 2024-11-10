@@ -1282,6 +1282,9 @@ my %cmd_cache;
 
 sub _search_path {
     my ($cmd_name) = @_;
+
+    croak "can't find empty command" unless length $cmd_name;
+
     if ( File::Spec->file_name_is_absolute($cmd_name) && -x $cmd_name ) {
         _debug "'", $cmd_name, "' is absolute"
           if _debugging_details;
@@ -1934,6 +1937,8 @@ sub harness {
                     croak "Process control symbol ('|', '&') missing" if $cur_kid;
                     croak "Can't spawn a subroutine on Win32"
                       if Win32_MODE && ref eq "CODE";
+                    croak "Can't run undefined command. Did you pass a reference to an undefined array?"
+                      if !defined($_->[0]) && ref eq 'ARRAY';
                     $cur_kid = {
                         TYPE   => 'cmd',
                         VAL    => $_,
