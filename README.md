@@ -1188,7 +1188,7 @@ in their exit codes.
 >     The doubled name indicates that this function may kill again and avoids
 >     colliding with the core Perl `kill` function.
 >
->     Returns a 1 if the `TERM` was sufficient, or a 0 if `KILL` was 
+>     Returns undef if the `TERM` was sufficient, or a 1 if `KILL` was 
 >     required.  Throws an exception if `KILL` did not permit the children
 >     to be reaped.
 >
