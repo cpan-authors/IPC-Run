@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::Run
 
+NEXT
+ - Tests are good in dev version. Releasing to stable.
+
 20250715.0_01 Tue Jul 15 2025
  - #172 - Reduce delays in detecting child exit
  - #174 - Add quickstart section at the top of the docs
