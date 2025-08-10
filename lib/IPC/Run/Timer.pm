@@ -167,7 +167,7 @@ use Scalar::Util ();
 use vars qw( $VERSION @ISA @EXPORT_OK %EXPORT_TAGS );
 
 BEGIN {
-    $VERSION   = '20250715.0_01';
+    $VERSION   = '20250809.0';
     @ISA       = qw( Exporter );
     @EXPORT_OK = qw(
       check

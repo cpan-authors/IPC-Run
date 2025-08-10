@@ -1,6 +1,6 @@
 Revision history for Perl extension IPC::Run
 
-NEXT
+20250809.0 Sat Aug 9 2025
  - Tests are good in dev version. Releasing to stable.
 
 20250715.0_01 Tue Jul 15 2025
