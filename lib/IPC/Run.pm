@@ -3700,6 +3700,11 @@ second if all pipes are to the child and all are paused.  In this case
 we can't tell if the child is dead, so we yield the processor and
 then attempt to reap the child in a nonblocking way.
 
+To wait for child processes to exit during an event loop, poll
+C<$h->pumpable> until it returns false, then call C<finish>.
+See also L</finished> to test whether the harness has already been
+finished.
+
 =cut
 
 ## Undocumented feature (don't depend on it outside this module):
@@ -3900,7 +3905,7 @@ sub finish {
 
    $h->result;
 
-Returns the first non-zero result code (ie $? >> 8).  See L</full_result> to 
+Returns the first non-zero result code (ie $? >> 8).  See L</full_result> to
 get the $? value for a child process.
 
 To get the result of a particular child, do:
@@ -3915,6 +3920,11 @@ or
 
 Returns undef if no child processes were spawned and no child number was
 specified.  Throws an exception if an out-of-range child number is passed.
+
+Note that C<result> returns C<undef> both when no children have exited and
+when all children exited with a zero exit code.  Use L</finished> to
+determine whether the harness has actually completed, or use L</results> to
+get the exit codes of all children (including zeros).
 
 =cut
 
@@ -4172,6 +4182,35 @@ sub full_paths {
     my IPC::Run $self = shift;
 
     return map { $_->{PATH} } @{ $self->{KIDS} };
+}
+
+=pod
+
+=item finished
+
+   $h->finished;
+
+Returns true if the harness has been started and all child processes have
+finished (i.e. C<finish> has been called or the harness has run to
+completion).  Returns false otherwise, including when the harness has not
+yet been started.
+
+Unlike L</result> and L</full_result>, C<finished> does not throw an
+exception when the harness has not yet run — it simply returns false.
+This makes it safe to call at any point to test completion status.
+
+   my $h = harness(\@cmd);
+   $h->start;
+   # ... do other work, pump $h as needed ...
+   if ( $h->finished ) {
+       print "Exit code: ", $h->result(0), "\n";
+   }
+
+=cut
+
+sub finished {
+    my IPC::Run $self = $_[0];
+    return $self->{STATE} == _finished;
 }
 
 ##
