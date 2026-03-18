@@ -1271,18 +1271,27 @@ my %fds;
 use vars qw( $cur_self );
 
 sub _debug_fd {
-    return fileno STDERR unless defined $cur_self;
+    ## STDERR may be tied to a handle that doesn't implement FILENO (e.g. a
+    ## tied filehandle without a real underlying fd).  Wrap fileno() in eval
+    ## so we degrade gracefully instead of dying with "Can't locate object
+    ## method FILENO".  Returns undef when no real fd is available, which is
+    ## safe: callers that receive undef simply skip debug-fd setup.
+    my $stderr_fd = eval { fileno STDERR };
+
+    return $stderr_fd unless defined $cur_self;
 
     if ( _debugging && !defined $cur_self->{DEBUG_FD} ) {
-        my $fd = select STDERR;
-        $| = 1;
-        select $fd;
-        $cur_self->{DEBUG_FD} = POSIX::dup fileno STDERR;
-        _debug("debugging fd is $cur_self->{DEBUG_FD}\n")
-          if _debugging_details;
+        if ( defined $stderr_fd ) {
+            my $fd = select STDERR;
+            $| = 1;
+            select $fd;
+            $cur_self->{DEBUG_FD} = POSIX::dup $stderr_fd;
+            _debug("debugging fd is $cur_self->{DEBUG_FD}\n")
+              if _debugging_details;
+        }
     }
 
-    return fileno STDERR unless defined $cur_self->{DEBUG_FD};
+    return $stderr_fd unless defined $cur_self->{DEBUG_FD};
 
     return $cur_self->{DEBUG_FD};
 }
