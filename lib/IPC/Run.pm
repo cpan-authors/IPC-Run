@@ -2964,7 +2964,6 @@ sub _do_kid_and_exit {
 
     ## We must be executing code in the child, otherwise exec() would have
     ## prevented us from being here.
-    _close $self->{SYNC_WRITER_FD};
     _debug 'calling fork()ed CODE ref' if _debugging;
     POSIX::close $self->{DEBUG_FD} if defined $self->{DEBUG_FD};
     ## TODO: Overload CORE::GLOBAL::exit...
@@ -2972,8 +2971,13 @@ sub _do_kid_and_exit {
     ## out of _do_kid_and_exit and escape into the parent process's call stack.
     ## Without this, the exception would unwind past the fork() point and cause
     ## the child to continue executing parent code (GH#97).
+    ## On exception, write to the sync pipe so the parent can rethrow it (GH#122).
     eval { $kid->{VAL}->() };
-    my $kid_err = $@;
+    if ($@) {
+        _write $self->{SYNC_WRITER_FD}, $@;
+        ## Avoid DESTROY.
+        POSIX::_exit(1);
+    }
 
     ## There are bugs in perl closures up to and including 5.6.1
     ## that may keep this next line from having any effect, and it
@@ -2981,11 +2985,8 @@ sub _do_kid_and_exit {
     ## this may cause the closure to be cleaned up.  Maybe.
     $kid->{VAL} = undef;
 
-    if ($kid_err) {
-        warn $kid_err;
-        ## Use POSIX::_exit to avoid global destruction (see below).
-        POSIX::_exit(1);
-    }
+    ## Close the sync pipe to signal success to parent (EOF = no exception).
+    _close $self->{SYNC_WRITER_FD};
 
     ## Use POSIX::_exit to avoid global destruction, since this might
     ## cause DESTROY() to be called on objects created in the parent
