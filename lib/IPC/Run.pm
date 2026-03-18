@@ -3107,8 +3107,10 @@ sub start {
             _debug "child: ", _debugstrings( $kid->{VAL} )
               if _debugging_details;
             eval {
-                croak "simulated failure of fork"
-                  if $self->{_simulate_fork_failure};
+                if ( $self->{_simulate_fork_failure} ) {
+                    $kid->{PID} = undef;    # simulate fork() returning undef
+                    croak "Cannot allocate memory during fork";
+                }
                 unless (Win32_MODE) {
                     $self->_spawn($kid);
                 }
@@ -3530,7 +3532,7 @@ sub _cleanup {
 
     # reap kids
     for my $kid ( @{ $self->{KIDS} } ) {
-        if ( !length $kid->{PID} ) {
+        if ( !defined $kid->{PID} || !length $kid->{PID} ) {
             _debug 'never ran child ', $kid->{NUM}, ", can't reap"
               if _debugging;
             for my $op ( @{ $kid->{OPS} } ) {
