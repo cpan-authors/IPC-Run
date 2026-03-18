@@ -2256,6 +2256,13 @@ sub harness {
                     };
                 }
 
+                elsif ( $_ eq 'env' ) {
+                    croak "No command before '$_'" unless $cur_kid;
+                    my $env = shift @args;
+                    croak "'env' option requires a hash reference" unless ref $env eq 'HASH';
+                    $cur_kid->{ENV} = $env;
+                }
+
                 elsif ( !ref $_ ) {
                     $self->{$_} = shift @args;
                 }
@@ -2865,6 +2872,12 @@ sub _do_kid_and_exit {
         _debug "open fds: ", join " ", keys %fds if _debugging_details;
 
         _close( $_ ) foreach grep { ! $fds{$_}{needed} } keys %fds;
+
+        if ( $kid->{ENV} ) {
+            while ( my ( $k, $v ) = each %{ $kid->{ENV} } ) {
+                $ENV{$k} = $v;
+            }
+        }
 
         for ( @{ $kid->{OPS} } ) {
             if ( defined $_->{TFD} ) {
@@ -4903,7 +4916,22 @@ returns TRUE when the command exits with a 0 result code.
 
 Does not provide shell-like string interpolation.
 
-No support for C<cd>, C<setenv>, or C<export>: do these in an init() sub
+No support for C<cd> or C<export>: do C<cd> in an init() sub.
+
+For setting environment variables in the child process without affecting the
+parent, use the C<env> option (a hash reference of key/value pairs):
+
+   run(
+      \cmd,
+         ...
+         env => { FOO => 'BAR', BAZ => 'QUX' }
+   );
+
+The C<env> variables are applied in the child process before any C<init> subs
+run, so C<init> can still override individual variables if needed.  The parent
+process C<%ENV> is not modified.
+
+Alternatively, use an C<init> sub for more complex setup:
 
    run(
       \cmd,
