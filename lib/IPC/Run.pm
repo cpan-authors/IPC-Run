@@ -1157,6 +1157,7 @@ BEGIN {
       io timer timeout
       close_terminal
       binary
+      clearcache
     );
     @EXPORT_OK = ( @API, @FILTER_IMP, @FILTERS, qw( Win32_MODE ) );
     %EXPORT_TAGS = (
@@ -1279,6 +1280,30 @@ sub DESTROY {
 ## Support routines (NOT METHODS)
 ##
 my %cmd_cache;
+my $_cmd_cache_path = '';    # value of $ENV{PATH} when %cmd_cache was last populated
+
+=item clearcache()
+
+Clears the cache of executable paths that IPC::Run maintains internally.
+IPC::Run caches the full path of each command it resolves via C<$PATH> to
+avoid repeated filesystem searches.  If you change C<$PATH> at runtime (or
+install a new executable into a directory that is already on C<$PATH>), call
+C<clearcache()> to force IPC::Run to search C<$PATH> again on the next run.
+
+    local $ENV{PATH} = "/new/bin:$ENV{PATH}";
+    IPC::Run::clearcache();
+    run ['mycommand'], ...;
+
+The cache is also invalidated automatically whenever C<$ENV{PATH}> changes
+between calls.
+
+=cut
+
+sub clearcache {
+    %cmd_cache        = ();
+    $_cmd_cache_path  = '';
+    return;
+}
 
 sub _search_path {
     my ($cmd_name) = @_;
@@ -1313,6 +1338,15 @@ sub _search_path {
         croak "not a file: $cmd_name"        unless -f $cmd_name;
         croak "permission denied: $cmd_name" unless -x $cmd_name;
         return $cmd_name;
+    }
+
+    # Invalidate the entire cache when $PATH has changed so that commands are
+    # re-resolved against the new search path (analogous to the shell "rehash").
+    my $current_path = defined $ENV{PATH} ? $ENV{PATH} : '';
+    if ( $current_path ne $_cmd_cache_path ) {
+        _debug "PATH changed, clearing cmd_cache" if _debugging;
+        %cmd_cache       = ();
+        $_cmd_cache_path = $current_path;
     }
 
     if ( exists $cmd_cache{$cmd_name} ) {
