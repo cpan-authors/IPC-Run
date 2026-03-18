@@ -32,14 +32,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 5
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@stable
+        timeout-minutes: 5
         with:
           cpanfile: "cpanfile"
           args: "--configure-timeout=600 --with-recommends --with-suggests"
           sudo: false
       - run: perl Makefile.PL
+        timeout-minutes: 5
       - run: make test
+        timeout-minutes: 5
 
   xt:
     env:
@@ -58,15 +62,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 5
       - name: perl -V
         run: perl -V
+        timeout-minutes: 5
       - name: Install Dependencies
         run: cpm install --with-develop -g --show-build-log-on-failure
+        timeout-minutes: 5
       - name: Makefile.PL
         run: |
           perl Makefile.PL
           mv MYMETA.json META.json
           mv MYMETA.yml META.yml
+        timeout-minutes: 5
       - name: extended tests
         run: prove -lb xt/*.t
+        timeout-minutes: 5
     

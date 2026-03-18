@@ -28,15 +28,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 5
       - name: perl -V
         run: perl -V
+        timeout-minutes: 5
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@stable
+        timeout-minutes: 5
         with:
           cpanfile: "cpanfile"
           args: "--configure-timeout=600 --with-recommends --with-suggests"
           sudo: false
       - name: Makefile.PL
         run: perl Makefile.PL
+        timeout-minutes: 5
       - name: make test
         run: make test
+        timeout-minutes: 5
