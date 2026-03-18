@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 288;
+use Test::More tests => 295;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start );
 
@@ -614,6 +614,44 @@ is( _map_fds, $fd_map );
 
 eok( $out, $text );
 eok( $err, uc($text) );
+
+##
+## input redirection via caller writing directly to a blocking pipe
+##
+$out    = 'REPLACE ME';
+$err    = 'REPLACE ME';
+$fd_map = _map_fds;
+$h      = start \@perl, '<blocking_pipe', \*IN, '>', \$out, '2>', \$err;
+print IN $emitter_script;
+close IN or warn $!;
+$r = $h->finish;
+ok($r);
+
+ok( !$? );
+is( _map_fds, $fd_map );
+
+eok( $out, $text );
+eok( $err, uc($text) );
+
+##
+## blocking pipe should allow large writes without EAGAIN
+##
+SKIP: {
+    skip "Win32 pipes are always blocking", 2 if IPC::Run::Win32_MODE();
+
+    ## Write enough data to overflow a typical pipe buffer (64KB).
+    ## With a non-blocking pipe this would fail with EAGAIN; with
+    ## <blocking_pipe it must succeed.
+    my $big_data = "x" x 65536;
+    my $got_out   = '';
+    $h = start [ $^X, '-e', 'local $/; $_ = <STDIN>; print length($_)' ],
+      '<blocking_pipe', \*IN2, '>', \$got_out;
+    my $ok = print IN2 $big_data;
+    close IN2 or warn $!;
+    $h->finish;
+    ok( $ok, '<blocking_pipe large write succeeded without EAGAIN' );
+    is( $got_out, length($big_data), '<blocking_pipe child received all data' );
+}
 
 ##
 ## filehandle input redirection, passed via *F{IO}

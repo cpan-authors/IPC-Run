@@ -312,7 +312,12 @@ sub _do_open {
     my ( $child_debug_fd, $parent_handle ) = @_;
 
     if ( $self->dir eq "<" ) {
-        ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe_nb;
+        if ( $self->{TYPE} eq '<blocking_pipe' ) {
+            ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe;
+        }
+        else {
+            ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe_nb;
+        }
         if ($parent_handle) {
             CORE::open $parent_handle, ">&=$self->{FD}"
               or croak "$! duping write end of pipe for caller";

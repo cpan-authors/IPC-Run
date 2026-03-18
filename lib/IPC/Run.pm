@@ -834,7 +834,9 @@ will be fixed.  Until it is, it's best not to mix-and-match children.
    M>&N                  Dups output fd N to input fd M
    N<&-                  Closes fd N
 
-   <pipe, N<pipe     P   Pipe opens H for caller to read, write, close.
+   <pipe, N<pipe     P   Pipe opens H for caller to read, write, close (non-blocking write).
+   <blocking_pipe,             P   Like '<pipe', but the write end is blocking.
+   N<blocking_pipe
    >pipe, N>pipe     P   Pipe opens H for caller to read, write, close.
                       
 'N' and 'M' are placeholders for integer file descriptor numbers.  The
@@ -851,7 +853,7 @@ The SHNP field indicates what parameters an operator can take:
 
 =over
 
-=item Redirecting input: [n]<, [n]<pipe
+=item Redirecting input: [n]<, [n]<pipe, [n]<blocking_pipe
 
 You can input the child reads on file descriptor number n to come from a
 scalar variable, subroutine, file handle, or a named file.  If stdin
@@ -925,6 +927,22 @@ equivalent to:
    finish $h;
 
 This is like the behavior of IPC::Open2 and IPC::Open3.
+
+B<Note>: The write end of the pipe opened by C<< <pipe >> is set to
+B<non-blocking> mode.  This allows IPC::Run to fill the pipe buffer and
+continue to its select() loop without stalling.  However, if you write a
+large amount of data faster than the child process reads it, you may receive
+C<EAGAIN> / C<EWOULDBLOCK> errors from print().  If you need blocking writes
+(for example, when acting as the start of a pipeline where you want to write
+at the child's pace), use C<< <blocking_pipe >> instead:
+
+   $h = start \@wc, '<blocking_pipe', \*IN;
+   print IN "lots of data\n" x 32768;   ## won't get EAGAIN
+   close IN;
+   $h->finish;
+
+C<< <blocking_pipe >> behaves identically to C<< <pipe >>, but does not set
+the write end to non-blocking mode.
 
 B<Win32>: The handle returned is actually a socket handle, so you can
 use select() on it.
@@ -1995,7 +2013,8 @@ sub harness {
                     $succinct = !$first_parse;
                 }
 
-                elsif (/^(\d*) (<pipe)()            ()  ()  $/x
+                elsif (/^(\d*) (<blocking_pipe)()  ()  ()  $/x
+                    || /^(\d*) (<pipe)()            ()  ()  $/x
                     || /^(\d*) (<pty) ((?:\s+\S+)?) (<) ()  $/x
                     || /^(\d*) (<)    ()            ()  (.*)$/x ) {
                     croak "No command before '$_'" unless $cur_kid;
@@ -2045,7 +2064,7 @@ sub harness {
                     my IPC::Run::IO $pipe = IPC::Run::IO->_new_internal( $type, $kfd, $pty_id, $source, $binmode, @filters );
 
                     if ( ( ref $source eq 'GLOB' || UNIVERSAL::isa $source, 'IO::Handle' )
-                        && $type !~ /^<p(ty<|ipe)$/ ) {
+                        && $type !~ /^<p(ty<|ipe)$/ && $type ne '<blocking_pipe' ) {
                         _debug "setting DONT_CLOSE" if _debugging_details;
                         $pipe->{DONT_CLOSE} = 1;    ## this FD is not closed by us.
                         _dont_inherit($source) if Win32_MODE;
@@ -2326,7 +2345,7 @@ sub _open_pipes {
                     }
                     $op->_init_filters;
                 }
-                elsif ( $op->{TYPE} eq '<pipe' ) {
+                elsif ( $op->{TYPE} eq '<pipe' || $op->{TYPE} eq '<blocking_pipe' ) {
                     _debug(
                         'kid to read ', $op->{KFD},
                         ' from a pipe IPC::Run opens and returns',
