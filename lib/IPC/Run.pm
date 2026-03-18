@@ -2333,7 +2333,7 @@ sub _open_pipes {
                     ) if _debugging_details;
 
                     my ( $r, $w ) = $op->open_pipe( $self->_debug_fd, $op->{SOURCE} );
-                    _debug "caller will write to ", fileno $op->{SOURCE}
+                    _debug "caller will write to ", fileno( ref $op->{SOURCE} eq 'SCALAR' ? ${ $op->{SOURCE} } : $op->{SOURCE} )
                       if _debugging_details;
 
                     $op->{TFD} = $r;
@@ -2434,7 +2434,7 @@ sub _open_pipes {
                     ) if _debugging_details;
 
                     my ( $r, $w ) = $op->open_pipe( $self->_debug_fd, $op->{DEST} );
-                    _debug "caller will read from ", fileno $op->{DEST}
+                    _debug "caller will read from ", fileno( ref $op->{DEST} eq 'SCALAR' ? ${ $op->{DEST} } : $op->{DEST} )
                       if _debugging_details;
 
                     $op->{TFD} = $w;
