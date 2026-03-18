@@ -38,9 +38,9 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 299;
+use Test::More tests => 302;
 use IPC::Run::Debug qw( _map_fds );
-use IPC::Run qw( :filters :filter_imp start harness );
+use IPC::Run qw( :filters :filter_imp start harness timeout );
 
 require './t/lib/Test.pm';
 IPC::Run::Test->import();
@@ -403,6 +403,28 @@ SKIP: {
     ok(
         !run(
             sub { exit($e) },
+            init => sub { $e = 42 }
+        )
+    );
+    ok($?);
+}
+is( _map_fds, $fd_map );
+$fd_map = _map_fds;
+
+##
+## init after timeout (https://github.com/cpan-authors/IPC-Run/issues/134)
+## A timer must not reset $cur_kid, so init can appear after timeout().
+##
+SKIP: {
+    if ( IPC::Run::Win32_MODE() ) {
+        skip( "Can't spawn subroutines on $^O", 2 );
+    }
+
+    my $e = 0;
+    ok(
+        !run(
+            sub { exit($e) },
+            timeout(10),
             init => sub { $e = 42 }
         )
     );
