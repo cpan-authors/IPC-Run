@@ -1887,7 +1887,20 @@ sub harness {
         @args = ( [@_] );
     }
     else {
-        @args = map { !defined $_ ? bless(\$_, 'IPC::Run::Undef') : $_ } @_;
+        @args = map {
+            if ( !defined $_ ) {
+                if ( Internals::SvREADONLY($_) ) {
+                    my $undef;
+                    bless \$undef, 'IPC::Run::Undef';
+                }
+                else {
+                    bless \$_, 'IPC::Run::Undef';
+                }
+            }
+            else {
+                $_;
+            }
+        } @_;
     }
 
     my @errs;    # Accum errors, emit them when done.
@@ -4616,11 +4629,11 @@ days, months, etc.
 B<WARNING:> Function coprocesses (C<run \&foo, ...>) suffer from two
 limitations.  The first is that it is difficult to close all filehandles the
 child inherits from the parent, since there is no way to scan all open
-FILEHANDLEs in Perl and it both painful and a bit dangerous to close all open
+FILEHANDLEs in Perl and it is both painful and a bit dangerous to close all open
 file descriptors with C<POSIX::close()>. Painful because we can't tell which
 fds are open at the POSIX level, either, so we'd have to scan all possible fds
 and close any that we don't want open (normally C<exec()> closes any
-non-inheritable but we don't C<exec()> for &sub processes.
+non-inheritable but we don't C<exec()> for &sub processes).
 
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the
