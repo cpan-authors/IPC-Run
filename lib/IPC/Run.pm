@@ -1204,8 +1204,8 @@ sub get_more_input();
 
 ##
 ## Error constants, not too locale-dependent
-use vars qw( $_EIO $_EAGAIN );
-use Errno qw(   EIO   EAGAIN );
+use vars qw( $_EIO $_EAGAIN $_EPIPE );
+use Errno qw(   EIO   EAGAIN   EPIPE );
 
 BEGIN {
     local $!;
@@ -1213,6 +1213,8 @@ BEGIN {
     $_EIO    = qr/^$!/;
     $!       = EAGAIN;
     $_EAGAIN = qr/^$!/;
+    $!       = EPIPE;
+    $_EPIPE  = qr/^$!/;
 }
 
 ##
@@ -1612,6 +1614,9 @@ sub _spawn {
 sub _write {
     confess 'undef' unless defined $_[0] && defined $_[1];
     my $r = POSIX::write( $_[0], $_[1], length $_[1] );
+    ## Return undef on EPIPE: the child closed its stdin before we finished
+    ## writing.  The caller (pipe_writer) will _clobber() the pipe gracefully.
+    return undef if !defined $r && $!{EPIPE};
     croak "$!: write( $_[0], '$_[1]' )" unless $r;
     _debug "write( $_[0], '$_[1]' ) = $r" if _debugging_data;
     return $r;
@@ -2634,6 +2639,12 @@ sub _open_pipes {
 
                 if ( length $$in_ref && $$in_ref ) {
                     my $c = _write( $pipe->{FD}, $$in_ref );
+                    ## _write() returns undef on EPIPE: child exited before
+                    ## consuming all input.  Close the pipe and stop writing.
+                    unless ( defined $c ) {
+                        $self->_clobber($pipe);
+                        return undef;
+                    }
                     substr( $$in_ref, 0, $c, '' );
                 }
                 else {
@@ -3132,6 +3143,12 @@ sub _select_loop {
     # when non-IPC::Run code has blocked SIGCHLD, e.g. via POSIX::sigprocmask().
     local $SIG{CHLD} = sub { }
       unless defined $SIG{CHLD};
+
+    # Ignore SIGPIPE so that a write() to a child that has already exited
+    # returns EPIPE instead of killing the parent process silently.  Respect
+    # any handler the caller has already installed.
+    local $SIG{PIPE} = 'IGNORE'
+      unless defined $SIG{PIPE};
 
     my $io_occurred;
 
