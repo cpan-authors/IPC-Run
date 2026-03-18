@@ -1672,10 +1672,10 @@ sub _spawn {
 sub _write {
     confess 'undef' unless defined $_[0] && defined $_[1];
     my $r = POSIX::write( $_[0], $_[1], length $_[1] );
-    ## Return undef on EPIPE: the child closed its stdin before we finished
-    ## writing.  The caller (pipe_writer) will _clobber() the pipe gracefully.
-    return undef if !defined $r && $!{EPIPE};
-    croak "$!: write( $_[0], '$_[1]' )" unless $r;
+    unless ( defined $r ) {
+        return undef if $! == EPIPE;    ## caller handles broken pipe
+        croak "$!: write( $_[0], '$_[1]' )";
+    }
     _debug "write( $_[0], '$_[1]' ) = $r" if _debugging_data;
     return $r;
 }
@@ -2718,9 +2718,11 @@ sub _open_pipes {
 
                 if ( length $$in_ref && $$in_ref ) {
                     my $c = _write( $pipe->{FD}, $$in_ref );
-                    ## _write() returns undef on EPIPE: child exited before
-                    ## consuming all input.  Close the pipe and stop writing.
                     unless ( defined $c ) {
+                        ## EPIPE: child closed stdin before reading all input.
+                        ## Treat this exactly like EOF on the pipe.
+                        _debug_desc_fd( 'broken pipe writing to', $pipe )
+                          if _debugging_details;
                         $self->_clobber($pipe);
                         return undef;
                     }
@@ -3223,9 +3225,12 @@ sub _select_loop {
     local $SIG{CHLD} = sub { }
       unless defined $SIG{CHLD};
 
-    # Ignore SIGPIPE so that a write() to a child that has already exited
-    # returns EPIPE instead of killing the parent process silently.  Respect
-    # any handler the caller has already installed.
+    # When a child exits before consuming all of its stdin, any subsequent
+    # write to the pipe raises SIGPIPE.  With the default disposition that
+    # kills the parent.  Ignore SIGPIPE here so that POSIX::write() instead
+    # returns -1 with errno EPIPE, which pipe_writer catches and handles by
+    # closing the pipe gracefully.  Honour an existing handler installed by
+    # the caller (same policy as the SIGCHLD handler above).
     local $SIG{PIPE} = 'IGNORE'
       unless defined $SIG{PIPE};
 
