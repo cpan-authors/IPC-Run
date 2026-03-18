@@ -1764,9 +1764,10 @@ B<NOTE>: The grace period is actually up to 1 second longer than that
 given.  This is because the granularity of C<time> is 1 second.  Let me
 know if you need finer granularity, we can leverage Time::HiRes here.
 
-B<Win32>: Win32 does not know how to send real signals, so C<TERM> is
-a full-force kill on Win32.  Thus all talk of grace periods, etc. do
-not apply to Win32.
+B<Win32>: Win32 does not support signals, so C<KILL> is sent immediately
+instead of C<TERM>.  The return value is C<undef> when the process exits
+after the initial C<KILL>, or C<1> if a second C<KILL> was needed.  Grace
+periods have no meaning on Win32.
 
 =cut
 
