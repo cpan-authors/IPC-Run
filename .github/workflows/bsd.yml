@@ -33,11 +33,13 @@ jobs:
             pkginstall: pkgin -y install perl || true
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 5
         with:
           submodules: recursive
 
       - name: Test on ${{ matrix.os.name }}
         uses: cross-platform-actions/action@b2e15da1e667187766fff4945d20b98ac7055576  # v0.24.0
+        timeout-minutes: 5
         with:
           operating_system: ${{ matrix.os.name }}
           version: ${{ matrix.os.version }}
