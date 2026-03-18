@@ -35,10 +35,13 @@ sub Win32_MODE();
 my $crlf_text = "Hello World\r\n";
 
 my $text = $crlf_text;
-$text =~ s/\r//g if Win32_MODE;
 
 my $nl_text = $crlf_text;
 $nl_text =~ s/\r//g;
+
+## Expected output when binmode is explicitly disabled (binary(0)): on Win32, \r\n
+## gets stripped back to \n; on other platforms, binmode has no effect.
+my $stripped_text = Win32_MODE ? $nl_text : $crlf_text;
 
 my @perl = ($^X);
 
@@ -72,14 +75,14 @@ ok( run( \@emitter, ">", binary, \$out ) );
 is( f($out), f($crlf_text), "out binary" );
 
 ok( run( \@emitter, ">", binary(0), \$out ) );
-is( f($out), f($text), "out binary 0" );
+is( f($out), f($stripped_text), "out binary 0" );
 
 ok( run( \@emitter, ">", binary(1), \$out ) );
 is( f($out), f($crlf_text), "out binary 1" );
 
 ## Test to-kid
 ok( run( \@reporter, "<", \$nl_text, ">", \$out ) );
-is( $out, "Hello World" . ( Win32_MODE ? "\\0x0d" : "" ) . "\\0x0a", "reporter < \\n" );
+is( $out, "Hello World\\0x0a", "reporter < \\n" );
 
 ok( run( \@reporter, "<", binary, \$nl_text, ">", \$out ) );
 is( $out, "Hello World\\0x0a", "reporter < binary \\n" );

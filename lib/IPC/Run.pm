@@ -2113,7 +2113,7 @@ sub harness {
                     my $source = $5;
 
                     my @filters;
-                    my $binmode;
+                    my $binmode = 1;
 
                     unless ( length $source ) {
                         if ( !$succinct ) {
@@ -2184,7 +2184,7 @@ sub harness {
 
                     my $dest = $5;
                     my @filters;
-                    my $binmode = 0;
+                    my $binmode = 1;
                     unless ( length $dest ) {
                         if ( !$succinct ) {
                             ## unshift...shift: '>' filters source...sink left...right
