@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 302;
+use Test::More tests => 304;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start harness timeout );
 
@@ -379,7 +379,7 @@ SKIP: {
 ##
 SKIP: {
     if ( IPC::Run::Win32_MODE() ) {
-        skip( "Can't spawn subroutines on $^O", 5 );
+        skip( "Can't spawn subroutines on $^O", 7 );
     }
 
     ok run sub { };
@@ -387,6 +387,12 @@ SKIP: {
     ok !run sub { exit 42 };
     ok $? ;
     is $? >> 8, 42;
+
+    ## RT#97 / GH#97: die inside a coderef must not escape into the parent process.
+    ## The child should exit with a non-zero status; the die must not propagate to $@.
+    ok !run( sub { die "dying inside coderef\n" } ),
+        'run with dying coderef returns false';
+    ok $?, 'die in coderef results in non-zero exit status';
 }
 is( _map_fds, $fd_map );
 $fd_map = _map_fds;

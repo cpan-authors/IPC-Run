@@ -2968,13 +2968,24 @@ sub _do_kid_and_exit {
     _debug 'calling fork()ed CODE ref' if _debugging;
     POSIX::close $self->{DEBUG_FD} if defined $self->{DEBUG_FD};
     ## TODO: Overload CORE::GLOBAL::exit...
-    $kid->{VAL}->();
+    ## Wrap the coderef in eval so that a die() inside it does not propagate
+    ## out of _do_kid_and_exit and escape into the parent process's call stack.
+    ## Without this, the exception would unwind past the fork() point and cause
+    ## the child to continue executing parent code (GH#97).
+    eval { $kid->{VAL}->() };
+    my $kid_err = $@;
 
     ## There are bugs in perl closures up to and including 5.6.1
     ## that may keep this next line from having any effect, and it
     ## won't have any effect if our caller has kept a copy of it, but
     ## this may cause the closure to be cleaned up.  Maybe.
     $kid->{VAL} = undef;
+
+    if ($kid_err) {
+        warn $kid_err;
+        ## Use POSIX::_exit to avoid global destruction (see below).
+        POSIX::_exit(1);
+    }
 
     ## Use POSIX::_exit to avoid global destruction, since this might
     ## cause DESTROY() to be called on objects created in the parent
