@@ -909,19 +909,25 @@ glob reference it takes as an argument:
 
    $h = start \@cat, '<pipe', \*IN;
    print IN "hello world\n";
-   pump $h;
    close IN;
+   pump $h;
    finish $h;
+
+B<Note>: The pipe must be closed before calling pump() for commands
+that buffer their output until stdin is closed (e.g. C<cat>).  For
+interactive commands that produce output in response to each line of
+input, you may interleave writes and pump() calls without closing
+first.
 
 Unlike the other '<' operators, IPC::Run does nothing further with
 it: you are responsible for it.  The previous example is functionally
 equivalent to:
 
    pipe( \*R, \*IN ) or die $!;
-   $h = start \@cat, '<', \*IN;
+   $h = start \@cat, '<', \*R;
    print IN "hello world\n";
-   pump $h;
    close IN;
+   pump $h;
    finish $h;
 
 This is like the behavior of IPC::Open2 and IPC::Open3.
