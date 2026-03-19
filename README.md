@@ -1871,11 +1871,11 @@ days, months, etc.
 **WARNING:** Function coprocesses (`run \&foo, ...`) suffer from two
 limitations.  The first is that it is difficult to close all filehandles the
 child inherits from the parent, since there is no way to scan all open
-FILEHANDLEs in Perl and it both painful and a bit dangerous to close all open
+FILEHANDLEs in Perl and it is both painful and a bit dangerous to close all open
 file descriptors with `POSIX::close()`. Painful because we can't tell which
 fds are open at the POSIX level, either, so we'd have to scan all possible fds
 and close any that we don't want open (normally `exec()` closes any
-non-inheritable but we don't `exec()` for &sub processes.
+non-inheritable but we don't `exec()` for &sub processes).
 
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the

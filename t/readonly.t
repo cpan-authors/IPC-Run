@@ -26,6 +26,18 @@ Readonly my @MIXEDCASE        => qw( X y Z );
 
 run_echo($_) for ( @lowercase, @UPPERCASE, @MIXEDCASE );
 
+# Test that passing undef for stdin doesn't die with
+# "Modification of a read-only value" (GH #139)
+{
+    my @cmd = $^O eq 'MSWin32'
+        ? ( $^X, '-e', 'print "hello\n"' )
+        : ( '/bin/echo', 'hello' );
+    my ( $out, $err );
+    my $rv = eval { run [@cmd], undef, \$out, \$err };
+    is( $@, '', 'run() with undef stdin does not die (GH #139)' );
+    ok( $rv, 'run() with undef stdin succeeds' );
+}
+
 done_testing();
 exit;
 
