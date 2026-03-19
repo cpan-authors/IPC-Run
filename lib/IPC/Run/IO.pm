@@ -312,7 +312,12 @@ sub _do_open {
     my ( $child_debug_fd, $parent_handle ) = @_;
 
     if ( $self->dir eq "<" ) {
-        ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe_nb;
+        if ( $self->{TYPE} eq '<blocking_pipe' ) {
+            ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe;
+        }
+        else {
+            ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe_nb;
+        }
         if ($parent_handle) {
             my $fh = ref $parent_handle eq 'SCALAR' ? do { require Symbol; Symbol::gensym() } : $parent_handle;
             CORE::open $fh, ">&=$self->{FD}"
