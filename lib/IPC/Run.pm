@@ -3909,6 +3909,138 @@ sub full_results {
     return map $_->{RESULT}, @{ $self->{KIDS} };
 }
 
+=pod
+
+=item pid
+
+   $h->pid;
+
+Returns the process ID of the first child process, or undef if no child
+processes have been spawned yet.
+
+To get the PID of a particular child, do:
+
+   $h->pid( 0 );  # first child's PID
+   $h->pid( 1 );  # second child's PID
+
+or
+
+   ($h->pids)[0]
+   ($h->pids)[1]
+
+PIDs are available as soon as the harness has been started with L</start>.
+
+=cut
+
+sub pid {
+    my IPC::Run $self = shift;
+
+    if (@_) {
+        my ($which) = @_;
+        croak(
+            "Only ",
+            scalar( @{ $self->{KIDS} } ),
+            " child processes, no process $which"
+        ) unless $which >= 0 && $which <= $#{ $self->{KIDS} };
+        return $self->{KIDS}->[$which]->{PID} || undef;
+    }
+    else {
+        return undef unless @{ $self->{KIDS} };
+        return $self->{KIDS}->[0]->{PID} || undef;
+    }
+}
+
+=pod
+
+=item pids
+
+Returns a list of child process IDs.  See L</pid> to get the PID of a
+specific child process.
+
+PIDs are available as soon as the harness has been started with L</start>.
+
+=cut
+
+sub pids {
+    my IPC::Run $self = shift;
+
+    return map { $_->{PID} || undef } @{ $self->{KIDS} };
+}
+
+=pod
+
+=item is_running
+
+   $h->is_running;
+
+Returns true if the harness is currently running (i.e. after L</start> and
+before L</finish>), false otherwise.
+
+=cut
+
+sub is_running {
+    my IPC::Run $self = shift;
+
+    return $self->{STATE} == _started;
+}
+
+=pod
+
+=item full_path
+
+   $h->full_path;
+
+Returns the full path to the executable of the first child process, as
+resolved by searching C<PATH> when the harness is started with L</start>.
+Returns undef if the first child is a code reference (not an external
+command), or if the harness has not been started yet.
+
+To get the full path of a particular child, do:
+
+   $h->full_path( 0 );  # first child's executable path
+   $h->full_path( 1 );  # second child's executable path
+
+or
+
+   ($h->full_paths)[0]
+   ($h->full_paths)[1]
+
+=cut
+
+sub full_path {
+    my IPC::Run $self = shift;
+
+    if (@_) {
+        my ($which) = @_;
+        croak(
+            "Only ",
+            scalar( @{ $self->{KIDS} } ),
+            " child processes, no process $which"
+        ) unless $which >= 0 && $which <= $#{ $self->{KIDS} };
+        return $self->{KIDS}->[$which]->{PATH};
+    }
+    else {
+        return undef unless @{ $self->{KIDS} };
+        return $self->{KIDS}->[0]->{PATH};
+    }
+}
+
+=pod
+
+=item full_paths
+
+Returns a list of full paths to the executables of all child processes.
+Children that are code references (not external commands) will have C<undef>
+in the corresponding position.
+
+=cut
+
+sub full_paths {
+    my IPC::Run $self = shift;
+
+    return map { $_->{PATH} } @{ $self->{KIDS} };
+}
+
 ##
 ## Filter Scaffolding
 ##
