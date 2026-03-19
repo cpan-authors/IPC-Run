@@ -3773,18 +3773,27 @@ sub _child_result {
     return $self->{KIDS}->[$which]->{RESULT};
 }
 
+# When $SIG{CHLD} is 'IGNORE', waitpid returns -1 and RESULT is set to
+# the string "unknown result, unknown PID".  Using that string in numeric
+# context (>> 8, 0+, boolean) triggers a warning.  This helper silences it.
+sub _numeric_result {
+    no warnings 'numeric';
+    return 0 + $_[0];
+}
+
 sub result {
     &_assert_finished;
     my IPC::Run $self = shift;
 
     if (@_) {
         my ($which) = @_;
-        return $self->_child_result($which) >> 8;
+        return _numeric_result( $self->_child_result($which) ) >> 8;
     }
     else {
         return undef unless @{ $self->{KIDS} };
         for ( @{ $self->{KIDS} } ) {
-            return $_->{RESULT} >> 8 if $_->{RESULT} >> 8;
+            my $candidate = _numeric_result( $_->{RESULT} ) >> 8;
+            return $candidate if $candidate;
         }
     }
 }
@@ -3804,8 +3813,7 @@ sub results {
     &_assert_finished;
     my IPC::Run $self = shift;
 
-    # we add 0 here to stop warnings associated with "unknown result, unknown PID"
-    return map { ( 0 + $_->{RESULT} ) >> 8 } @{ $self->{KIDS} };
+    return map { _numeric_result( $_->{RESULT} ) >> 8 } @{ $self->{KIDS} };
 }
 
 =pod
@@ -3844,7 +3852,7 @@ sub full_result {
     else {
         return undef unless @{ $self->{KIDS} };
         for ( @{ $self->{KIDS} } ) {
-            return $_->{RESULT} if $_->{RESULT};
+            return $_->{RESULT} if _numeric_result( $_->{RESULT} );
         }
     }
 }
