@@ -314,15 +314,19 @@ sub _do_open {
     if ( $self->dir eq "<" ) {
         ( $self->{TFD}, $self->{FD} ) = IPC::Run::_pipe_nb;
         if ($parent_handle) {
-            CORE::open $parent_handle, ">&=$self->{FD}"
+            my $fh = ref $parent_handle eq 'SCALAR' ? do { require Symbol; Symbol::gensym() } : $parent_handle;
+            CORE::open $fh, ">&=$self->{FD}"
               or croak "$! duping write end of pipe for caller";
+            $$parent_handle = $fh if ref $parent_handle eq 'SCALAR';
         }
     }
     else {
         ( $self->{FD}, $self->{TFD} ) = IPC::Run::_pipe;
         if ($parent_handle) {
-            CORE::open $parent_handle, "<&=$self->{FD}"
+            my $fh = ref $parent_handle eq 'SCALAR' ? do { require Symbol; Symbol::gensym() } : $parent_handle;
+            CORE::open $fh, "<&=$self->{FD}"
               or croak "$! duping read end of pipe for caller";
+            $$parent_handle = $fh if ref $parent_handle eq 'SCALAR';
         }
     }
 }
