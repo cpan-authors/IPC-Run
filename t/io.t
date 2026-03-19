@@ -21,7 +21,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 use IPC::Run qw( :filters run io );
 use IPC::Run::Debug qw( _map_fds );
 
@@ -69,6 +69,22 @@ sub wipe($) {
 
 $io = io( 'foo', '<', \$send );
 ok $io->isa('IPC::Run::IO');
+
+# Error message should report the invalid operator (not $_ which would be empty)
+{
+    my $bad_op = 'BOGUS';
+    eval { io( 'foo', $bad_op, \$send ) };
+    like( $@, qr/\Q$bad_op\E/, "invalid operator reported in error message" );
+}
+
+# io() should accept a GLOB reference (rt.cpan.org #111214)
+{
+    local *MYHANDLE;
+    open( MYHANDLE, '<', \$send ) or die "open: $!";
+    $io = io( \*MYHANDLE, '<', \$send );
+    ok $io->isa('IPC::Run::IO'), "io() accepts a GLOB reference";
+    close MYHANDLE;
+}
 
 is( io( 'foo', '<',  \$send )->mode, 'w' );
 is( io( 'foo', '<<', \$send )->mode, 'wa' );

@@ -103,7 +103,7 @@ sub new {
 
     my ( $external, $type, $internal ) = ( shift, shift, pop );
 
-    croak "$class: '$_' is not a valid I/O operator"
+    croak "$class: '$type' is not a valid I/O operator"
       unless $type =~ /^(?:<<?|>>?)$/;
 
     my IPC::Run::IO $self = $class->_new_internal( $type, undef, undef, $internal, undef, @_ );
