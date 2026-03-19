@@ -23,14 +23,7 @@ use warnings;
 use Test::More;
 use IPC::Run ();
 
-# Don't run this test script on Windows at all
-if ( IPC::Run::Win32_MODE() ) {
-    plan( skip_all => 'Temporarily ignoring test failure on Win32' );
-    exit(0);
-}
-else {
-    plan( tests => 2 );
-}
+plan( tests => 2 );
 
 # Test 1
 SCOPE: {
