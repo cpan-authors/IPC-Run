@@ -1,19 +1,18 @@
 name: BSDs
 
 on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-  pull_request:
+  workflow_run:
+    workflows: [testsuite]
+    types:
+      - completed
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
   BSDs:
-    # Run BSDs using virtualization
+    # Only run if the testsuite workflow succeeded
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,15 +20,15 @@ jobs:
       matrix:
         os:
           - name: freebsd
-            version: '14.0'
+            version: '14.2'
             pkginstall: pkg install -y p5-ExtUtils-MakeMaker
 
           - name: openbsd
-            version: '7.5'
+            version: '7.6'
             pkginstall: echo no packages required
 
           - name: netbsd
-            version: '10.0'
+            version: '10.1'
             pkginstall: pkgin -y install perl || true
     steps:
       - uses: actions/checkout@v4
@@ -38,8 +37,8 @@ jobs:
           submodules: recursive
 
       - name: Test on ${{ matrix.os.name }}
-        uses: cross-platform-actions/action@b2e15da1e667187766fff4945d20b98ac7055576  # v0.24.0
-        timeout-minutes: 5
+        uses: cross-platform-actions/action@v0.32.0
+        timeout-minutes: 15
         with:
           operating_system: ${{ matrix.os.name }}
           version: ${{ matrix.os.version }}
