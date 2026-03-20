@@ -3623,6 +3623,63 @@ sub pump_nb {
 
 =pod
 
+=item close_stdin
+
+   $h->close_stdin;
+
+Closes the input pipe(s) to the child process(es), signaling EOF on
+the child's STDIN.  Does B<not> wait for the child to finish or drain
+remaining output.  After calling this, the caller can continue to
+C<pump()> to retrieve output incrementally.
+
+This is useful when streaming large amounts of data through a child
+process (e.g., decompression) where you want to signal end-of-input
+but continue draining output without buffering it all in memory:
+
+   my ( $in, $out ) = ( '', '' );
+   my $h = start \@cmd, \$in, \$out;
+
+   while ( read_more_input_into( $in ) ) {
+       $h->pump;
+       process_output( $out ) if length $out;
+       $out = '';
+   }
+
+   $h->close_stdin;
+
+   while ( $h->pumpable ) {
+       $h->pump;
+       process_output( $out ) if length $out;
+       $out = '';
+   }
+
+   $h->finish;
+
+Without C<close_stdin()>, calling C<finish()> would accumulate all
+remaining output in C<$out> before returning, potentially exhausting
+memory for children that produce large output (like decompressors).
+
+Returns the harness object for chaining.
+
+=cut
+
+sub close_stdin {
+    my IPC::Run $self = shift;
+
+    local $cur_self = $self;
+
+    _debug "** closing stdin" if _debugging;
+
+    for my $pipe ( @{ $self->{PIPES} } ) {
+        next unless $pipe->{TYPE} =~ /^</;
+        $self->_clobber($pipe);
+    }
+
+    return $self;
+}
+
+=pod
+
 =item pumpable
 
 Returns TRUE if calling pump() won't throw an immediate "process ended
