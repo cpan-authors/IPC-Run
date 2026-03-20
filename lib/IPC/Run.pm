@@ -3637,7 +3637,7 @@ process (e.g., decompression) where you want to signal end-of-input
 but continue draining output without buffering it all in memory:
 
    my ( $in, $out ) = ( '', '' );
-   my $h = start \@cmd, \$in, \$out;
+   my $h = start \@cmd, \$in, \$out, timeout( 30 );
 
    while ( read_more_input_into( $in ) ) {
        $h->pump;
@@ -3655,6 +3655,10 @@ but continue draining output without buffering it all in memory:
 
    $h->finish;
 
+B<Note:> Always use a C<timeout()> with this pattern.  Without one, the
+C<pump()> calls can deadlock if the child blocks on writing output while
+you are blocked trying to write input (or vice versa).
+
 Without C<close_stdin()>, calling C<finish()> would accumulate all
 remaining output in C<$out> before returning, potentially exhausting
 memory for children that produce large output (like decompressors).
@@ -3668,8 +3672,11 @@ sub close_stdin {
 
     local $cur_self = $self;
 
+    croak "harness has not been started" unless $self->{STATE} >= _started;
+
     _debug "** closing stdin" if _debugging;
 
+    # Match all input pipe types: '<' (plain), '<pipe', '<pty<', etc.
     for my $pipe ( @{ $self->{PIPES} } ) {
         next unless $pipe->{TYPE} =~ /^</;
         $self->_clobber($pipe);
