@@ -3677,10 +3677,6 @@ sub close_stdin {
     _debug "** closing stdin" if _debugging;
 
     # Match all input pipe types: '<' (plain), '<pipe', '<pty<', etc.
-    # _clobber() handles each type appropriately: for regular pipes it
-    # closes the fd (signaling EOF to the child); for input ptys it
-    # removes them from the select vectors without closing the pty
-    # master (consistent with _clobber's existing pty safety logic).
     for my $pipe ( @{ $self->{PIPES} } ) {
         next unless $pipe->{TYPE} =~ /^</;
         $self->_clobber($pipe);
