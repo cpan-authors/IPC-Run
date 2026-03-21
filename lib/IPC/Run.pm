@@ -2042,6 +2042,12 @@ sub harness {
                     $succinct = 1;
                 }
 
+                elsif ( ref $_ eq 'IPC::Run::Undef' ) {
+                    ## Silently ignore undef values passed where a timer or
+                    ## other optional argument would go (e.g. undef timeout).
+                    ## See https://github.com/cpan-authors/IPC-Run/issues/128
+                }
+
                 elsif (/^(\d*)>&(\d+)$/) {
                     croak "No command before '$_'" unless $cur_kid;
                     push @{ $cur_kid->{OPS} }, {
@@ -2102,7 +2108,7 @@ sub harness {
                     unless ( length $source ) {
                         if ( !$succinct ) {
                             while ( @args > 1
-                                && ( ( ref $args[1] && !UNIVERSAL::isa $args[1], "IPC::Run::Timer" ) || UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) ) {
+                                && ( ( ref $args[1] && !UNIVERSAL::isa( $args[1], "IPC::Run::Timer" ) && ref $args[1] ne 'IPC::Run::Undef' ) || UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) ) {
                                 if ( UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) {
                                     $binmode = shift(@args)->();
                                 }
@@ -2173,7 +2179,7 @@ sub harness {
                         if ( !$succinct ) {
                             ## unshift...shift: '>' filters source...sink left...right
                             while ( @args > 1
-                                && ( ( ref $args[1] && !UNIVERSAL::isa $args[1], "IPC::Run::Timer" ) || UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) ) {
+                                && ( ( ref $args[1] && !UNIVERSAL::isa( $args[1], "IPC::Run::Timer" ) && ref $args[1] ne 'IPC::Run::Undef' ) || UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) ) {
                                 if ( UNIVERSAL::isa $args[0], "IPC::Run::binmode_pseudo_filter" ) {
                                     $binmode = shift(@args)->();
                                 }
