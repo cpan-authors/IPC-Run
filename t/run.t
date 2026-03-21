@@ -136,6 +136,8 @@ sub case_inverting_filter {
 
 sub eok {
     my ( $got, $exp, $name ) = @_;
+    # Normalize CRLF to LF on Win32 — binmode-specific behavior is tested in t/binmode.t
+    $got =~ s/\r\n/\n/g if defined $got && IPC::Run::Win32_MODE();
     $got =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
     $exp =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
 
@@ -1041,6 +1043,7 @@ $r      = run(
 ok($r);
 ok( !$? );
 is( _map_fds, $fd_map );
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 like $out, qr/^(?:HELLO World\n|Hello world\n){2}$/s;
 like $err, qr/^(?:[12]:Hello World.*){2}$/s;
 
