@@ -1951,7 +1951,20 @@ sub harness {
         @args = ( [@_] );
     }
     else {
-        @args = map { !defined $_ ? do { my $u; bless( \$u, 'IPC::Run::Undef' ) } : $_ } @_;
+        @args = map {
+            if ( !defined $_ ) {
+                if ( Internals::SvREADONLY($_) ) {
+                    my $undef;
+                    bless \$undef, 'IPC::Run::Undef';
+                }
+                else {
+                    bless \$_, 'IPC::Run::Undef';
+                }
+            }
+            else {
+                $_;
+            }
+        } @_;
     }
 
     my @errs;    # Accum errors, emit them when done.
