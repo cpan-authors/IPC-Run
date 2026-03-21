@@ -4196,7 +4196,7 @@ completion).  Returns false otherwise, including when the harness has not
 yet been started.
 
 Unlike L</result> and L</full_result>, C<finished> does not throw an
-exception when the harness has not yet run — it simply returns false.
+exception when the harness has not yet run -- it simply returns false.
 This makes it safe to call at any point to test completion status.
 
    my $h = harness(\@cmd);
