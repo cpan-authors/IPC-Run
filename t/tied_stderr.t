@@ -40,6 +40,6 @@ untie *STDERR;
 ok( !$err, "run() succeeds with tied STDERR lacking FILENO" )
     or diag("Got error: $err");
 
-$out //= '';
+$out = '' unless defined $out;
 $out =~ s/\r?\n$//;
 is( $out, 'hello', "run() captures output correctly with tied STDERR" );
