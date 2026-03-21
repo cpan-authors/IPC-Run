@@ -532,8 +532,12 @@ sub win32_spawn {
     ## the child process.
     ## See https://github.com/cpan-authors/IPC-Run/issues/141
     {
-        my %kid_fds = map { $_->{KFD} => 1 }
-          grep { defined $_->{KFD} } @$ops;
+        my %kid_fds;
+        for my $op (@$ops) {
+            $kid_fds{ $op->{KFD} }  = 1 if defined $op->{KFD};
+            $kid_fds{ $op->{KFD1} } = 1 if defined $op->{KFD1};
+            $kid_fds{ $op->{KFD2} } = 1 if defined $op->{KFD2};
+        }
         ## On Win32, KFDs are always 0, 1, or 2 (higher fds are rejected
         ## above), so anything not in %kid_fds can be made non-inheritable.
         ## Use a conservative upper bound; the CRT default is 512.
