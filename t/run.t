@@ -1208,7 +1208,7 @@ SKIP: {
     # env sets a variable in the child process
     $out = '';
     run(
-        [ @perl, '-e', 'print $ENV{IPC_RUN_TEST_VAR} // ""' ],
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
         env => { IPC_RUN_TEST_VAR => 'hello_env' },
         '>', \$out,
     );
@@ -1218,7 +1218,7 @@ SKIP: {
     delete local $ENV{IPC_RUN_TEST_VAR};
     $out = '';
     run(
-        [ @perl, '-e', 'print $ENV{IPC_RUN_TEST_VAR} // ""' ],
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
         env => { IPC_RUN_TEST_VAR => 'child_only' },
         '>', \$out,
     );
@@ -1227,7 +1227,7 @@ SKIP: {
     # init can override a variable set by env
     $out = '';
     run(
-        [ @perl, '-e', 'print $ENV{IPC_RUN_TEST_VAR} // ""' ],
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
         env  => { IPC_RUN_TEST_VAR => 'from_env' },
         init => sub { $ENV{IPC_RUN_TEST_VAR} = 'from_init' },
         '>', \$out,
