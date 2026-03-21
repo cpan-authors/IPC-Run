@@ -71,6 +71,6 @@ SKIP: {
     my ( $in, $out, $err );
     my $h2 = start( [ $^X, '-e', 'exit 0' ], \$in, \$out, \$err );
     finish($h2);
-    warnings_are { $h2->result(0) } [], 'result($pos) produces no warnings with SIGCHLD=IGNORE';
-    warnings_are { $h2->results }   [], 'results() produces no warnings with SIGCHLD=IGNORE';
+    Test::Warn::warnings_are( sub { $h2->result(0) }, [], 'result($pos) produces no warnings with SIGCHLD=IGNORE' );
+    Test::Warn::warnings_are( sub { $h2->results },   [], 'results() produces no warnings with SIGCHLD=IGNORE' );
 }
