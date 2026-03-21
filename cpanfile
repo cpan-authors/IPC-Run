@@ -15,6 +15,7 @@ else {
 on 'test' => sub {
     requires 'Test::More', '0.47';
     recommends 'Readonly';
+    recommends 'Test::Warn';
 };
 on 'develop' => sub {
     requires 'Test::Pod::Coverage';

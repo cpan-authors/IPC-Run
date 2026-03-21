@@ -3,7 +3,8 @@ use warnings;
 
 use IPC::Run qw( harness start finish );
 use Test::More tests => 14;
-use Test::Warn;
+
+my $has_test_warn = eval { require Test::Warn; Test::Warn->import; 1 };
 
 my @perl   = ($^X);
 my @exit0  = ( @perl, '-e', q{ exit 0 } );
@@ -65,6 +66,7 @@ foreach my $pos ( 0 .. $#expect_full ) {
 # when SIGCHLD is set to IGNORE (causing RESULT to be "unknown result, unknown PID")
 SKIP: {
     skip "No SIGCHLD on Win32", 2 if IPC::Run::Win32_MODE;
+    skip "Test::Warn not installed", 2 unless $has_test_warn;
     local $SIG{CHLD} = 'IGNORE';
     my ( $in, $out, $err );
     my $h2 = start( [ $^X, '-e', 'exit 0' ], \$in, \$out, \$err );
