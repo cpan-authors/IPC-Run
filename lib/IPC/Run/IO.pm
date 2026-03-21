@@ -206,11 +206,30 @@ sub _new_internal {
                       if IPC::Run::_empty ${ $self->{SOURCE} }
                       || $self->{SOURCE_EMPTY};
 
-                    $$out_ref = $$internal;
-                    eval { $$internal = '' }
-                      if $self->{HARNESS}->{clear_ins};
+                    ## When clear_ins is set (start/pump mode), limit the chunk
+                    ## copied per filter invocation.  Without this limit, all of
+                    ## $$internal is moved to the internal pipe buffer in one
+                    ## shot.  If the caller keeps appending to $$internal faster
+                    ## than the child can consume data, the intermediate buffer
+                    ## grows without bound -- exponential memory growth.
+                    ## See https://github.com/cpan-authors/IPC-Run/issues/154
+                    my $max_chunk = 65536;
+                    if ( $self->{HARNESS}->{clear_ins}
+                        && length($$internal) > $max_chunk )
+                    {
+                        $$out_ref = substr( $$internal, 0, $max_chunk );
+                        eval { substr( $$internal, 0, $max_chunk, '' ) };
+                        ## SOURCE_EMPTY intentionally not set here: more data
+                        ## remains in $$internal and will be picked up on the
+                        ## next filter invocation once $$out_ref has drained.
+                    }
+                    else {
+                        $$out_ref = $$internal;
+                        eval { $$internal = '' }
+                          if $self->{HARNESS}->{clear_ins};
 
-                    $self->{SOURCE_EMPTY} = $self->{HARNESS}->{auto_close_ins};
+                        $self->{SOURCE_EMPTY} = $self->{HARNESS}->{auto_close_ins};
+                    }
 
                     return 1;
                 }
