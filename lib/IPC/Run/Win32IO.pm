@@ -120,7 +120,7 @@ sub _cleanup {
       if defined $self->{TEMP_FILE_HANDLE};
 
     close( $self->{CHILD_HANDLE} )
-      if defined $self->{CHILD_HANDLE};
+      if defined $self->{CHILD_HANDLE} && defined fileno( $self->{CHILD_HANDLE} );
 
     $self->{$_} = undef for @cleanup_fields;
 }
@@ -437,10 +437,22 @@ sub _open_socket_pipe {
     $self->{CHILD_HANDLE}     = gensym;
     $self->{PUMP_PIPE_HANDLE} = gensym;
 
+    ## When $parent_handle is a SCALAR ref (e.g. '>pipe', \$fh), we must
+    ## not pass it to _socket() which expects a GLOB.  Create the socket
+    ## with a fresh gensym and store the resulting handle back into the
+    ## caller's scalar.
+    my $scalar_ref;
+    if ( ref $parent_handle eq 'SCALAR' ) {
+        $scalar_ref    = $parent_handle;
+        $parent_handle = undef;
+    }
+
     (
         $self->{PARENT_HANDLE},
         $self->{PUMP_SOCKET_HANDLE}
     ) = _socket $parent_handle;
+
+    $$scalar_ref = $self->{PARENT_HANDLE} if $scalar_ref;
 
     ## These binmodes seem to have no effect on Win2K, but just to be safe
     ## I do them.
