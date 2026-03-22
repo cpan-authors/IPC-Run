@@ -32,7 +32,7 @@ BEGIN {
 
 use Test::More;
 use IPC::Run qw( start finish timeout );
-use IO::Pipe;
+use IO::Handle;
 
 BEGIN {
     if ( IPC::Run::Win32_MODE() ) {
@@ -50,11 +50,9 @@ BEGIN {
 # child is gone.
 
 SKIP: {
-    my $read  = IO::Handle->new();
-    my $write = IO::Handle->new();
-    my $pipe  = IO::Pipe->new( $read, $write )
-        or skip "IO::Pipe->new failed: $!", 2;
-    $write->autoflush(1);
+    pipe( my $read, my $write )
+        or skip "pipe() failed: $!", 2;
+    IO::Handle::autoflush($write, 1);
 
     my $out = '';
     my $err = '';
@@ -78,7 +76,7 @@ SKIP: {
 
         my $chunk = "x" x 4096 . "\n";
         for ( 1 .. 1000 ) {    # ~4 MB, well above any pipe buffer
-            my $r = print $write $chunk;
+            my $r = print {$write} $chunk;
             unless ($r) {
                 $write_ok = 0;
                 last;
