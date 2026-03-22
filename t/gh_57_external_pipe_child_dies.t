@@ -54,6 +54,10 @@ SKIP: {
         or skip "pipe() failed: $!", 2;
     IO::Handle::autoflush($write, 1);
 
+    # Ignore SIGPIPE for the entire test — closing handles and finish()
+    # can trigger it after the child exits.
+    local $SIG{PIPE} = 'IGNORE';
+
     my $out = '';
     my $err = '';
 
@@ -71,7 +75,6 @@ SKIP: {
     my $write_ok  = 1;
     eval {
         local $SIG{ALRM} = sub { $timed_out = 1; die "alarm\n" };
-        local $SIG{PIPE} = 'IGNORE';
         alarm(10);
 
         my $chunk = "x" x 4096 . "\n";
