@@ -35,10 +35,12 @@ t/early_exit.t
 t/eintr.t
 t/filter.t
 t/finished.t
+t/gh_57_external_pipe_child_dies.t
 t/harness.t
 t/input_buffer_growth.t
 t/io.t
 t/kill_kill.t
+t/large_write.t
 t/lib/Test.pm
 t/parallel.t
 t/parent_and_child_fds_match.t
