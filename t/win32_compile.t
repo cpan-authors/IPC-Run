@@ -102,6 +102,7 @@ BEGIN {
 
 {
     use Socket ();
+    local $^W = 0;
     no warnings 'redefine';
     sub Socket::IPPROTO_TCP() { return }
 }
