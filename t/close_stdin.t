@@ -33,6 +33,8 @@ use Test::More tests => 13;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( start pump finish timeout );
 
+my $nl = $^O eq 'MSWin32' ? "\r\n" : "\n";
+
 my @cat = ( $^X, '-e', 'print while <STDIN>' );
 my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' );
 
@@ -65,7 +67,7 @@ my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' );
     }
 
     $h->finish;
-    is( $out, "hello world\n", "output received after close_stdin" );
+    is( $out, "hello world$nl", "output received after close_stdin" );
 }
 
 ## Test 3: close_stdin allows incremental output draining
@@ -132,7 +134,7 @@ my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' );
     # Now finish should work without accumulating unbounded output
     $h->finish;
 
-    is( $out, "test\n", "close_stdin + finish produces correct output" );
+    is( $out, "test$nl", "close_stdin + finish produces correct output" );
 }
 
 ## Test 6: file descriptor leak check
@@ -169,7 +171,7 @@ my @echoer = ( $^X, '-pe', 'BEGIN { $| = 1 }' );
     }
     $h->finish;
 
-    is( $out, "PIPELINE TEST\n", "close_stdin works with pipelines" );
+    is( $out, "PIPELINE TEST$nl", "close_stdin works with pipelines" );
 }
 
 ## Test 8: close_stdin with multi-line streaming pattern

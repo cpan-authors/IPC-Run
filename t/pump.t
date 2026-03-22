@@ -25,6 +25,8 @@ use Test::More tests => 27;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( start pump finish timeout );
 
+my $nl = $^O eq 'MSWin32' ? "\r\n" : "\n";
+
 ##
 ## $^X is the path to the perl binary.  This is used run all the subprocesses.
 ##
@@ -57,7 +59,7 @@ pump $h until $out =~ /hello/;
 ok(1);
 ok( !$? );
 is( $in,  '' );
-is( $out, "hello\n" );
+is( $out, "hello$nl" );
 ok( $h->pumpable );
 $in = "world\n";
 $?  = 0;
@@ -65,16 +67,16 @@ pump $h until $out =~ /world/;
 ok(1);
 ok( !$? );
 is( $in,  '' );
-is( $out, "hello\nworld\n" );
+is( $out, "hello${nl}world$nl" );
 ok( $h->pumpable );
 
 ## Test \G pos() restoral
 $in  = "hello\n";
 $out = "";
 $?   = 0;
-pump $h until $out =~ /hello\n/g;
+pump $h until $out =~ /hello\r?\n/g;
 ok(1);
-is pos($out), 6, "pos\$out";
+is pos($out), length("hello$nl"), "pos\$out";
 $in = "world\n";
 $?  = 0;
 pump $h until $out =~ /\Gworld/gc;
@@ -82,5 +84,5 @@ ok(1);
 ok( $h->finish );
 ok( !$? );
 is( _map_fds, $fd_map );
-is( $out,     "hello\nworld\n" );
+is( $out,     "hello${nl}world$nl" );
 ok( !$h->pumpable );

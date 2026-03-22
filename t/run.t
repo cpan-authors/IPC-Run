@@ -136,6 +136,8 @@ sub case_inverting_filter {
 
 sub eok {
     my ( $got, $exp, $name ) = @_;
+    # Normalize CRLF to LF on Win32 — binmode-specific behavior is tested in t/binmode.t
+    $got =~ s/\r\n/\n/g if defined $got && IPC::Run::Win32_MODE();
     $got =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
     $exp =~ s/([\000-\037])/sprintf "\\0x%02x", ord $1/ge if defined $exp;
 
@@ -520,6 +522,7 @@ $h   = start [ $perl, qw( -pe BEGIN{$|=1}1 ) ], \$in, \$out;
 $in  = "\n";
 $out = "";
 pump $h until length $out;
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 is $out, "\n";
 
 my $long_string = "x" x 20000 . "DOC2\n";
@@ -538,6 +541,7 @@ my $ok_2 = eval {
 $x = $@ if $ok_1 && !$ok_2;
 
 if ( $ok_1 && $ok_2 ) {
+    $out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
     is $long_string, $out;
 }
 else {
@@ -940,6 +944,7 @@ $r      = run \@emitter, '>', \$out, '2>', \$err, '2>&1';
 ok($r);
 ok( !$? );
 is( _map_fds, $fd_map );
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 like $out, qr/(?:$text){2}/i;
 eok( $err, '' );
 
@@ -1041,6 +1046,7 @@ $r      = run(
 ok($r);
 ok( !$? );
 is( _map_fds, $fd_map );
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 like $out, qr/^(?:HELLO World\n|Hello world\n){2}$/s;
 like $err, qr/^(?:[12]:Hello World.*){2}$/s;
 
