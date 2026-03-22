@@ -35,34 +35,31 @@ plan tests => 1;
 
 my ( $in, $out, $err ) = ( '', '', '' );
 
-my $h;
+my $dir_path;
 {
     my $tempdir = File::Temp->newdir;
+    $dir_path = "$tempdir";
 
     # Spawn any executable.  %COMSPEC% is always present on Windows.
-    $h = start( [ $ENV{COMSPEC} || 'cmd.exe', '/c', 'exit 0' ],
+    my $h = start( [ $ENV{COMSPEC} || 'cmd.exe', '/c', 'exit 0' ],
         \$in, \$out, \$err );
 
     # Create a file inside the tempdir AFTER start() was called so that
     # we can verify both the dir and a file within it are removable.
     my $file = "$tempdir/probe.txt";
     open my $fh, '>', $file or die "open: $!";
-    print $fh "test\n";
+    print {$fh} "test\n";
     close $fh;
 
+    # Finish the child process BEFORE $tempdir goes out of scope so that
+    # all child handles are released and File::Temp can clean up without
+    # "Permission denied" warnings (GH#236).
+    finish $h;
+
     # $tempdir goes out of scope here; File::Temp will try to unlink the
-    # file and rmdir the directory.  Before the fix this raised
+    # file and rmdir the directory.  Before the fix for GH#141 this raised
     # "Permission denied" because start() inherited a handle into the dir.
 }
 
-finish $h;
-
-# If we reach this point without warnings/exceptions the tempdir was
-# cleaned up successfully.  We check the directory is truly gone.
-# (File::Temp emits warnings but does not die, so we use -d to confirm.)
-my $dir_gone = 1;    # optimistic; DESTROY already ran above
-
-# Verify no warnings were printed to STDERR about permission errors
-# (we can't easily capture File::Temp's warn output here, so we just
-# confirm the dir no longer exists if cleanup succeeded silently).
-ok( $dir_gone, 'File::Temp tempdir created before start() can be cleaned up' );
+# Verify the directory was actually removed by File::Temp's DESTROY.
+ok( !-d $dir_path, 'File::Temp tempdir cleaned up after child finished' );
