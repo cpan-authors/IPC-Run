@@ -2874,8 +2874,8 @@ sub _do_kid_and_exit {
         _close( $_ ) foreach grep { ! $fds{$_}{needed} } keys %fds;
 
         if ( $kid->{ENV} ) {
-            while ( my ( $k, $v ) = each %{ $kid->{ENV} } ) {
-                $ENV{$k} = $v;
+            foreach my $k ( keys %{ $kid->{ENV} } ) {
+                $ENV{$k} = $kid->{ENV}{$k};
             }
         }
 
