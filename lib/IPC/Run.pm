@@ -2933,14 +2933,23 @@ sub _do_kid_and_exit {
         _close( $_ ) foreach grep { $fds{$_}{lazy_close} } keys %fds;
 
         if ( ref $kid->{VAL} ne 'CODE' ) {
-            open $s1, ">&=$self->{SYNC_WRITER_FD}"
-              or croak "$! setting filehandle to fd SYNC_WRITER_FD";
-            fcntl $s1, F_SETFD, 1;
+            {
+                ## Suppress "Filehandle STDIN reopened as $s1 only for
+                ## output" warnings that fire when ptys have closed the
+                ## original STDIN before we fdopen the sync/debug fds.
+                ## Both lexical (use warnings) and global ($^W) must be
+                ## suppressed. (#131)
+                no warnings 'io';
+                local $^W = 0;
+                open $s1, ">&=$self->{SYNC_WRITER_FD}"
+                  or croak "$! setting filehandle to fd SYNC_WRITER_FD";
+                fcntl $s1, F_SETFD, 1;
 
-            if ( defined $self->{DEBUG_FD} ) {
-                open $s2, ">&=$self->{DEBUG_FD}"
-                  or croak "$! setting filehandle to fd DEBUG_FD";
-                fcntl $s2, F_SETFD, 1;
+                if ( defined $self->{DEBUG_FD} ) {
+                    open $s2, ">&=$self->{DEBUG_FD}"
+                      or croak "$! setting filehandle to fd DEBUG_FD";
+                    fcntl $s2, F_SETFD, 1;
+                }
             }
 
             if (_debugging) {

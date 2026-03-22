@@ -42,7 +42,7 @@ use Test::More;
 
 BEGIN {
     if ( eval { require IO::Pty; } ) {
-        plan tests => 32;
+        plan tests => 33;
     }
     else {
         plan skip_all => "IO::Pty not installed";
@@ -220,3 +220,22 @@ $in = "quit\n";
 ok( $h->finish );
 ok( !$? );
 is( _map_fds, $fd_map );
+
+##
+## Regression test for GH#131: '>pty>' should not warn when $^W=1
+##
+{
+    use IPC::Run qw( run );
+    my @child_warnings;
+    my $pty_out = '';
+    run(
+        [ $^X, '-e', 'print "ok\n"' ],
+        '>pty>', \$pty_out,
+        init => sub {
+            $SIG{__WARN__} = sub { push @child_warnings, $_[0] };
+        }
+    );
+    is( scalar @child_warnings, 0,
+        'no warnings in child with >pty> and $^W=1 (GH#131)' )
+      or diag "unexpected warnings: @child_warnings";
+}
