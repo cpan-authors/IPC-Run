@@ -29,16 +29,11 @@ use IPC::Run 'run';
 plan skip_all => 'Skipping when not on Win32' unless $^O eq 'MSWin32';
 plan tests => 10;
 
-# Tests 3, 8, 9 previously failed on Win32 due to newline translation.
-# Fixed by making binmode the default — see issue #116.
-
 $ENV{IPC_SUB_PROCESS} = 1;
-my $test_num = 0;
 for my $i ( 0 .. $#{ lines() } ) {
     my $line = lines->[$i];
     $ENV{IPC_SUB_INDEX} = $i;
     for my $report_in ( 1, 0 ) {
-        $test_num++;
         $ENV{IPC_SUB_PROCESS_REPORT_IN} = $report_in;
         run [ $^X, __FILE__ ], "<", \$line, ">", \my $out;
         $out = perlstring $out if not $report_in;
