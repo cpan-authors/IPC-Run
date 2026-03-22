@@ -1333,6 +1333,8 @@ sub clearcache {
 
 sub _search_path {
     my ($cmd_name) = @_;
+    croak "command name is undefined or empty"
+      unless defined $cmd_name && length $cmd_name;
     if ( File::Spec->file_name_is_absolute($cmd_name) && -x $cmd_name ) {
         _debug "'", $cmd_name, "' is absolute"
           if _debugging_details;
