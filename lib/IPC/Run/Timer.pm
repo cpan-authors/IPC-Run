@@ -24,7 +24,7 @@ IPC::Run::Timer -- Timer channels for IPC::Run.
 =head1 DESCRIPTION
 
 This class and module allows timers and timeouts to be created for use
-by IPC::Run.  A timer simply expires when it's time is up.  A timeout
+by IPC::Run.  A timer simply expires when its time is up.  A timeout
 is a timer that throws an exception when it expires.
 
 Timeouts are usually a bit simpler to use  than timers: they throw an
@@ -167,7 +167,7 @@ use Scalar::Util ();
 use vars qw( $VERSION @ISA @EXPORT_OK %EXPORT_TAGS );
 
 BEGIN {
-    $VERSION   = '20220807.0';
+    $VERSION   = '20250809.0';
     @ISA       = qw( Exporter );
     @EXPORT_OK = qw(
       check

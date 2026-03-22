@@ -87,7 +87,7 @@ SCOPE: {
 }
 
 {
-    $h = harness( [ $^X, '-e', 'sleep 1' ], timeout(10), debug => 0 );
+    $h = harness( [ $^X, '-e', 'sleep 1' ], timeout(180), debug => 0 );
     my $started_at = time;
     $h->start;
     $h->finish;

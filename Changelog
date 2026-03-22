@@ -1,5 +1,27 @@
 Revision history for Perl extension IPC::Run
 
+20250809.0 Sat Aug 9 2025
+ - Tests are good in dev version. Releasing to stable.
+
+20250715.0_01 Tue Jul 15 2025
+ - #172 - Reduce delays in detecting child exit
+ - #174 - Add quickstart section at the top of the docs
+ - #177 - Retry _read() on EINTR, instead of losing pipe contents.
+ - In test suite, work around bug in NetBSD 10.
+
+20231003.0 Mon Oct 2 2023
+ Windows now matches other platforms in that a child calling exit(N) causes
+ result() to return N and full_result() to return N << 8.  On Windows, before
+ this change, result() was returning N >> 8, and full_result() was returning N.
+ Programs having workarounds for this may need to condition those workarounds on
+ $IPC::Run::VERSION.
+ - #157 - On Windows, avoid hang under IPCRUNDEBUG.
+ - Refresh "cpanfile" from Makefile.PL, to allow use on Windows.
+ - #163 - Normalize shebangs to /usr/bin/perl
+ - Fix or skip all tests recently seen to fail on Windows.
+ - Include t/result.t in releases.
+ - #168 - Make full_result() and result() Windows behavior match non-Windows.
+
 20220807.0 Mon Aug 1 2022
  If your applications rely on portability to Windows, see new documentation
  sections "argument-passing rules are program-specific" and "batch files".  This
@@ -337,7 +359,7 @@ Revision history for Perl extension IPC::Run
 	- The debug file descriptor is built by dup()ing STDERR in the parent and
 	  passing it to the kids.  This keeps us from needing to worry about
 	  debugging info in the select() loop and removes unnecessary complications.
-	  Still needs a bit of work: it should be dup()ed in _open_pipes and it's
+	  Still needs a bit of work: it should be dup()ed in _open_pipes and its
 	  value should be stored in the harness, not a global.
 	- child processes are now a little more clearly identified in debug output.
 	- Some debugging messages are now clearer.

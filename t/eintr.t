@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-eintr.t - Test select() failing with EINTR
+eintr.t - Test select() and read() failing with EINTR
 
 =cut
 
@@ -35,10 +35,10 @@ if ( $got_usr1 != 1 ) {
     plan skip_all => "can't deliver a signal on this platform";
 }
 
-plan tests => 3;
+plan tests => 5;
 
 # A kid that will send SIGUSR1 to this process and then produce some output.
-my $kid_perl = qq[sleep 1; kill 'USR1', $$; sleep 1; print "foo\n"; sleep 10];
+my $kid_perl = qq[sleep 1; kill 'USR1', $$; sleep 1; print "foo\n"; sleep 180];
 my @kid = ( $^X, '-e', "\$| = 1; $kid_perl" );
 
 # If EINTR on select() is not handled properly then IPC::Run can think
@@ -53,9 +53,29 @@ $harness->pump;
 
 is $out, "foo\n", "got stdout on the first pump";
 
-ok time - $pump_started < 5, "first pump didn't wait for kid exit";
+ok time - $pump_started < 180, "first pump didn't wait for kid exit";
 
 is $got_usr1, 2, 'got USR1 from the kid';
 
 $harness->kill_kill;
 $harness->finish;
+
+# Have kid send SIGUSR1 while we're in read of sync pipe.  That pipe conveys any
+# exec failure to us.
+SKIP: {
+    if ( IPC::Run::Win32_MODE() ) {
+        skip "Can't really exec() $^O", 2;
+    }
+
+    my $expected = 'exec failed';
+    my $h        = eval {
+        start(
+            [ $^X, "-e", 1 ],
+            _sigusr1_after_fork    => 1,
+            _simulate_exec_failure => 1
+        );
+    };
+    my $got = $@ =~ $expected ? $expected : $@ || "";
+    is $got_usr1, 3, 'got USR1 from the _simulate_exec_failure kid';
+    is( $got, $expected, "reported exec failure despite USR1" );
+}

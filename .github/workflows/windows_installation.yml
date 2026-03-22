@@ -13,12 +13,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        timeout-minutes: 5
       - name: Set up perl
         uses: shogo82148/actions-setup-perl@v1
+        timeout-minutes: 5
         with:
           perl-version: '5.32'
           distribution: strawberry
       - run: perl -V
+        timeout-minutes: 5
       - name: Uninstall and Install Module
         run: curl https://cpanmin.us | perl - --verbose --reinstall IPC::Run
+        timeout-minutes: 5

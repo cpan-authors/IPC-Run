@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-pty.t - Test suite for IPC::Run's pty (psuedo-terminal) support
+pty.t - Test suite for IPC::Run's pty (pseudo-terminal) support
 
 =head1 DESCRIPTION
 
@@ -42,7 +42,7 @@ use Test::More;
 
 BEGIN {
     if ( eval { require IO::Pty; } ) {
-        plan tests => 32;
+        plan tests => 33;
     }
     else {
         plan skip_all => "IO::Pty not installed";
@@ -220,3 +220,17 @@ $in = "quit\n";
 ok( $h->finish );
 ok( !$? );
 is( _map_fds, $fd_map );
+
+##
+## GH #131: run with '>pty>' should not warn when $^W=1
+##
+{
+    my @warnings;
+    local $SIG{__WARN__} = sub { push @warnings, $_[0] };
+    local $^W = 1;
+
+    my $pty_out = '';
+    IPC::Run::run( [ $^X, '-e', 'print "ok\n"' ], '>pty>', \$pty_out );
+    my @pty_warnings = grep { /reopened/ } @warnings;
+    is( scalar @pty_warnings, 0, "no 'reopened' warnings with '>pty>' and \$^W=1 (GH #131)" );
+}

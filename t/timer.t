@@ -164,7 +164,7 @@ ok( !$t->is_reset );
 my $got;
 eval {
     $got = "timeout fired";
-    run [ $^X, '-e', 'sleep 3' ], timeout 1;
+    run [ $^X, '-e', 'sleep 180' ], timeout 1;
     $got = "timeout didn't fire";
 };
 is $got, "timeout fired", "timer firing in run()";

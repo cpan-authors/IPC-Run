@@ -21,8 +21,8 @@ BEGIN {
     }
 }
 
-use Test::More tests => 2;
-use IPC::Run qw( start );
+use Test::More tests => 4;
+use IPC::Run qw( run start );
 
 SCOPE: {
     ## Older Test.pm's don't grok qr// in $expected.
@@ -30,6 +30,22 @@ SCOPE: {
     eval { start ["./bogus_really_bogus"] };
     my $got = $@ =~ $expected ? $expected : $@ || "";
     is( $got, $expected, "starting ./bogus_really_bogus" );
+}
+
+# Test that run() with undef command name throws an error rather than
+# executing an arbitrary executable from PATH (GitHub issue #162).
+SCOPE: {
+    my $expected = 'command name is undefined or empty';
+    eval { run [undef] };
+    my $got = $@ =~ $expected ? $expected : $@ || "";
+    is( $got, $expected, "run [undef] croaks with clear error" );
+}
+
+SCOPE: {
+    my $expected = 'command name is undefined or empty';
+    eval { run [''] };
+    my $got = $@ =~ $expected ? $expected : $@ || "";
+    is( $got, $expected, "run [''] croaks with clear error" );
 }
 
 SKIP: {

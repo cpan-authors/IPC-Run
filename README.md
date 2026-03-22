@@ -119,6 +119,129 @@ may be mixed.
 Various redirection operators reminiscent of those seen on common Unix and DOS
 command lines are provided.
 
+# SIMPLE QUICKSTART
+
+Here's a quick guide to basic usage of using IPC::Run's `run()` function.
+
+## Capturing output and errors from an external command
+
+Say you want to run a command in your shell. We'll use `ls` for
+simplicity, although there are far better ways to get a list of files, such
+as the `glob()` function or the [File::Find](https://metacpan.org/pod/File%3A%3AFind) module.
+
+The basic form of `run()` has the command and its arguments passed as an
+arrayref in the first argument. The command cannot be a single string.
+
+    @cmd = [ 'ls', '-a', '-l', '-r', '-t' ];    # Yes
+    @cmd = ( 'ls -a -l -r -t' );                # No
+
+After the command, pass a scalar reference `\$in` for the input to pass
+in, and scalar references `\$out` and `\$err` to receive the content of
+stdout and stderr.
+
+    use IPC::Run qw( run );
+
+    @cmd = qw( ls -l -a -r -t );
+    run( \@cmd, \$in, \$out, \$err ) or die $?;
+
+    print("\$err is ", length($err), " bytes long\n");
+    print($err, "\n");
+
+    print("\$out is ", length($out), " bytes long\n");
+    print($out, "\n");
+
+Running this will show something like:
+
+    $err is 0 bytes long
+
+    $out is 1410 bytes long
+    total 392
+    drwxr-xr-x    3 andy  staff     96 Mar 17 11:53 .github
+    -rw-r--r--    1 andy  staff    158 Mar 17 11:53 .gitignore
+    ... etc ...
+
+Note that `$out` and `$err` are always defined after a call to `run()`,
+even if they receive no data.
+
+## Passing input to the external program
+
+If you have input to pass in, put it in the `$in` variables.  For example,
+to use the `wc` command to count lines, words and characters in a block of
+text:
+
+    $in = <<'CARROLL';
+    'Twas brillig, and the slithy toves
+        Did gyre and gimble in the wabe:
+    All mimsy were the borogoves,
+        And the mome raths outgrabe.
+    CARROLL
+
+    @cmd = qw( wc );
+    run( \@cmd, \$in, \$out, \$err ) or die $?;
+    print "$out";
+
+This gives the output:
+
+           4      23     140
+
+## Handling errors
+
+It's important to check the return code of `run()` to see if the command
+ran successfully. `run()` returns a boolean true on success, and false on
+failure. Note that this is the opposite of Perl's `system()`, which
+returns 0 on success and a non-zero value on failures.
+
+For the specific subprocess error code, check `$?` directly.
+
+    @cmd = qw( tar xzvf nonexistent.tar );
+    if ( !run( \@cmd, \$in, \$out, \$err ) ) {
+        print "\$? = $?\n";
+        print "err = $err\n";
+    }
+
+Running this gives:
+
+    $? = 256
+    err = tar: Error opening archive: Failed to open 'nonexistent.tar'
+
+If the program does not exist, then `run()` will `die` and won't return
+at all.  For example:
+
+    @cmd = qw( bogus-command );
+    my $rc = run( \@cmd, \$in, \$out, \$err );
+    print "run returned ", ($rc ? "true" : "false"), "\n";
+
+Running this doesn't make it to the `print` statement.
+
+    Command 'bogus-command' not found in [ list of paths ] at program.pl line N.
+
+To handle the possibility of a non-existent program, call `run()` inside
+an `eval`.
+
+    my $rc;
+    eval { $rc = run( \@cmd, \$in, \$out, \$out ); 1; };
+    if ( !defined($rc) ) {
+        print "run died: $@\n";
+    }
+    else {
+        if ( $rc ) {
+            print "run returned true\n";
+        }
+        else {
+            print "run returned false\n";
+            print "\$? = $?\n";
+        }
+    }
+
+## And beyond
+
+That's the basics of using `run()` as a replacement for `system()`. If you'd
+like to do more, such as having subprocesses communicate with each other,
+setting timeouts on long-running processes, kill running subprocesses,
+redirecting output, closing file descriptors and much much MUCH more, read on.
+
+# THE DETAILS
+
 Before digging in to the details a few LIMITATIONS are important enough
 to be mentioned right up front:
 
@@ -131,7 +254,7 @@ to be mentioned right up front:
 
     If you need pty support, IPC::Run should work well enough most of the
     time, but IO::Pty is being improved, and IPC::Run will be improved to
-    use IO::Pty's new features when it is release.
+    use IO::Pty's new features when it is released.
 
     The basic problem is that the pty needs to initialize itself before the
     parent writes to the master pty, or the data written gets lost.  So
@@ -151,8 +274,6 @@ to be mentioned right up front:
         $ IPCRUNDEBUG=details myscript     # prints lots of low-level details
         $ IPCRUNDEBUG=gory    myscript     # (Win32 only) prints data moving through
                                            # the helper processes.
-
-We now return you to your regularly scheduled documentation.
 
 ## Harnesses
 
@@ -407,8 +528,8 @@ to the systems' shell:
 
 or a list of commands, io operations, and/or timers/timeouts to execute.
 Consecutive commands must be separated by a pipe operator '|' or an '&'.
-External commands are passed in as array references, and, on systems
-supporting fork(), Perl code may be passed in as subs:
+External commands are passed in as array references or [IPC::Run::Win32Process](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AWin32Process)
+objects.  On systems supporting fork(), Perl code may be passed in as subs:
 
     run \@cmd;
     run \@cmd1, '|', \@cmd2;
@@ -421,13 +542,13 @@ supporting fork(), Perl code may be passed in as subs:
 shell pipe.  '&' does not.  Child processes to the right of a '&'
 will have their stdin closed unless it's redirected-to.
 
-[IPC::Run::IO](https://metacpan.org/pod/IPC::Run::IO) objects may be passed in as well, whether or not
+[IPC::Run::IO](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AIO) objects may be passed in as well, whether or not
 child processes are also specified:
 
     run io( "infile", ">", \$in ), io( "outfile", "<", \$in );
        
 
-as can [IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer) objects:
+as can [IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer) objects:
 
     run \@cmd, io( "outfile", "<", \$in ), timeout( 10 );
 
@@ -520,7 +641,7 @@ that variable:
     print $out;
 
 Scalars used in incremental (start()/pump()/finish()) applications are treated
-as queues: input is removed from input scalers, resulting in them dwindling
+as queues: input is removed from input scalars, resulting in them dwindling
 to '', and output is appended to output scalars.  This is not true of 
 harnesses run() in batch mode.
 
@@ -578,7 +699,7 @@ Here are some of the issues you might need to be aware of.
     This can make it hard to guarantee that your output parser won't be fooled
     into early termination of results.
 
-    To help work around this, you can see if the program can alter it's 
+    To help work around this, you can see if the program can alter its
     prompt, and use something you feel is never going to occur in actual
     practice.
 
@@ -611,7 +732,7 @@ Here are some of the issues you might need to be aware of.
 
     Some programs don't prompt unless stdin or stdout is a tty.  See if you can
     turn prompting back on.  If not, see if you can come up with a command that
-    you can issue after every real command and look for it's output, as
+    you can issue after every real command and look for its output, as
     IPC::ChildSafe does.   There are two filters included with IPC::Run that
     can help with doing this: appender and chunker (see new\_appender() and
     new\_chunker()).
@@ -667,7 +788,7 @@ differences to watch out for.
 
     Child processes harnessed to a pseudo terminal have their stdin, stdout,
     and stderr completely closed before any redirection operators take
-    effect.  This casts of the bonds of the controlling terminal.  This is
+    effect.  This casts off the bonds of the controlling terminal.  This is
     not done when using pipes.
 
     Right now, this affects all children in a harness that has a pty in use,
@@ -833,7 +954,7 @@ The SHNP field indicates what parameters an operator can take:
     The subroutine will be called each time some data is read from the child.
 
     The >pipe operator is different in concept than the other '>' operators,
-    although it's syntax is similar:
+    although its syntax is similar:
 
         $h = start \@cat, $in, '>pipe', \*OUT, '2>pipe', \*ERR;
         $in = "hello world\n";
@@ -1067,7 +1188,7 @@ in their exit codes.
 >     The doubled name indicates that this function may kill again and avoids
 >     colliding with the core Perl `kill` function.
 >
->     Returns a 1 if the `TERM` was sufficient, or a 0 if `KILL` was 
+>     Returns undef if the `TERM` was sufficient, or a 1 if `KILL` was 
 >     required.  Throws an exception if `KILL` did not permit the children
 >     to be reaped.
 >
@@ -1114,12 +1235,12 @@ in their exit codes.
 >     someday, spawn()) all the child processes.  It does not send or receive any
 >     data on the pipes, see pump() and finish() for that.
 >
->     You may call harness() and then pass it's result to start() if you like,
+>     You may call harness() and then pass its result to start() if you like,
 >     but you only need to if it helps you structure or tune your application.
 >     If you do call harness(), you may skip start() and proceed directly to
 >     pump.
 >
->     start() also starts all timers in the harness.  See [IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer)
+>     start() also starts all timers in the harness.  See [IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer)
 >     for more information.
 >
 >     start() flushes STDOUT and STDERR to help you avoid duplicate output.
@@ -1227,7 +1348,7 @@ in their exit codes.
 >     of all the child processes, etc.
 >
 >     Specifically, if a timeout expires in finish(), finish() will not
->     kill all the children.  Call `<$h-`kill\_kill>> in this case if you care.
+>     kill all the children.  Call `$h->kill_kill` in this case if you care.
 >     This differs from the behavior of ["run"](#run).
 >
 > - result
@@ -1405,7 +1526,7 @@ process and a scalar or subroutine endpoint.
     See ["timeout"](#timeout) for building timers that throw exceptions on
     expiration.
 
-    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer#timer) for details.
+    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer#timer) for details.
 
 - timeout
 
@@ -1455,7 +1576,7 @@ process and a scalar or subroutine endpoint.
 
     See ["timer"](#timer) for building non-fatal timers.
 
-    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC::Run::Timer#timer) for details.
+    See ["timer" in IPC::Run::Timer](https://metacpan.org/pod/IPC%3A%3ARun%3A%3ATimer#timer) for details.
 
 # FILTER IMPLEMENTATION FUNCTIONS
 
@@ -1540,6 +1661,34 @@ High resolution timeouts.
 
 # Win32 LIMITATIONS
 
+- argument-passing rules are program-specific
+
+    Win32 programs receive all arguments in a single "command line" string.
+    IPC::Run assembles this string so programs using [standard command line parsing
+    rules](https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments)
+    will see an `argv` that matches the array reference specifying the command.
+    Some programs use different rules to parse their command line.  Notable examples
+    include `cmd.exe`, `cscript.exe`, and Cygwin programs called from non-Cygwin
+    programs.  Use [IPC::Run::Win32Process](https://metacpan.org/pod/IPC%3A%3ARun%3A%3AWin32Process) to call these and other nonstandard
+    programs.
+
+- batch files
+
+    Properly escaping a batch file argument depends on how the script will use that
+    argument, because some uses experience multiple levels of caret (escape
+    character) removal.  Avoid calling batch files with arguments, particularly when
+    the argument values originate outside your program or contain non-alphanumeric
+    characters.  Perl scripts and PowerShell scripts are sound alternatives.  If you
+    do use batch file arguments, IPC::Run escapes them so the batch file can pass
+    them, unquoted, to a program having standard command line parsing rules.  If the
+    batch file enables delayed environment variable expansion, it must disable that
+    feature before expanding its arguments.  For example, if `foo.cmd` contains
+    `perl %*`, `run ['foo.cmd', @list]` will create a Perl process in which
+    `@ARGV` matches `@list`.  Prepending a `setlocal enabledelayedexpansion` line
+    would make the batch file malfunction, silently.  Another silent-malfunction
+    example is `run ['outer.bat', @list]` for `outer.bat` containing `foo.cmd
+    %*`.
+
 - Fails on Win9X
 
     If you want Win9X support, you'll have to debug it or fund me because I
@@ -1588,6 +1737,10 @@ High resolution timeouts.
     unless sending a signal that Perl emulates, and `kill_kill()` is immediately
     fatal (there is no grace period).
 
+- `$?` cannot represent all Win32 exit codes
+
+    Prefer `full_result( ... )`, `result( ... )`, or other IPC::Run methods.
+
 - helper processes
 
     IPC::Run uses helper processes, one per redirected file, to adapt between the
@@ -1631,7 +1784,7 @@ High resolution timeouts.
 
     Being a race condition, it's hard to reproduce, but I encountered it while
     testing this code on a drive share to a samba box.  In this case, it takes
-    t/run.t a long time to spawn it's child processes (the parent hangs in the
+    t/run.t a long time to spawn its child processes (the parent hangs in the
     first select for several seconds until the child emits any debugging output).
 
     I have not seen it on local drives, and can't reproduce it at will,
@@ -1718,11 +1871,11 @@ days, months, etc.
 **WARNING:** Function coprocesses (`run \&foo, ...`) suffer from two
 limitations.  The first is that it is difficult to close all filehandles the
 child inherits from the parent, since there is no way to scan all open
-FILEHANDLEs in Perl and it both painful and a bit dangerous to close all open
+FILEHANDLEs in Perl and it is both painful and a bit dangerous to close all open
 file descriptors with `POSIX::close()`. Painful because we can't tell which
 fds are open at the POSIX level, either, so we'd have to scan all possible fds
 and close any that we don't want open (normally `exec()` closes any
-non-inheritable but we don't `exec()` for &sub processes.
+non-inheritable but we don't `exec()` for &sub processes).
 
 The second problem is that Perl's DESTROY subs and other on-exit cleanup gets
 run in the child process.  If objects are instantiated in the parent before the
