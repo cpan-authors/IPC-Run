@@ -1,12 +1,11 @@
 \.appveyor.cmd
 \.appveyor.yml
-\.gitignore
+\.git
 \.perltidyrc
 \.travis.yml
 cpanfile
-\.git/
 ^MANIFEST.bak
 ^MYMETA.json
 ^MYMETA.yml
 ^Makefile$
-\.github/
+^CLAUDE\.md$
