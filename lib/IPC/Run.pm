@@ -2269,6 +2269,12 @@ sub harness {
                     $self->{$_} = shift @args;
                 }
 
+                elsif ( ref $_ eq 'IPC::Run::Undef' ) {
+                    ## bare undef argument - silently ignore to preserve
+                    ## pre-20180523.0 behavior where undef matched !ref $_ and
+                    ## was absorbed as a no-op.  See GH#124.
+                }
+
                 elsif ( $_ eq 'init' ) {
                     croak "No command before '$_'" unless $cur_kid;
                     push @{ $cur_kid->{OPS} }, {
