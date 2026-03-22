@@ -522,6 +522,7 @@ $h   = start [ $perl, qw( -pe BEGIN{$|=1}1 ) ], \$in, \$out;
 $in  = "\n";
 $out = "";
 pump $h until length $out;
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 is $out, "\n";
 
 my $long_string = "x" x 20000 . "DOC2\n";
@@ -540,6 +541,7 @@ my $ok_2 = eval {
 $x = $@ if $ok_1 && !$ok_2;
 
 if ( $ok_1 && $ok_2 ) {
+    $out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
     is $long_string, $out;
 }
 else {
@@ -942,6 +944,7 @@ $r      = run \@emitter, '>', \$out, '2>', \$err, '2>&1';
 ok($r);
 ok( !$? );
 is( _map_fds, $fd_map );
+$out =~ s/\r\n/\n/g if IPC::Run::Win32_MODE();
 like $out, qr/(?:$text){2}/i;
 eok( $err, '' );
 
