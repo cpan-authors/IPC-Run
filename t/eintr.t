@@ -24,6 +24,10 @@ BEGIN {
 use Test::More;
 use IPC::Run qw( start run );
 
+if ( $^O eq 'MSWin32' ) {
+    plan skip_all => "can't deliver a signal on this platform";
+}
+
 my $got_usr1 = 0;
 $SIG{USR1} = sub { $got_usr1++ };
 
