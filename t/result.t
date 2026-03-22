@@ -1,8 +1,10 @@
 use strict;
 use warnings;
 
-use IPC::Run qw( harness );
-use Test::More tests => 12;
+use IPC::Run qw( harness start finish );
+use Test::More tests => 14;
+
+my $has_test_warn = eval { require Test::Warn; Test::Warn->import; 1 };
 
 my @perl   = ($^X);
 my @exit0  = ( @perl, '-e', q{ exit 0 } );
@@ -58,4 +60,17 @@ foreach my $pos ( 0 .. $#expect_full ) {
         $h->full_result($pos), $expect_full[$pos],
         "Full result of process $pos"
     );
+}
+
+# Test that result() and results() produce no "isn't numeric" warnings
+# when SIGCHLD is set to IGNORE (causing RESULT to be "unknown result, unknown PID")
+SKIP: {
+    skip "No SIGCHLD on Win32", 2 if IPC::Run::Win32_MODE;
+    skip "Test::Warn not installed", 2 unless $has_test_warn;
+    local $SIG{CHLD} = 'IGNORE';
+    my ( $in, $out, $err );
+    my $h2 = start( [ $^X, '-e', 'exit 0' ], \$in, \$out, \$err );
+    finish($h2);
+    Test::Warn::warnings_are( sub { $h2->result(0) }, [], 'result($pos) produces no warnings with SIGCHLD=IGNORE' );
+    Test::Warn::warnings_are( sub { $h2->results },   [], 'results() produces no warnings with SIGCHLD=IGNORE' );
 }
