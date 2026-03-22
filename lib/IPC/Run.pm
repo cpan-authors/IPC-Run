@@ -3532,7 +3532,7 @@ sub _cleanup {
 
     # reap kids
     for my $kid ( @{ $self->{KIDS} } ) {
-        if ( !defined $kid->{PID} || !length $kid->{PID} ) {
+        if ( !length $kid->{PID} ) {
             _debug 'never ran child ', $kid->{NUM}, ", can't reap"
               if _debugging;
             for my $op ( @{ $kid->{OPS} } ) {
