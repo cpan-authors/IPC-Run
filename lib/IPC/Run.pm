@@ -3691,6 +3691,21 @@ sub close_stdin {
 
 =pod
 
+=item started
+
+Returns TRUE if the harness has been started and has not yet finished.
+This is useful when a harness may or may not have been started by the
+caller, and you want to conditionally start it:
+
+    $h->start unless $h->started;
+
+=cut
+
+sub started {
+    my IPC::Run $self = shift;
+    return $self->{STATE} >= _started;
+}
+
 =item pumpable
 
 Returns TRUE if calling pump() won't throw an immediate "process ended
