@@ -2914,6 +2914,7 @@ sub _do_kid_and_exit {
                     $fds{$_->{TFD}}{lazy_close} = 1;
                 } else {
                     my $fd = _dup($_->{TFD});
+                    $_->{TFD} = $fd;
                     $self->_dup2_gently( $kid->{OPS}, $fd, $_->{KFD} );
                     _close($fd);
                 }
