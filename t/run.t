@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 304;
+use Test::More tests => 305;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start harness timeout );
 
@@ -1058,6 +1058,7 @@ foreach my $foo (qw( | & < > >& 1>&2 >file <file 2<&1 <&- 3<&- )) {
 $out    = 'REPLACE ME';
 $err    = 'REPLACE ME';
 $fd_map = _map_fds;
+get_warnings();    # clear any prior warnings
 eval {
     $r = run(
         \@emitter, '>', \$out, '2>', \$err,
@@ -1070,6 +1071,7 @@ is( _map_fds, $fd_map );
 
 eok( $out, '' );
 eok( $err, '' );
+is( scalar get_warnings(), 0, 'no warnings when fork fails (rt.cpan.org #57186)' );
 
 $fd_map = _map_fds;
 eval { $r = run \@perl, '<file', _simulate_open_failure => 1; };
