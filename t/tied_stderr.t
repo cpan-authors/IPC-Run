@@ -21,8 +21,7 @@ use IPC::Run qw(run timeout);
 
 {
     package MySTDERR;
-    use Symbol qw(geniosym);
-    sub TIEHANDLE { return bless geniosym, __PACKAGE__ }
+    sub TIEHANDLE { return bless {}, __PACKAGE__ }
     sub PRINT { shift; print STDOUT @_ }
 }
 
