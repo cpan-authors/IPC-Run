@@ -27,18 +27,24 @@ use Test::More;
 use IPC::Run 'run';
 
 plan skip_all => 'Skipping when not on Win32' unless $^O eq 'MSWin32';
-local $TODO = 'https://github.com/toddr/IPC-Run/issues/116';
 plan tests => 10;
 
+# Tests 3, 8, 9 still fail on Win32 due to newline translation issues.
+# See https://github.com/toddr/IPC-Run/issues/116
+my %todo_tests = map { $_ => 1 } ( 3, 8, 9 );
+
 $ENV{IPC_SUB_PROCESS} = 1;
+my $test_num = 0;
 for my $i ( 0 .. $#{ lines() } ) {
     my $line = lines->[$i];
     $ENV{IPC_SUB_INDEX} = $i;
     for my $report_in ( 1, 0 ) {
+        $test_num++;
         $ENV{IPC_SUB_PROCESS_REPORT_IN} = $report_in;
         run [ $^X, __FILE__ ], "<", \$line, ">", \my $out;
         $out = perlstring $out if not $report_in;
         my $print_line = perlstring $line;
+        local $TODO = 'https://github.com/toddr/IPC-Run/issues/116' if $todo_tests{$test_num};
         is $out, $print_line,
           "$print_line - " . ( $report_in ? "child got clean input" : "parent received clean child output" );
     }
