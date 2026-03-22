@@ -1637,6 +1637,16 @@ sub _spawn {
     _debug "opening sync pipe ", $kid->{PID} if _debugging_details;
     my $sync_reader_fd;
     ( $sync_reader_fd, $self->{SYNC_WRITER_FD} ) = _pipe;
+
+    ## GH#122: For CODE ref children, create a separate pipe to propagate
+    ## exceptions back to the parent.  We can't reuse the sync pipe because
+    ## it must be closed before the CODE ref runs (to unblock the parent),
+    ## but we still need a channel for the child to report die() messages.
+    my $coderef_err_reader_fd;
+    if ( ref $kid->{VAL} eq 'CODE' ) {
+        ( $coderef_err_reader_fd, $self->{CODEREF_ERR_FD} ) = _pipe;
+    }
+
     $kid->{PID} = fork();
     croak "$! during fork" unless defined $kid->{PID};
 
@@ -1648,11 +1658,19 @@ sub _spawn {
             select undef, undef, undef, 0.01;
             kill 'USR1', getppid;
         }
+        ## Close the parent's reader end of the error pipe in the child.
+        POSIX::close $coderef_err_reader_fd if defined $coderef_err_reader_fd;
         ## _do_kid_and_exit closes sync_reader_fd since it closes all unwanted and
         ## unloved fds.
         $self->_do_kid_and_exit($kid);
     }
     _debug "fork() = ", $kid->{PID} if _debugging_details;
+
+    ## Close the child's writer end of the error pipe in the parent.
+    if ( defined $self->{CODEREF_ERR_FD} ) {
+        POSIX::close $self->{CODEREF_ERR_FD};
+        $kid->{CODEREF_ERR_FD} = $coderef_err_reader_fd;
+    }
 
     ## Wait for kid to get to its exec() and see if it fails.
     _close $self->{SYNC_WRITER_FD};
@@ -2848,6 +2866,7 @@ sub _do_kid_and_exit {
            unless $self->{noinherit};
 
         $fds{$self->{SYNC_WRITER_FD}}{needed} = 1;
+        $fds{$self->{CODEREF_ERR_FD}}{needed} = 1 if defined $self->{CODEREF_ERR_FD};
         $fds{$self->{DEBUG_FD}}{needed} = 1 if defined $self->{DEBUG_FD};
 
         $fds{$_->{TFD}}{needed} = 1
@@ -2988,11 +3007,21 @@ sub _do_kid_and_exit {
     ## this may cause the closure to be cleaned up.  Maybe.
     $kid->{VAL} = undef;
 
+    ## GH#122: Propagate the exception back to the parent via a dedicated
+    ## error pipe.  We can't use the sync pipe because it must be closed
+    ## before running the CODE ref to avoid deadlocks (the parent blocks
+    ## on the sync pipe, so the child can't do I/O with the parent until
+    ## the sync pipe is closed).
     if ($kid_err) {
-        warn $kid_err;
-        ## Use POSIX::_exit to avoid global destruction (see below).
+        if ( defined $self->{CODEREF_ERR_FD} ) {
+            _write $self->{CODEREF_ERR_FD}, $kid_err;
+            POSIX::close $self->{CODEREF_ERR_FD};
+        }
         POSIX::_exit(1);
     }
+
+    POSIX::close $self->{CODEREF_ERR_FD}
+      if defined $self->{CODEREF_ERR_FD};
 
     ## Use POSIX::_exit to avoid global destruction, since this might
     ## cause DESTROY() to be called on objects created in the parent
@@ -3538,6 +3567,7 @@ sub _cleanup {
     $self->_clobber( $self->{PIPES}->[0] ) while @{ $self->{PIPES} };
 
     # reap kids
+    my @coderef_exceptions;
     for my $kid ( @{ $self->{KIDS} } ) {
         if ( !defined $kid->{PID} || !length $kid->{PID} ) {
             _debug 'never ran child ', $kid->{NUM}, ", can't reap"
@@ -3550,7 +3580,18 @@ sub _cleanup {
         else {
             _waitpid( $kid, 0 );
         }
+
+        ## GH#122: Read exception from CODE ref error pipe after the child
+        ## has exited.  The pipe is guaranteed to have been closed by the
+        ## child's POSIX::_exit(), so _read() will not block.
+        if ( defined $kid->{CODEREF_ERR_FD} ) {
+            my $err = _read $kid->{CODEREF_ERR_FD};
+            POSIX::close $kid->{CODEREF_ERR_FD};
+            delete $kid->{CODEREF_ERR_FD};
+            push @coderef_exceptions, $err if defined $err && length $err;
+        }
     }
+    $self->{CODEREF_EXCEPTIONS} = \@coderef_exceptions if @coderef_exceptions;
 
     # OPS cleanup.  Kids may share an OPS object; search for "also to write".
     # Example harness: run(['echo',1], '&', ['echo',2], '>', \$out).  Hence,
@@ -3964,6 +4005,11 @@ sub finish {
         }
     }
     $self->_cleanup;
+
+    ## GH#122: Propagate CODE ref exceptions to the caller.
+    if ( $self->{CODEREF_EXCEPTIONS} && @{ $self->{CODEREF_EXCEPTIONS} } ) {
+        croak $self->{CODEREF_EXCEPTIONS}->[0];
+    }
 
     return !$self->full_result;
 }
