@@ -2827,6 +2827,12 @@ sub _do_kid_and_exit {
     eval {
         local $cur_self = $self;
 
+        ## Suppress "Filehandle STDIN reopened as ... only for output" warnings.
+        ## In the child process, we intentionally reuse fd 0/1/2 after
+        ## close_terminal() frees them. This is expected during pty setup
+        ## and should not warn even when the parent has $^W=1.
+        local $^W = 0;
+
         if (_debugging) {
             _set_child_debug_name(
                 ref $kid->{VAL} eq "CODE"
