@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+tied_stderr.t - Test IPC::Run with tied STDERR that lacks FILENO
+
+=head1 DESCRIPTION
+
+Regression test for rt.cpan.org#102824 / GitHub issue #92.
+When STDERR is tied to a class that doesn't implement FILENO,
+IPC::Run should still work correctly.
+
+=cut
+
+use strict;
+use warnings;
+use Test::More tests => 2;
+use IPC::Run qw(run);
+
+{
+    package MySTDERR;
+    use Symbol qw(geniosym);
+    sub TIEHANDLE { return bless geniosym, __PACKAGE__ }
+    sub PRINT { shift; print STDOUT @_ }
+}
+
+# Tie STDERR to a handle that doesn't implement FILENO
+tie *STDERR, 'MySTDERR' or die $!;
+
+my $out;
+
+# This should not die with "Can't locate object method "FILENO""
+eval { run [ 'echo', 'hello' ], '>', \$out };
+my $err = $@;
+
+untie *STDERR;
+
+ok( !$err, "run() succeeds with tied STDERR lacking FILENO" )
+    or diag("Got error: $err");
+
+$out = '' unless defined $out;
+$out =~ s/\r?\n$//;
+is( $out, 'hello', "run() captures output correctly with tied STDERR" );
