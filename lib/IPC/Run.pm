@@ -2049,7 +2049,6 @@ sub harness {
 
                 elsif ( UNIVERSAL::isa( $_, 'IPC::Run::Timer' ) ) {
                     push @{ $self->{TIMERS} }, $_;
-                    $cur_kid  = undef;
                     $succinct = 1;
                 }
 
