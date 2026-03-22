@@ -38,6 +38,10 @@ Key dependencies: `IO::Pty` (optional, needed for pty tests), `POSIX`, `Fcntl`.
 ## Test conventions
 
 - Tests use `Test::More`. Most set `$^W = 1` in BEGIN blocks.
+- All code (including tests) must be compatible with Perl 5.8.8+. Avoid features
+  added in later versions (e.g., `//=` requires 5.10, `say` requires 5.10).
+  Use `print {$fh} $data` (block form) instead of `print $fh $data` for lexical
+  filehandles to avoid indirect object ambiguity on older perls.
 - Many tests are skipped on specific platforms (Win32, darwin/freebsd for pty deadlocks).
 - The `$^X` variable is used to invoke perl subprocesses in tests.
 - Helper function `_map_fds` (from `IPC::Run::Debug`) tracks open file descriptors.
@@ -80,7 +84,7 @@ Arguments to `run()`/`start()` are parsed into operations:
 
 ## Coding conventions
 
-- Perl 5.8.1+ compatible. No Moose/Moo, minimal dependencies.
+- Perl 5.8.8+ compatible. No Moose/Moo, minimal dependencies.
 - Internal functions prefixed with `_` (e.g., `_write`, `_close`, `_dup2_rudely`).
 - Debug output via `_debug` (controlled by `IPCRUNDEBUG` env var).
 - Win32 code paths use `Win32_MODE` constant for conditional compilation.

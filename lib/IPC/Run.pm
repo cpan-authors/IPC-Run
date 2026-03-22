@@ -2159,8 +2159,18 @@ sub harness {
 
                     if ( ( ref $source eq 'GLOB' || UNIVERSAL::isa $source, 'IO::Handle' )
                         && $type !~ /^<p(ty<|ipe)$/ && $type ne '<blocking_pipe' ) {
-                        _debug "setting DONT_CLOSE" if _debugging_details;
-                        $pipe->{DONT_CLOSE} = 1;    ## this FD is not closed by us.
+                        ## GH#57: For plain input redirects (<) on non-standard
+                        ## fds, do NOT set DONT_CLOSE.  After fork the parent no
+                        ## longer needs the input handle — the child has its own
+                        ## copy via dup2.  Keeping it open prevents EPIPE/SIGPIPE
+                        ## when the child exits early, which can hang the writer.
+                        ## Protect stdin/stdout/stderr (fd 0-2) since closing
+                        ## those in the parent would be destructive.
+                        my $fno = fileno $source;
+                        if ( defined $fno && $fno <= 2 ) {
+                            _debug "setting DONT_CLOSE for std fd" if _debugging_details;
+                            $pipe->{DONT_CLOSE} = 1;
+                        }
                         _dont_inherit($source) if Win32_MODE;
                     }
 
@@ -3206,7 +3216,23 @@ sub start {
             }
             if ( $close_it || $@ ) {
                 eval {
-                    _close( $_->{TFD} );
+                    ## GH#57: For plain '<' redirects with external Perl
+                    ## handles, use close() on the handle so it is properly
+                    ## invalidated (avoids stale-fd / double-close warnings).
+                    ## Only for TYPE '<' — for '<pipe'/'<blocking_pipe', SOURCE
+                    ## is the *write* end that the caller uses; TFD is the
+                    ## internal read end and must be closed via _close().
+                    if (   defined $_->{TYPE}
+                        && $_->{TYPE} eq '<'
+                        && ref $_->{SOURCE}
+                        && ( UNIVERSAL::isa( $_->{SOURCE}, 'GLOB' )
+                            || UNIVERSAL::isa( $_->{SOURCE}, 'IO::Handle' ) ) )
+                    {
+                        close $_->{SOURCE};
+                    }
+                    else {
+                        _close( $_->{TFD} );
+                    }
                     $closed[ $_->{TFD} ] = 1;
                     $_->{TFD} = undef;
                 };
