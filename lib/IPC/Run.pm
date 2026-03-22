@@ -1685,6 +1685,7 @@ sub _write {
     my $r = POSIX::write( $_[0], $_[1], length $_[1] );
     unless ( defined $r ) {
         return undef if $! == EPIPE;    ## caller handles broken pipe
+        return 0    if $! == EAGAIN;    ## non-blocking pipe buffer full, retry later
         croak "$!: write( $_[0], '$_[1]' )";
     }
     _debug "write( $_[0], '$_[1]' ) = $r" if _debugging_data;
