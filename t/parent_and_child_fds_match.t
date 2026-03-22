@@ -10,6 +10,7 @@ use Data::Dumper;
 use File::Temp qw( tempfile );
 use IO::Handle ();
 use IPC::Run ();
+use POSIX ();
 
 if (@ARGV > 0 && $ARGV[0] eq 'child') {
     exit(child());
@@ -19,7 +20,14 @@ exit(parent());
 
 sub child {
     my $fh = IO::Handle->new_from_fd(3, '+<');
-    die "new_from_fd(): $!" unless defined $fh;
+    if (!defined $fh) {
+        # Diagnostics: report which fds ARE open so failures are actionable
+        my @open_fds;
+        for my $fd (0..20) {
+            push @open_fds, $fd if defined POSIX::fcntl($fd, Fcntl::F_GETFD(), 0);
+        }
+        die "new_from_fd(3): $! (open fds: @open_fds)";
+    }
     return 0;
 }
 
@@ -36,9 +44,26 @@ sub parent {
     # Test::More apparently doesn't support that.
     plan(tests => 3);
 
-    # This is fd 3 since we have 0, 1, 2 taken by stdin, stdout, and stderr.
+    # Ensure fd 3 is available for the tempfile. Under some test harnesses
+    # (e.g., prove), fd 3 may already be in use, which would push the
+    # tempfile to a higher fd and change the nature of what we're testing.
+    # We specifically need TFD == KFD == 3 to exercise the matching-fd
+    # code path in _do_kid_and_exit.
+    POSIX::close(3) if defined POSIX::fcntl(3, Fcntl::F_GETFD(), 0);
+
     my $fh = tempfile();
     ok($fh, 'opened file');
+
+    my $actual_fd = fileno($fh);
+    if ($actual_fd != 3) {
+        # Despite closing fd 3, something else grabbed it. Move the
+        # tempfile to fd 3 explicitly so the test exercises the right path.
+        POSIX::dup2($actual_fd, 3) or die "dup2($actual_fd, 3): $!";
+        POSIX::close($actual_fd);
+        open($fh, '+<&=', 3) or die "reopen fd 3: $!";
+    }
+
+    diag("tempfile is fd " . fileno($fh));
 
     my @command = ($^X, $0, 'child');
 
