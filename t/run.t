@@ -38,7 +38,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 305;
+use Test::More tests => 308;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start harness timeout );
 
@@ -381,7 +381,7 @@ SKIP: {
 ##
 SKIP: {
     if ( IPC::Run::Win32_MODE() ) {
-        skip( "Can't spawn subroutines on $^O", 7 );
+        skip( "Can't spawn subroutines on $^O", 10 );
     }
 
     ok run sub { };
@@ -390,11 +390,24 @@ SKIP: {
     ok $? ;
     is $? >> 8, 42;
 
-    ## RT#97 / GH#97: die inside a coderef must not escape into the parent process.
-    ## The child should exit with a non-zero status; the die must not propagate to $@.
-    ok !run( sub { die "dying inside coderef\n" } ),
-        'run with dying coderef returns false';
-    ok $?, 'die in coderef results in non-zero exit status';
+    ## GH#122 / GH#97: die inside a coderef must propagate the exception
+    ## back to the parent via the sync pipe, not escape into the parent's
+    ## call stack.  The parent should see the exception in $@.
+    my $lived = eval { run( sub { die "dying inside coderef\n" } ); 1 };
+    ok !$lived, 'run with dying coderef throws in parent';
+    like $@, qr/dying inside coderef/, 'parent sees child exception message';
+
+    ## Verify exception propagation with start()/finish() too.
+    $lived = eval {
+        my $h = start( sub { die "start coderef dies\n" } );
+        finish $h;
+        1;
+    };
+    ok !$lived, 'start with dying coderef throws in parent';
+    like $@, qr/start coderef dies/, 'parent sees child exception from start()';
+
+    ## Normal coderef still works fine.
+    ok run( sub { } ), 'normal coderef still succeeds';
 }
 is( _map_fds, $fd_map );
 $fd_map = _map_fds;
