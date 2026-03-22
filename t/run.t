@@ -389,10 +389,10 @@ SKIP: {
     is $? >> 8, 42;
 
     ## RT#97 / GH#97: die inside a coderef must not escape into the parent process.
-    ## The child should exit with a non-zero status; the die must not propagate to $@.
-    ok !run( sub { die "dying inside coderef\n" } ),
-        'run with dying coderef returns false';
-    ok $?, 'die in coderef results in non-zero exit status';
+    ## GH#122: the exception now propagates to the parent via the sync pipe.
+    my $died = !eval { run( sub { die "dying inside coderef\n" } ); 1 };
+    ok $died, 'run with dying coderef throws exception';
+    like $@, qr/dying inside coderef/, 'exception message propagated from child';
 }
 is( _map_fds, $fd_map );
 $fd_map = _map_fds;

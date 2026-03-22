@@ -29,6 +29,7 @@ t/autovivifyfh.t
 t/binmode.t
 t/bogus.t
 t/child_fd_inadvertently_closed.t
+t/code_exception.t
 t/eintr.t
 t/filter.t
 t/harness.t
