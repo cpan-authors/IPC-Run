@@ -525,6 +525,31 @@ sub win32_spawn {
         }
     }
 
+    ## Mark all open file handles as non-inheritable except for the fds
+    ## that have been explicitly set up for the child (0, 1, 2).  This
+    ## prevents caller-owned handles (e.g. File::Temp directories) from
+    ## being inherited and keeping resources locked for the lifetime of
+    ## the child process.
+    ## See https://github.com/cpan-authors/IPC-Run/issues/141
+    {
+        my %kid_fds;
+        for my $op (@$ops) {
+            $kid_fds{ $op->{KFD} }  = 1 if defined $op->{KFD};
+            $kid_fds{ $op->{KFD1} } = 1 if defined $op->{KFD1};
+            $kid_fds{ $op->{KFD2} } = 1 if defined $op->{KFD2};
+        }
+        ## On Win32, KFDs are always 0, 1, or 2 (higher fds are rejected
+        ## above), so anything not in %kid_fds can be made non-inheritable.
+        ## Use a conservative upper bound; the CRT default is 512.
+        my $max_fds = 512;
+        for my $fd ( 0 .. $max_fds - 1 ) {
+            next if $kid_fds{$fd};
+            my $osfh = FdGetOsFHandle($fd);
+            next unless defined $osfh && $osfh != C_ABI_INVALID_HANDLE_VALUE;
+            SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 0 );
+        }
+    }
+
     local $ENV{ipcrunpct} = '%' if $need_pct;
     my $process;
     Win32::Process::Create(
