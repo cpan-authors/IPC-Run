@@ -17,7 +17,7 @@ IPC::Run should still work correctly.
 use strict;
 use warnings;
 use Test::More tests => 2;
-use IPC::Run qw(run);
+use IPC::Run qw(run timeout);
 
 {
     package MySTDERR;
@@ -32,7 +32,9 @@ tie *STDERR, 'MySTDERR' or die $!;
 my $out;
 
 # This should not die with "Can't locate object method "FILENO""
-eval { run [ 'echo', 'hello' ], '>', \$out };
+# Use $^X instead of 'echo' so the test works on Win32 where echo is
+# a shell built-in, not a standalone executable (GH#222).
+eval { run [ $^X, '-e', 'print qq(hello\n)' ], '>', \$out, timeout(30) };
 my $err = $@;
 
 untie *STDERR;
