@@ -21,6 +21,7 @@ use warnings;
 
 BEGIN {
     $|  = 1;
+    require File::Temp;    # load before $^W to avoid version-string warnings
     $^W = 1;
     if ( $ENV{PERL_CORE} ) {
         chdir '../lib/IPC/Run' if -d '../lib/IPC/Run';
