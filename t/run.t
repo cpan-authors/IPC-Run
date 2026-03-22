@@ -38,9 +38,9 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 295;
+use Test::More tests => 299;
 use IPC::Run::Debug qw( _map_fds );
-use IPC::Run qw( :filters :filter_imp start );
+use IPC::Run qw( :filters :filter_imp start harness );
 
 require './t/lib/Test.pm';
 IPC::Run::Test->import();
@@ -1196,6 +1196,50 @@ is( _map_fds, $fd_map );
 eok( $in,  $text );
 eok( $out, "HeLlO WoRlD\n" );
 eok( $err, uc($text) );
+
+##
+## env option: set environment variables in child without affecting parent
+##
+SKIP: {
+    if ( IPC::Run::Win32_MODE() ) {
+        skip( "env option not supported on $^O", 4 );
+    }
+
+    # env sets a variable in the child process
+    $out = '';
+    run(
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
+        env => { IPC_RUN_TEST_VAR => 'hello_env' },
+        '>', \$out,
+    );
+    is( $out, 'hello_env', 'env option sets variable in child process' );
+
+    # env does not modify the parent's %ENV
+    delete local $ENV{IPC_RUN_TEST_VAR};
+    $out = '';
+    run(
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
+        env => { IPC_RUN_TEST_VAR => 'child_only' },
+        '>', \$out,
+    );
+    ok( !exists $ENV{IPC_RUN_TEST_VAR}, 'env option does not affect parent %ENV' );
+
+    # init can override a variable set by env
+    $out = '';
+    run(
+        [ @perl, '-e', 'print defined $ENV{IPC_RUN_TEST_VAR} ? $ENV{IPC_RUN_TEST_VAR} : q{}' ],
+        env  => { IPC_RUN_TEST_VAR => 'from_env' },
+        init => sub { $ENV{IPC_RUN_TEST_VAR} = 'from_init' },
+        '>', \$out,
+    );
+    is( $out, 'from_init', 'init sub can override env option' );
+
+    # invalid env value croaks
+    eval {
+        harness( [ @perl, '-e', '1' ], env => 'not_a_hashref' );
+    };
+    like( $@, qr/requires a hash reference/, 'env option croaks on non-hashref' );
+}
 
 {    # no warnings for an empty path but it does die.
         # Some other OSes might not support find. Windows and UNIX do...
