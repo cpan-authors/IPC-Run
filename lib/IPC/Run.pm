@@ -3340,10 +3340,11 @@ sub _select_loop {
     # write to the pipe raises SIGPIPE.  With the default disposition that
     # kills the parent.  Ignore SIGPIPE here so that POSIX::write() instead
     # returns -1 with errno EPIPE, which pipe_writer catches and handles by
-    # closing the pipe gracefully.  Honour an existing handler installed by
-    # the caller (same policy as the SIGCHLD handler above).
+    # closing the pipe gracefully.  Honour an existing *custom* handler
+    # installed by the caller, but override undef, '' and 'DEFAULT' — all
+    # of which leave the default (fatal) disposition in effect.
     local $SIG{PIPE} = 'IGNORE'
-      unless defined $SIG{PIPE};
+      unless $SIG{PIPE} && $SIG{PIPE} ne 'DEFAULT';
 
     my $io_occurred;
 
