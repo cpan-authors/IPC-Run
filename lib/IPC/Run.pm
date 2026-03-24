@@ -903,8 +903,8 @@ valid input forms (scalar ref, sub ref, etc.):
 
 When redirecting input from a scalar ref, the scalar ref is
 used as a queue.  This allows you to use &harness and pump() to
-feed incremental bits of input to a coprocess.  See L</Coprocesses>
-below for more information.
+feed incremental bits of input to a coprocess.  See L</harness> and
+L</pump> for more information.
 
 The <pipe operator opens the write half of a pipe on the filehandle
 glob reference it takes as an argument:

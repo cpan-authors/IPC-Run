@@ -44,7 +44,7 @@ To do this in a script, here's a way that allows it to be overridden:
 
    BEGIN {
       unless ( defined $ENV{IPCRUNDEBUG} ) {
-	 eval 'local $ENV{IPCRUNDEBUG} = "none"; require IPC::Run::Debug"'
+	 eval 'local $ENV{IPCRUNDEBUG} = "none"; require IPC::Run::Debug'
 	    or die $@;
       }
    }
@@ -54,8 +54,9 @@ the IPCRUNDEBUG flag; modify this formula to grep @ARGV if need be:
 
    BEGIN {
       unless ( grep /^--debug/, @ARGV ) {
-	 eval 'local $ENV{IPCRUNDEBUG} = "none"; require IPC::Run::Debug"'
-	 or die $@;
+	 eval 'local $ENV{IPCRUNDEBUG} = "none"; require IPC::Run::Debug'
+	    or die $@;
+      }
    }
 
 Both of those are untested.
