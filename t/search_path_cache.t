@@ -42,8 +42,6 @@ if ( $^O eq 'MSWin32' or $^O eq 'cygwin' ) {
 
 use IPC::Run qw( clearcache );
 
-plan tests => 4;
-
 # -----------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------
@@ -52,11 +50,23 @@ sub make_script {
     my ( $dir, $name, $output ) = @_;
     my $path = File::Spec->catfile( $dir, $name );
     open my $fh, '>', $path or die "Cannot write $path: $!";
-    print $fh "#!/bin/sh\necho '$output'\n";
+    print {$fh} "#!/bin/sh\necho '$output'\n";
     close $fh;
     chmod 0755, $path or die "Cannot chmod $path: $!";
     return $path;
 }
+
+# Skip if the temp directory is mounted noexec (common security hardening).
+{
+    my $probe_dir = tempdir( CLEANUP => 1 );
+    my $probe     = make_script( $probe_dir, 'noexec_probe', 'ok' );
+    my $rc        = system( $probe );
+    if ( $rc != 0 ) {
+        plan skip_all => "tempdir appears to be on a noexec filesystem";
+    }
+}
+
+plan tests => 4;
 
 # -----------------------------------------------------------------------
 # Test 1 & 2: cache is invalidated when $ENV{PATH} changes
