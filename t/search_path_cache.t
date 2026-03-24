@@ -59,8 +59,12 @@ sub make_script {
 # Skip if the temp directory is mounted noexec (common security hardening).
 {
     my $probe_dir = tempdir( CLEANUP => 1 );
-    my $probe     = make_script( $probe_dir, 'noexec_probe', 'ok' );
-    my $rc        = system( $probe );
+    my $probe = File::Spec->catfile( $probe_dir, 'noexec_probe' );
+    open my $fh, '>', $probe or die "Cannot write $probe: $!";
+    print {$fh} "#!/bin/sh\nexit 0\n";
+    close $fh;
+    chmod 0755, $probe or die "Cannot chmod $probe: $!";
+    my $rc = system( $probe );
     if ( $rc != 0 ) {
         plan skip_all => "tempdir appears to be on a noexec filesystem";
     }
