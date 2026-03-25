@@ -38,8 +38,28 @@ BEGIN {
         exit(0);
     }
     else {
-        plan tests => 3;
+        plan tests => 5;
     }
+}
+
+# GH#242: Simulate the condition that caused SIGPIPE death on Perl 5.8.8.
+# Some test harnesses / older Perls set $SIG{PIPE} to 'DEFAULT' (which is
+# defined but still means "kill the process").  IPC::Run must override it.
+{
+    local $SIG{PIPE} = 'DEFAULT';
+    my $in  = "some input data\n" x 100;
+    my $out = '';
+    my $err = '';
+    my $ok = eval {
+        run [ $^X, '-e', 'exit 7' ], \$in, \$out, \$err, timeout(5);
+        1;
+    };
+    my $exc = $@;
+    ok( !$exc || $exc =~ /IPC::Run/,
+        'survives SIGPIPE when $SIG{PIPE} is DEFAULT (GH#242)' )
+        or diag("Exception: $exc");
+    is( $? >> 8, 7,
+        'exit code correct when $SIG{PIPE} is DEFAULT (GH#242)' );
 }
 
 # Reproduce the race: child exits immediately without reading stdin.
