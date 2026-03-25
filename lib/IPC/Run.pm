@@ -2016,8 +2016,9 @@ sub harness {
     $self->{IOS}   = [];
     $self->{KIDS}  = [];
     $self->{PIPES} = [];
-    $self->{PTYS}  = {};
-    $self->{STATE} = _newed;
+    $self->{PTYS}   = {};
+    $self->{TIMERS} = [];
+    $self->{STATE}  = _newed;
 
     if ($options) {
         $self->{$_} = $options->{$_} for keys %$options;
@@ -3275,7 +3276,7 @@ sub adopt {
         ## NEED TO RENUMBER THE KIDS!!
         push @{ $self->{KIDS} },  @{ $adoptee->{KIDS} };
         push @{ $self->{PIPES} }, @{ $adoptee->{PIPES} };
-        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PYTS} };
+        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PTYS} };
         push @{ $self->{TIMERS} }, @{ $adoptee->{TIMERS} };
         $adoptee->{STATE} = _finished;
     }
