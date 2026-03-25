@@ -5085,6 +5085,11 @@ if you have the problem.  If it dies, you have the problem.
    alarm(0);
    print "done\n";
 
+IO::Pty version 1.21 and later added a C<DESTROY> method that automatically
+closes the cached slave pty handle when the master is destroyed.  IPC::Run
+works around this by detaching the slave before closing the master in the
+child process; no user action is required.
+
 No support for ';', '&&', '||', '{ ... }', etc: use perl's, since run()
 returns TRUE when the command exits with a 0 result code.
 
