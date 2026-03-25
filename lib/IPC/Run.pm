@@ -2895,6 +2895,10 @@ sub _do_kid_and_exit {
                 _debug "Cleaning up parent's ptty '$_'" if _debugging_details;
                 $self->{PTYS}->{$_}->make_slave_controlling_terminal;
                 my $slave = $self->{PTYS}->{$_}->slave;
+                ## Detach the cached slave from the master so that the
+                ## master's DESTROY (IO::Pty >= 1.21) does not close the
+                ## slave fd we still need.
+                delete ${*{$self->{PTYS}->{$_}}}{'io_pty_slave'};
  	        delete $fds{$self->{PTYS}->{$_}->fileno};
                 close $self->{PTYS}->{$_};
                 $self->{PTYS}->{$_} = $slave;
@@ -3199,6 +3203,8 @@ sub start {
     ## Close all those temporary filehandles that the kids needed.
     for my $pty ( values %{ $self->{PTYS} } ) {
         close $pty->slave;
+        ## Prevent IO::Pty >= 1.21 DESTROY from double-closing the slave.
+        delete ${*$pty}{'io_pty_slave'};
     }
 
     my @closed;
@@ -5078,6 +5084,11 @@ if you have the problem.  If it dies, you have the problem.
    run(makecmd($ptybuf * 3), '<pty<', \$in, '>', \$out);
    alarm(0);
    print "done\n";
+
+IO::Pty version 1.21 and later added a C<DESTROY> method that automatically
+closes the cached slave pty handle when the master is destroyed.  IPC::Run
+works around this by detaching the slave before closing the master in the
+child process; no user action is required.
 
 No support for ';', '&&', '||', '{ ... }', etc: use perl's, since run()
 returns TRUE when the command exits with a 0 result code.
