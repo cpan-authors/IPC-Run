@@ -3587,6 +3587,8 @@ sub _cleanup {
         eval {
             _debug "closing slave fd ", fileno $_->slave if _debugging_data;
             close $_->slave;
+            ## Prevent IO::Pty >= 1.21 DESTROY from double-closing the slave.
+            delete ${*$_}{'io_pty_slave'};
         };
         carp $@ . " while closing ptys" if $@;
         eval {
