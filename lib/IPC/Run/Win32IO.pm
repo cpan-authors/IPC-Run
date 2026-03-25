@@ -124,7 +124,7 @@ sub _cleanup {
     ## global destruction when the underlying fd is already invalid, causing
     ## "unable to close filehandle GEN## properly: Bad file descriptor
     ## during global destruction" warnings.  (GH#237)
-    for my $field (qw( CHILD_HANDLE PARENT_HANDLE PUMP_SOCKET_HANDLE PUMP_PIPE_HANDLE )) {
+    for my $field (qw( CHILD_HANDLE PUMP_SOCKET_HANDLE PUMP_PIPE_HANDLE )) {
         close( $self->{$field} )
           if defined $self->{$field} && defined fileno( $self->{$field} );
     }
