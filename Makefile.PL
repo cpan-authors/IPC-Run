@@ -76,9 +76,9 @@ WriteMakefile(
             'Readonly::Array' => 0,
         },
         resources => {
-            license    => 'http://dev.perl.org/licenses/',
-            bugtracker => 'https://github.com/toddr/IPC-Run/issues',
-            repository => 'https://github.com/toddr/IPC-Run',
+            license    => 'https://dev.perl.org/licenses/',
+            bugtracker => 'https://github.com/cpan-authors/IPC-Run/issues',
+            repository => 'https://github.com/cpan-authors/IPC-Run',
         }
     }
 );
