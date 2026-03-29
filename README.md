@@ -1,4 +1,4 @@
-![linux](https://github.com/toddr/IPC-Run/workflows/linux/badge.svg) ![windows](https://github.com/toddr/IPC-Run/workflows/windows/badge.svg) ![macos](https://github.com/toddr/IPC-Run/workflows/macos/badge.svg)
+![linux](https://github.com/cpan-authors/IPC-Run/workflows/linux/badge.svg) ![windows](https://github.com/cpan-authors/IPC-Run/workflows/windows/badge.svg) ![macos](https://github.com/cpan-authors/IPC-Run/workflows/macos/badge.svg)
 
 
 # NAME
@@ -1923,7 +1923,7 @@ Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 Bugs should always be submitted via the GitHub bug tracker
 
-[https://github.com/toddr/IPC-Run/issues](https://github.com/toddr/IPC-Run/issues)
+[https://github.com/cpan-authors/IPC-Run/issues](https://github.com/cpan-authors/IPC-Run/issues)
 
 # AUTHORS
 
