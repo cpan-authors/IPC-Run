@@ -2378,8 +2378,14 @@ sub _open_pipes {
 
     for ( sort keys %{ $self->{PTYS} } ) {
         _debug "opening pty '", $_, "'" if _debugging_details;
-        my $pty = _pty;
-        $self->{PTYS}->{$_} = $pty;
+        eval {
+            my $pty = _pty;
+            $self->{PTYS}->{$_} = $pty;
+        };
+        if ($@) {
+            push @errs, $@;
+            _debug 'caught ', $@ if _debugging;
+        }
     }
 
     for ( @{ $self->{IOS} } ) {
@@ -3202,6 +3208,7 @@ sub start {
 
     ## Close all those temporary filehandles that the kids needed.
     for my $pty ( values %{ $self->{PTYS} } ) {
+        next unless $pty;
         close $pty->slave;
         ## Prevent IO::Pty >= 1.21 DESTROY from double-closing the slave.
         delete ${*$pty}{'io_pty_slave'};
