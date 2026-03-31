@@ -1229,8 +1229,8 @@ sub get_more_input();
 
 ##
 ## Error constants, not too locale-dependent
-use vars qw( $_EIO $_EAGAIN $_EPIPE );
-use Errno qw(   EIO   EAGAIN   EPIPE );
+use vars qw( $_EIO $_EAGAIN );
+use Errno qw( EIO EAGAIN EPIPE );
 
 BEGIN {
     local $!;
@@ -1238,8 +1238,6 @@ BEGIN {
     $_EIO    = qr/^$!/;
     $!       = EAGAIN;
     $_EAGAIN = qr/^$!/;
-    $!       = EPIPE;
-    $_EPIPE  = qr/^$!/;
 }
 
 ##
@@ -1689,13 +1687,6 @@ sub _spawn {
         croak $sync_pulse;
     }
     return $kid->{PID};
-
-## Wait for pty to get set up.  This is a hack until we get synchronous
-## selects.
-    if ( keys %{ $self->{PTYS} } && $IO::Pty::VERSION < 0.9 ) {
-        _debug "sleeping to give pty a chance to init, will fix when newer IO::Pty arrives.";
-        sleep 1;
-    }
 }
 
 sub _write {
@@ -2915,13 +2906,6 @@ sub _do_kid_and_exit {
                     $fds{$_->{TFD}}{needed} = 1;
                 }
 
-                #	    for ( $_->{FD}, ( $sibling != $kid ? $_->{TFD} : () ) ) {
-                #	       if ( defined $_ && ! $closed[$_] && ! $needed[$_] ) {
-                #		  _close( $_ );
-                #		  $closed[$_] = 1;
-                #		  $_ = undef;
-                #	       }
-                #	    }
             }
         }
 
@@ -3532,47 +3516,6 @@ sub _select_loop {
         my @pipes = @{ $self->{PIPES} };
         $io_occurred = $_->poll($self) ? 1 : $io_occurred for @pipes;
 
-        #   FILE:
-        #      for my $pipe ( @pipes ) {
-        #         ## Pipes can be shared among kids.  If another kid closes the
-        #         ## pipe, then its {FD} will be undef.  Also, on Win32, pipes can
-        #	 ## be optimized to be files, in which case the FD is left undef
-        #	 ## so we don't try to select() on it.
-        #         if ( $pipe->{TYPE} =~ /^>/
-        #            && defined $pipe->{FD}
-        #            && vec( $self->{ROUT}, $pipe->{FD}, 1 )
-        #         ) {
-        #            _debug_desc_fd( "filtering data from", $pipe ) if _debugging_details;
-        #confess "phooey" unless UNIVERSAL::isa( $pipe, "IPC::Run::IO" );
-        #            $io_occurred = 1 if $pipe->_do_filters( $self );
-        #
-        #            next FILE unless defined $pipe->{FD};
-        #         }
-        #
-        #	 ## On Win32, pipes to the child can be optimized to be files
-        #	 ## and FD left undefined so we won't select on it.
-        #         if ( $pipe->{TYPE} =~ /^</
-        #            && defined $pipe->{FD}
-        #            && vec( $self->{WOUT}, $pipe->{FD}, 1 )
-        #         ) {
-        #            _debug_desc_fd( "filtering data to", $pipe ) if _debugging_details;
-        #            $io_occurred = 1 if $pipe->_do_filters( $self );
-        #
-        #            next FILE unless defined $pipe->{FD};
-        #         }
-        #
-        #         if ( defined $pipe->{FD} && vec( $self->{EOUT}, $pipe->{FD}, 1 ) ) {
-        #            ## BSD seems to sometimes raise the exceptional condition flag
-        #            ## when a pipe is closed before we read it's last data.  This
-        #            ## causes spurious warnings and generally renders the exception
-        #            ## mechanism useless for our purposes.  The exception
-        #            ## flag semantics are too variable (they're device driver
-        #            ## specific) for me to easily map to any automatic action like
-        #            ## warning or croaking (try running v0.42 if you don't believe me
-        #            ## :-).
-        #            warn "Exception on descriptor $pipe->{FD}";
-        #         }
-        #      }
     }
 
     return;
@@ -3631,14 +3574,6 @@ sub _cleanup {
     # Example harness: run(['echo',1], '&', ['echo',2], '>', \$out).  Hence,
     # this starts after the last reap.
     for my $kid ( @{ $self->{KIDS} } ) {
-
-        #      if ( defined $kid->{DEBUG_FD} ) {
-        #	 die;
-        #         @{$kid->{OPS}} = grep
-        #            ! defined $_->{KFD} || $_->{KFD} != $kid->{DEBUG_FD},
-        #            @{$kid->{OPS}};
-        #         $kid->{DEBUG_FD} = undef;
-        #      }
 
         _debug "cleaning up filters at kid ", $kid->{NUM} if _debugging_details;
         for my $op ( @{ $kid->{OPS} } ) {
@@ -3707,7 +3642,6 @@ sub pump {
     _debug "** pumping"
       if _debugging;
 
-    #   my $r = eval {
     $self->start if $self->{STATE} < _started;
     croak "process ended prematurely" unless $self->pumpable;
 
@@ -3715,16 +3649,6 @@ sub pump {
     $self->{break_on_io}    = 1;
     $self->_select_loop;
     return $self->pumpable;
-
-    #   };
-    #   if ( $@ ) {
-    #      my $x = $@;
-    #      _debug $x if _debugging && $x;
-    #      eval { $self->_cleanup };
-    #      warn $@ if $@;
-    #      die $x;
-    #   }
-    #   return $r;
 }
 
 =pod
@@ -4588,82 +4512,6 @@ sub new_string_sink {
           }
     };
 }
-
-#=item timeout
-#
-#This function defines a time interval, starting from when start() is
-#called, or when timeout() is called.  If all processes have not finished
-#by the end of the timeout period, then a "process timed out" exception
-#is thrown.
-#
-#The time interval may be passed in seconds, or as an end time in
-#"HH:MM:SS" format (any non-digit other than '.' may be used as
-#spacing and punctuation).  This is probably best shown by example:
-#
-#   $h->timeout( $val );
-#
-#   $val                     Effect
-#   ======================== =====================================
-#   undef                    Timeout timer disabled
-#   ''                       Almost immediate timeout
-#   0                        Almost immediate timeout
-#   0.000001                 timeout > 0.0000001 seconds
-#   30                       timeout > 30 seconds
-#   30.0000001               timeout > 30 seconds
-#   10:30                    timeout > 10 minutes, 30 seconds
-#
-#Timeouts are currently evaluated with a 1 second resolution, though
-#this may change in the future.  This means that setting
-#timeout($h,1) will cause a pokey child to be aborted sometime after
-#one second has elapsed and typically before two seconds have elapsed.
-#
-#This sub does not check whether or not the timeout has expired already.
-#
-#Returns the number of seconds set as the timeout (this does not change
-#as time passes, unless you call timeout( val ) again).
-#
-#The timeout does not include the time needed to fork() or spawn()
-#the child processes, though some setup time for the child processes can
-#included.  It also does not include the length of time it takes for
-#the children to exit after they've closed all their pipes to the
-#parent process.
-#
-#=cut
-#
-#sub timeout {
-#   my IPC::Run $self = shift;
-#
-#   if ( @_ ) {
-#      ( $self->{TIMEOUT} ) = @_;
-#      $self->{TIMEOUT_END} = undef;
-#      if ( defined $self->{TIMEOUT} ) {
-#	 if ( $self->{TIMEOUT} =~ /[^\d.]/ ) {
-#	    my @f = split( /[^\d\.]+/i, $self->{TIMEOUT} );
-#	    unshift @f, 0 while @f < 3;
-#	    $self->{TIMEOUT} = (($f[0]*60)+$f[1])*60+$f[2];
-#	 }
-#	 elsif ( $self->{TIMEOUT} =~ /^(\d*)(?:\.(\d*))/ ) {
-#	    $self->{TIMEOUT} = $1 + 1;
-#	 }
-#	 $self->_calc_timeout_end if $self->{STATE} >= _started;
-#      }
-#   }
-#   return $self->{TIMEOUT};
-#}
-#
-#
-#sub _calc_timeout_end {
-#   my IPC::Run $self = shift;
-#
-#   $self->{TIMEOUT_END} = defined $self->{TIMEOUT}
-#      ? time + $self->{TIMEOUT}
-#      : undef;
-#
-#   ## We add a second because we might be at the very end of the current
-#   ## second, and we want to guarantee that we don't have a timeout even
-#   ## one second less then the timeout period.
-#   ++$self->{TIMEOUT_END} if $self->{TIMEOUT};
-#}
 
 =pod
 
