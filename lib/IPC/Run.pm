@@ -3336,8 +3336,10 @@ sub _select_loop {
     # via POSIX::sigaction(), this statement takes no action, and the existing
     # handler helps just like this one would.  The cap on $not_forever helps
     # when non-IPC::Run code has blocked SIGCHLD, e.g. via POSIX::sigprocmask().
+    # Override undef, '' and 'DEFAULT' — all of which leave the default
+    # disposition in effect and would cause Perl to restart select().
     local $SIG{CHLD} = sub { }
-      unless defined $SIG{CHLD};
+      unless $SIG{CHLD} && $SIG{CHLD} ne 'DEFAULT';
 
     # When a child exits before consuming all of its stdin, any subsequent
     # write to the pipe raises SIGPIPE.  With the default disposition that
