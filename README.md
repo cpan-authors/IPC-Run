@@ -1931,6 +1931,10 @@ Adam Kennedy <adamk@cpan.org>
 
 Barrie Slaymaker <barries@slaysys.com>
 
+# AI POLICY
+
+This project uses AI tools to assist development. Humans review and approve every change before it is merged. See [AI\_POLICY.md](AI_POLICY.md) for details.
+
 # COPYRIGHT
 
 Some parts copyright 2008 - 2009 Adam Kennedy.
