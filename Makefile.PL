@@ -12,7 +12,7 @@ if ( $^O ne 'MSWin32' ) {
             warn("WARNING: \"IO::Pty not found\".\nWARNING: '<pty<', '>pty>' will not work.\n\n");
             last;
         }
-        $PREREQ_PM{'IO::Pty'} = '1.08';
+        $PREREQ_PM{'IO::Pty'} = '1.25';
     }
 }
 else {
@@ -68,7 +68,7 @@ WriteMakefile(
     clean      => { FILES    => 'IPC-Run-*' },
     META_MERGE => {
         recommends => {
-            'IO::Pty'  => '1.08',
+            'IO::Pty'  => '1.25',
             'Readonly' => 0,
         },
         build_requires => {

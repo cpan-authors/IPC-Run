@@ -41,11 +41,11 @@ BEGIN {
 use Test::More;
 
 BEGIN {
-    if ( eval { require IO::Pty; } ) {
-        plan tests => 33;
+    if ( eval { require IO::Pty; IO::Pty->VERSION('1.25'); 1 } ) {
+        plan tests => 37;
     }
     else {
-        plan skip_all => "IO::Pty not installed";
+        plan skip_all => "IO::Pty 1.25+ not installed";
     }
 }
 
@@ -233,4 +233,41 @@ is( _map_fds, $fd_map );
     IPC::Run::run( [ $^X, '-e', 'print "ok\n"' ], '>pty>', \$pty_out );
     my @pty_warnings = grep { /reopened/ } @warnings;
     is( scalar @pty_warnings, 0, "no 'reopened' warnings with '>pty>' and \$^W=1 (GH #131)" );
+}
+
+##
+## GH #240: pty slave fd must remain valid after close_terminal in child.
+## IO::Pty >= 1.25 fixes the root cause (DESTROY no longer force-closes
+## the cached slave fd).  These tests exercise the affected code paths.
+##
+{
+    ## '>pty>' with implicit stderr->stdout dup — the exact scenario that
+    ## triggered EBADF on affected platforms before IO::Pty 1.25.
+    my $pty_out = '';
+    my $ok = eval {
+        IPC::Run::run(
+            [ $^X, '-e', 'print STDOUT "out\n"; print STDERR "err\n"' ],
+            '>pty>', \$pty_out,
+        );
+        1;
+    };
+    ok( $ok, "GH#240: '>pty>' with implicit stderr dup does not EBADF" );
+    like( $pty_out, qr/out/, "GH#240: stdout captured via pty" );
+}
+
+{
+    ## '>pty>' with explicit separate stderr — exercises the slave fd
+    ## path when multiple fds reference the pty after close_terminal.
+    my $pty_out = '';
+    my $sep_err = '';
+    my $ok = eval {
+        IPC::Run::run(
+            [ $^X, '-e', 'print STDOUT "pty-out\n"; print STDERR "pipe-err\n"' ],
+            '>pty>', \$pty_out,
+            '2>',    \$sep_err,
+        );
+        1;
+    };
+    ok( $ok, "GH#240: '>pty>' with separate '2>' does not EBADF" );
+    like( $pty_out, qr/pty-out/, "GH#240: stdout via pty with separate stderr" );
 }
