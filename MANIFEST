@@ -25,6 +25,7 @@ MANIFEST.SKIP
 README.md
 t/accessors.t
 t/adopt.t
+t/adopt_ptys.t
 t/autoflush.t
 t/autovivifyfh.t
 t/binmode.t

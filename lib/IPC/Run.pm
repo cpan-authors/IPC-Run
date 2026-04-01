@@ -3,6 +3,8 @@ use bytes;
 
 =pod
 
+=for markdown [![testsuite](https://github.com/cpan-authors/IPC-Run/actions/workflows/testsuite.yml/badge.svg)](https://github.com/cpan-authors/IPC-Run/actions/workflows/testsuite.yml)
+
 =head1 NAME
 
 IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
@@ -2016,8 +2018,9 @@ sub harness {
     $self->{IOS}   = [];
     $self->{KIDS}  = [];
     $self->{PIPES} = [];
-    $self->{PTYS}  = {};
-    $self->{STATE} = _newed;
+    $self->{PTYS}   = {};
+    $self->{TIMERS} = [];
+    $self->{STATE}  = _newed;
 
     if ($options) {
         $self->{$_} = $options->{$_} for keys %$options;
@@ -3275,7 +3278,7 @@ sub adopt {
         ## NEED TO RENUMBER THE KIDS!!
         push @{ $self->{KIDS} },  @{ $adoptee->{KIDS} };
         push @{ $self->{PIPES} }, @{ $adoptee->{PIPES} };
-        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PYTS} };
+        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PTYS} };
         push @{ $self->{TIMERS} }, @{ $adoptee->{TIMERS} };
         $adoptee->{STATE} = _finished;
     }
@@ -3333,8 +3336,10 @@ sub _select_loop {
     # via POSIX::sigaction(), this statement takes no action, and the existing
     # handler helps just like this one would.  The cap on $not_forever helps
     # when non-IPC::Run code has blocked SIGCHLD, e.g. via POSIX::sigprocmask().
+    # Override undef, '' and 'DEFAULT' — all of which leave the default
+    # disposition in effect and would cause Perl to restart select().
     local $SIG{CHLD} = sub { }
-      unless defined $SIG{CHLD};
+      unless $SIG{CHLD} && $SIG{CHLD} ne 'DEFAULT';
 
     # When a child exits before consuming all of its stdin, any subsequent
     # write to the pipe raises SIGPIPE.  With the default disposition that
