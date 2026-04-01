@@ -20,7 +20,7 @@ use Test::More;
 use IPC::Run qw( run );
 use IPC::Run::Timer qw( :all );
 
-plan tests => 77;
+plan tests => 79;
 
 
 my $t;
@@ -83,6 +83,13 @@ SCOPE: {
     eval { $t->interval("1foo1:9:bar:0") };
     my $msg = 'IPC::Run: non-numeric';
     $@ =~ /$msg/ ? ok(1) : is( $@, $msg );
+}
+
+# Error message should include both the bad element and the full time string
+SCOPE: {
+    eval { $t->interval("1:bad:3") };
+    like( $@, qr/non-numeric element 'bad'/, 'error names the bad element' );
+    like( $@, qr/in time string '1:bad:3'/, 'error includes the full time string' );
 }
 
 SCOPE: {
