@@ -73,7 +73,7 @@ use Exporter;
 use vars qw{$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS};
 
 BEGIN {
-    $VERSION = '20260322.0';
+    $VERSION = '20260401.0';
     @ISA     = qw( Exporter );
     @EXPORT  = qw(
       _debug

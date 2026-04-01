@@ -26,7 +26,7 @@ use IO::Handle;
 use vars qw{ $VERSION @ISA @EXPORT };
 
 BEGIN {
-    $VERSION = '20260322.0';
+    $VERSION = '20260401.0';
     @ISA     = qw( Exporter );
     @EXPORT  = qw(
       win32_spawn
