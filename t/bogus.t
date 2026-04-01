@@ -21,7 +21,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use IPC::Run qw( run start );
 
 SCOPE: {
@@ -33,9 +33,9 @@ SCOPE: {
 }
 
 # Test that run() with undef command name throws an error rather than
-# executing an arbitrary executable from PATH (GitHub issue #162).
+# executing an arbitrary executable from PATH (GitHub issue #162, #271).
 SCOPE: {
-    my $expected = 'command name is undefined or empty';
+    my $expected = 'undefined command';
     eval { run [undef] };
     my $got = $@ =~ $expected ? $expected : $@ || "";
     is( $got, $expected, "run [undef] croaks with clear error" );
@@ -46,6 +46,24 @@ SCOPE: {
     eval { run [''] };
     my $got = $@ =~ $expected ? $expected : $@ || "";
     is( $got, $expected, "run [''] croaks with clear error" );
+}
+
+# Test that harness() with an arrayref whose first element is undef
+# throws an error at parse time (GitHub issue #164, #271).
+SCOPE: {
+    my $expected = 'undefined command';
+    eval { run [undef, "arg1", "arg2"] };
+    my $got = $@ =~ $expected ? $expected : $@ || "";
+    is( $got, $expected, "run [undef, 'arg1', 'arg2'] croaks at harness parse time" );
+}
+
+SCOPE: {
+    my $expected = 'undefined command';
+    my @cmd;
+    $cmd[1] = "arg1";    # $cmd[0] is undef
+    eval { run \@cmd };
+    my $got = $@ =~ $expected ? $expected : $@ || "";
+    is( $got, $expected, "run with sparse array (undef first element) croaks at harness parse time" );
 }
 
 SKIP: {
