@@ -82,6 +82,13 @@ Arguments to `run()`/`start()` are parsed into operations:
 - **`$^W = 1` in child**: Fd manipulation in child can trigger "Filehandle STDIN reopened" warnings.
   Fixed by `local $^W = 0` in the child eval block.
 
+## Generated files
+
+- **`README.md`** is auto-generated from the POD in `lib/IPC/Run.pm`.
+  Do not edit it directly — changes will be overwritten. To update the README,
+  edit the POD in `lib/IPC/Run.pm` and regenerate. Do not include README.md
+  changes in pull requests.
+
 ## Coding conventions
 
 - Perl 5.8.8+ compatible. No Moose/Moo, minimal dependencies.
