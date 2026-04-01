@@ -3277,7 +3277,7 @@ sub adopt {
         ## NEED TO RENUMBER THE KIDS!!
         push @{ $self->{KIDS} },  @{ $adoptee->{KIDS} };
         push @{ $self->{PIPES} }, @{ $adoptee->{PIPES} };
-        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PYTS} };
+        $self->{PTYS}->{$_} = $adoptee->{PTYS}->{$_} for keys %{ $adoptee->{PTYS} };
         push @{ $self->{TIMERS} }, @{ $adoptee->{TIMERS} };
         $adoptee->{STATE} = _finished;
     }
