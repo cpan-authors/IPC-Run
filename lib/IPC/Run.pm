@@ -2018,8 +2018,9 @@ sub harness {
     $self->{IOS}   = [];
     $self->{KIDS}  = [];
     $self->{PIPES} = [];
-    $self->{PTYS}  = {};
-    $self->{STATE} = _newed;
+    $self->{PTYS}   = {};
+    $self->{TIMERS} = [];
+    $self->{STATE}  = _newed;
 
     if ($options) {
         $self->{$_} = $options->{$_} for keys %$options;
