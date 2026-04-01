@@ -5189,7 +5189,7 @@ Message ylln51p2b6.fsf@windlord.stanford.edu, on 2000/02/04.
 
 Bugs should always be submitted via the GitHub bug tracker
 
-L<https://github.com/toddr/IPC-Run/issues>
+L<https://github.com/cpan-authors/IPC-Run/issues>
 
 =head1 AUTHORS
 
