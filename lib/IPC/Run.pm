@@ -2035,6 +2035,8 @@ sub harness {
                     croak "Process control symbol ('|', '&') missing" if $cur_kid;
                     croak "Can't spawn a subroutine on Win32"
                       if Win32_MODE && ref eq "CODE";
+                    croak "Can't run undefined command. Did you pass a reference to an undefined array?"
+                      if ref eq 'ARRAY' && @$_ && !defined( $_->[0] );
                     $cur_kid = {
                         TYPE   => 'cmd',
                         VAL    => $_,
