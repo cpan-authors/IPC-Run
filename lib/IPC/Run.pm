@@ -3,6 +3,8 @@ use bytes;
 
 =pod
 
+=for markdown [![testsuite](https://github.com/cpan-authors/IPC-Run/actions/workflows/testsuite.yml/badge.svg)](https://github.com/cpan-authors/IPC-Run/actions/workflows/testsuite.yml)
+
 =head1 NAME
 
 IPC::Run - system() and background procs w/ piping, redirs, ptys (Unix, Win32)
