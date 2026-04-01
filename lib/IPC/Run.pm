@@ -2899,6 +2899,13 @@ sub _do_kid_and_exit {
         ## other kids to lose stdin/stdout/stderr.
 
         if ( %{ $self->{PTYS} } ) {
+            ## Save ttynames before closing masters — needed if we must
+            ## reopen a slave whose fd was invalidated (GH#240).
+            my %ttynames;
+            for ( keys %{ $self->{PTYS} } ) {
+                $ttynames{$_} = $self->{PTYS}->{$_}->ttyname;
+            }
+
             ## Clean up the parent's fds.
             for ( keys %{ $self->{PTYS} } ) {
                 _debug "Cleaning up parent's ptty '$_'" if _debugging_details;
@@ -2915,6 +2922,23 @@ sub _do_kid_and_exit {
 
             close_terminal;
             delete @fds{0..2};
+
+            ## GH#240: On some platforms (e.g. macOS with certain IO::Pty
+            ## versions), make_slave_controlling_terminal may invalidate
+            ## the cached slave fd.  Verify each slave fd is still usable;
+            ## if not, reopen the slave device from its saved ttyname.
+            for ( keys %{ $self->{PTYS} } ) {
+                my $slave = $self->{PTYS}->{$_};
+                my $fd    = $slave->fileno;
+                next if defined $fd && POSIX::fstat( $fd );
+                _debug "slave pty '$_' fd $fd is stale, reopening from $ttynames{$_}"
+                  if _debugging_details;
+                delete $fds{$fd} if defined $fd;
+                my $new_slave = IO::Tty->new;
+                $new_slave->open( $ttynames{$_}, O_RDWR )
+                  or croak "Cannot reopen slave pty $ttynames{$_}: $!";
+                $self->{PTYS}->{$_} = $new_slave;
+            }
         }
 
         for my $sibling ( @{ $self->{KIDS} } ) {
