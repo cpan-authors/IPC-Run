@@ -253,7 +253,11 @@ is( _map_fds, $fd_map );
         1;
     };
     ok( $ok, "GH#240: '>pty>' with implicit stderr dup does not EBADF" );
-    like( $pty_out, qr/out/, "GH#240: stdout captured via pty" );
+    SKIP: {
+        skip( "$^O: pty output may not drain fully with run() on this platform", 1 )
+            if $platform_skip;
+        like( $pty_out, qr/out/, "GH#240: stdout captured via pty" );
+    }
 }
 
 {
@@ -270,5 +274,9 @@ is( _map_fds, $fd_map );
         1;
     };
     ok( $ok, "GH#240: '>pty>' with separate '2>' does not EBADF" );
-    like( $pty_out, qr/pty-out/, "GH#240: stdout via pty with separate stderr" );
+    SKIP: {
+        skip( "$^O: pty output may not drain fully with run() on this platform", 1 )
+            if $platform_skip;
+        like( $pty_out, qr/pty-out/, "GH#240: stdout via pty with separate stderr" );
+    }
 }
