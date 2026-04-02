@@ -2770,7 +2770,7 @@ sub _open_pipes {
                 }
                 _debug_desc_fd( 'writing to', $pipe ) if _debugging_details;
 
-                if ( length $$in_ref && $$in_ref ) {
+                if ( length $$in_ref ) {
                     my $c = _write( $pipe->{FD}, $$in_ref );
                     unless ( defined $c ) {
                         ## EPIPE: child closed stdin before reading all input.
