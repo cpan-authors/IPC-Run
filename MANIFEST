@@ -35,6 +35,7 @@ t/child_fd_inadvertently_closed.t
 t/close_stdin.t
 t/early_exit.t
 t/eintr.t
+t/false_string_input.t
 t/filter.t
 t/finished.t
 t/gh_57_external_pipe_child_dies.t
@@ -50,7 +51,6 @@ t/pty.t
 t/pty_error_handling.t
 t/pump.t
 t/readonly.t
-t/false_string_input.t
 t/result.t
 t/result_sigchld.t
 t/run.t
@@ -70,6 +70,7 @@ t/utf8.t
 t/win32_compile.t
 t/win32_newlines.t
 t/win32_no_tempdir_handle_inheritance.t
+t/win32_parse.t
 t/windows_search_path.t
 xt/98_pod.t
 xt/98_pod_coverage.t

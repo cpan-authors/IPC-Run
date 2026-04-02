@@ -1,5 +1,22 @@
 Revision history for Perl extension IPC::Run
 
+20260402.0 Thu Apr 2 2026
+ Bug fixes:
+ - GH #271, GH #164 - Detect undefined command in arrayref at harness parse
+   time instead of deferring to start() (PR #272)
+ - pipe_writer drops input when data is the string "0" due to redundant
+   boolean test on input buffer (PR #264)
+ - Callback filter evaluates return in list context to distinguish empty
+   return from the string "0", preventing infinite loop on Win32 (PR #264)
+ - GH #240 - Skip pty output assertions on BSD/Darwin due to known pty
+   drain timing issues on short-lived children (PR #274)
+ - Implement proper Windows command-line parsing per Microsoft C/C++ rules,
+   fixing argument parsing failures with single-quoted strings containing
+   whitespace (PR #273)
+
+ Maintenance:
+ - Add shebang to eg/synopsis_scripting (PR #275)
+
 20260401.0 Wed Apr 1 2026
  Bug fixes:
  - GH #240 - Require IO::Pty 1.25 which fixes stale pty slave fd after
