@@ -39,7 +39,6 @@ BEGIN {
 require POSIX;
 
 use File::Spec ();
-use Text::ParseWords;
 use Win32 ();
 use Win32::Process;
 use Win32::ShellQuote ();
@@ -331,34 +330,97 @@ sub optimize {
 
 =item win32_parse_cmd_line
 
-   @words = win32_parse_cmd_line( q{foo bar 'baz baz' "bat bat"} );
+   @words = win32_parse_cmd_line( q{foo "bar baz" qux} );
 
-returns 4 words. This parses like the bourne shell (see
-the bit about shellwords() in L<Text::ParseWords>), assuming we're
-trying to be a little cross-platform here.  The only difference is
-that "\" is *not* treated as an escape except when it precedes 
-punctuation, since it's used all over the place in DOS path specs.
+returns 3 words.  Parses a Windows command-line string into arguments
+following the
+L<standard Microsoft C/C++ rules|https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments>:
 
-TODO: strip caret escapes?
+=over 4
 
-TODO: use
-https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args#parsing-c-command-line-arguments
+=item *
 
-TODO: globbing? probably not (it's unDOSish).
+Arguments are delimited by whitespace (space or tab).
 
-TODO: shebang emulation? Probably, but perhaps that should be part
-of Run.pm so all spawned processes get the benefit.
+=item *
 
-LIMITATIONS: shellwords dies silently on malformed input like 
+Double quotes group arguments containing whitespace.
 
-   a\"
+=item *
+
+Single quotes are B<not> special (unlike Unix shells).
+
+=item *
+
+Backslashes are literal unless immediately preceding a double quote:
+2N backslashes + C<"> = N backslashes + start/end quote;
+2N+1 backslashes + C<"> = N backslashes + literal C<">.
+
+=back
 
 =cut
 
 sub win32_parse_cmd_line {
     my $line = shift;
-    $line =~ s{(\\[\w\s])}{\\$1}g;
-    return shellwords $line;
+    return unless defined $line && length $line;
+
+    my @args;
+    my $pos = 0;
+    my $len = length $line;
+
+    while ( $pos < $len ) {
+        ## Skip whitespace (space and tab only per Windows rules).
+        $pos++ while $pos < $len && substr( $line, $pos, 1 ) =~ /[ \t]/;
+        last if $pos >= $len;
+
+        my $arg      = '';
+        my $in_quote = 0;
+
+        while ( $pos < $len ) {
+            my $c = substr( $line, $pos, 1 );
+
+            ## Unquoted whitespace ends the argument.
+            last if !$in_quote && $c =~ /[ \t]/;
+
+            if ( $c eq '\\' ) {
+                ## Count consecutive backslashes.
+                my $bs = 0;
+                $bs++, $pos++
+                  while $pos < $len && substr( $line, $pos, 1 ) eq '\\';
+
+                if ( $pos < $len && substr( $line, $pos, 1 ) eq '"' ) {
+                    ## Backslashes followed by double quote.
+                    $arg .= '\\' x int( $bs / 2 );
+                    if ( $bs % 2 ) {
+                        ## Odd count: last backslash escapes the quote.
+                        $arg .= '"';
+                        $pos++;
+                    }
+                    else {
+                        ## Even count: quote toggles grouping.
+                        $in_quote = !$in_quote;
+                        $pos++;
+                    }
+                }
+                else {
+                    ## Backslashes not before a quote — all literal.
+                    $arg .= '\\' x $bs;
+                }
+            }
+            elsif ( $c eq '"' ) {
+                $in_quote = !$in_quote;
+                $pos++;
+            }
+            else {
+                $arg .= $c;
+                $pos++;
+            }
+        }
+
+        push @args, $arg;
+    }
+
+    return @args;
 }
 
 =pod
