@@ -182,11 +182,17 @@ sub _new_internal {
                     return undef
                       if $self->{SOURCE_EMPTY};
 
-                    my $in = $internal->();
-                    unless ( defined $in ) {
+                    ## Call in list context so that callbacks returning
+                    ## an empty array (return @a where @a is empty) are
+                    ## distinguished from returning the string "0".  In
+                    ## scalar context both would yield 0, but an empty
+                    ## list means "no more input".
+                    my @in = $internal->();
+                    if ( !@in || ( @in == 1 && !defined $in[0] ) ) {
                         $self->{SOURCE_EMPTY} = 1;
                         return undef;
                     }
+                    my $in = join '', @in;
                     return 0 unless length $in;
                     $$out_ref = $in;
 
