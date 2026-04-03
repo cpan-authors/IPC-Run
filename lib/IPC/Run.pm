@@ -3548,8 +3548,12 @@ sub _cleanup {
     }
 
     _debug "cleaning up pipes" if _debugging_details;
-    ## _clobber modifies PIPES
-    $self->_clobber( $self->{PIPES}->[0] ) while @{ $self->{PIPES} };
+    ## _clobber modifies PIPES.  Protect with eval so a single pipe close
+    ## failure doesn't abort the rest of cleanup (reaping, filter teardown).
+    eval {
+        $self->_clobber( $self->{PIPES}->[0] ) while @{ $self->{PIPES} };
+    };
+    carp $@ . " while cleaning up pipes" if $@;
 
     # reap kids
     my @coderef_exceptions;
@@ -3592,7 +3596,9 @@ sub _cleanup {
         }
 
         for my $op ( @{ $kid->{OPS} } ) {
-            $op->_cleanup($self) if UNIVERSAL::isa( $op, "IPC::Run::IO" );
+            eval { $op->_cleanup($self) }
+              if UNIVERSAL::isa( $op, "IPC::Run::IO" );
+            carp $@ . " while cleaning up IO op" if $@;
         }
     }
     $self->{STATE} = _finished;
