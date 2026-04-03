@@ -39,7 +39,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 308;
+use Test::More tests => 312;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start harness timeout );
 
@@ -1092,6 +1092,20 @@ is( _map_fds, $fd_map );
 eok( $out, '' );
 eok( $err, '' );
 is( scalar get_warnings(), 0, 'no warnings when fork fails (rt.cpan.org #57186)' );
+
+## Fork failure with CODE ref child — exercises the coderef_err pipe cleanup path
+$fd_map = _map_fds;
+get_warnings();
+eval {
+    $r = run(
+        sub { print "hello\n" }, '>', \$out, '2>', \$err,
+        _simulate_fork_failure => 1
+    );
+};
+ok( $@, 'fork failure with CODE ref child throws' );
+ok( !$?, 'fork failure with CODE ref child does not set $?' );
+is( _map_fds, $fd_map, 'no fd leak when fork fails with CODE ref child' );
+is( scalar get_warnings(), 0, 'no warnings when fork fails with CODE ref child' );
 
 $fd_map = _map_fds;
 eval { $r = run \@perl, '<file', _simulate_open_failure => 1; };
