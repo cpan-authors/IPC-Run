@@ -3855,8 +3855,6 @@ handler on older C<perl>s is asking for seg faults.
 
 =cut
 
-my $still_runnings;
-
 sub reap_nb {
     my IPC::Run $self = shift;
 
