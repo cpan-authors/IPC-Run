@@ -41,11 +41,14 @@ BEGIN {
 use Test::More;
 
 BEGIN {
-    if ( eval { require IO::Pty; } ) {
-        plan tests => 37;
+    if ( !eval { require IO::Pty; } ) {
+        plan skip_all => "IO::Pty not installed";
+    }
+    elsif ( !eval { IO::Pty->VERSION('1.25'); 1 } ) {
+        plan skip_all => "IO::Pty >= 1.25 required (have $IO::Pty::VERSION)";
     }
     else {
-        plan skip_all => "IO::Pty not installed";
+        plan tests => 37;
     }
 }
 
@@ -54,27 +57,6 @@ use IPC::Run qw( start pump finish );
 
 select STDERR;
 select STDOUT;
-
-sub pty_warn {
-    warn "\nWARNING: $_[0].\nWARNING: '<pty<', '>pty>' $_[1] not work.\n\n";
-}
-
-if ( $^O !~ /Win32/ ) {
-
-    #   my $min = 0.9;
-    for ( eval { require IO::Pty; IO::Pty->VERSION } ) {
-        s/_//g if defined;
-        if ( !defined ) {
-            pty_warn "IO::Pty not found", "will";
-        }
-        elsif ( $_ == 0.02 ) {
-            pty_warn "IO::Pty v$_ has spurious warnings, try 0.9 or later", "may";
-        }
-        elsif ( $_ < 1.00 ) {
-            pty_warn "IO::Pty 1.00 is strongly recommended", "may";
-        }
-    }
-}
 
 diag("IO::Tty $IO::Tty::VERSION, IO::Pty $IO::Pty::VERSION");
 
