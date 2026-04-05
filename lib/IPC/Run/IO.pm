@@ -591,7 +591,7 @@ sub _do_filters {
     }
     ( $IPC::Run::filter_op, $IPC::Run::filter_num ) = ( $saved_op, $saved_num );
     $self->{HARNESS} = undef;
-    die "ack ", $@ if $@;
+    die $@ if $@;
     return $r;
 }
 
