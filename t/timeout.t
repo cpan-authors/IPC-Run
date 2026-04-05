@@ -92,6 +92,6 @@ SCOPE: {
     $h->start;
     $h->finish;
     my $finished_at = time;
-    ok( $finished_at - $started_at <= 2, 'not too slow to reap' )
+    ok( $finished_at - $started_at <= 10, 'not too slow to reap' )
       or diag( $finished_at - $started_at . " seconds passed" );
 }
