@@ -2445,7 +2445,7 @@ sub _open_pipes {
                         ) if _debugging_details;
 
                         $op->open_pipe( $self->_debug_fd );
-                        push @close_on_fail, $op->{KFD}, $op->{FD};
+                        push @close_on_fail, $op->{TFD}, $op->{FD};
 
                         my $s = '';
                         $op->{KIN_REF} = \$s;
@@ -2454,7 +2454,7 @@ sub _open_pipes {
                         _debug( 'kid ', $kid->{NUM}, ' to read ', $op->{KFD}, ' from CODE' ) if _debugging_details;
 
                         $op->open_pipe( $self->_debug_fd );
-                        push @close_on_fail, $op->{KFD}, $op->{FD};
+                        push @close_on_fail, $op->{TFD}, $op->{FD};
 
                         my $s = '';
                         $op->{KIN_REF} = \$s;
@@ -2613,6 +2613,7 @@ sub _open_pipes {
                         _dont_inherit($pipe_read_fd);
                         _dont_inherit( $op->{TFD} );
                     }
+                    push @close_on_fail, $pipe_read_fd;
                     @output_fds_accum = ();
                 }
                 elsif ( $op->{TYPE} eq '&' ) {
