@@ -2120,7 +2120,7 @@ sub harness {
                         $pty_id = length $3 ? $3 : '0';
                         ## do the require here to cause early error reporting
                         require IO::Pty;
-                        ## Just flag the pyt's existence for now.  It'll be
+                        ## Just flag the pty's existence for now.  It'll be
                         ## converted to a real IO::Pty by _open_pipes.
                         $self->{PTYS}->{$pty_id} = undef;
                     }
@@ -2241,7 +2241,7 @@ sub harness {
                         if ( $type eq '>pty>' ) {
                             ## do the require here to cause early error reporting
                             require IO::Pty;
-                            ## Just flag the pyt's existence for now.  _open_pipes()
+                            ## Just flag the pty's existence for now.  _open_pipes()
                             ## will new an IO::Pty for each key.
                             $self->{PTYS}->{$pty_id} = undef;
                         }
@@ -4308,7 +4308,7 @@ use vars (
 
 =head1 FILTERS
 
-These filters are used to modify input our output between a child
+These filters are used to modify input or output between a child
 process and a scalar or subroutine endpoint.
 
 =over
