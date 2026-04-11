@@ -228,3 +228,50 @@ jobs:
         run: make test
         timeout-minutes: 5
 
+  coverage:
+    needs: [ubuntu]
+    runs-on: ubuntu-latest
+
+    env:
+      PERL_USE_UNSAFE_INC: 0
+      AUTOMATED_TESTING: 1
+
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 5
+      - name: perl -V
+        run: perl -V
+        timeout-minutes: 5
+      - name: Install Dependencies
+        uses: perl-actions/install-with-cpm@v1
+        timeout-minutes: 5
+        with:
+          cpanfile: "cpanfile"
+          args: "--configure-timeout=600 --with-recommends --with-suggests"
+      - name: Install coverage dependencies
+        uses: perl-actions/install-with-cpm@v1
+        timeout-minutes: 5
+        with:
+          install: "Devel::Cover Devel::Cover::Report::Codecov JSON::MaybeXS"
+      - name: Makefile.PL
+        run: perl Makefile.PL
+        timeout-minutes: 5
+      - name: Run tests with Devel::Cover
+        run: |
+          HARNESS_PERL_SWITCHES="-MDevel::Cover=-coverage,statement,branch,condition,subroutine,+ignore,^t/" \
+            make test
+        timeout-minutes: 10
+      - name: Generate coverage report
+        run: |
+          cover -report text
+          cover -report json
+        timeout-minutes: 5
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: cover_db/cover.json
+          flags: perl
+          name: perl-coverage
+        continue-on-error: true
+
