@@ -3499,9 +3499,6 @@ sub _select_loop {
                 croak "$! in select";
             }
         }
-        ## TODO: Analyze the EINTR failure mode and see if this patch
-        ## is adequate and optimal.
-        ## TODO: Add an EINTR test to the test suite.
 
         if (_debugging_details) {
             my $map = join(
@@ -4127,9 +4124,6 @@ sub full_results {
     &_assert_finished;
     my IPC::Run $self = shift;
 
-    croak "Harness not run" unless $self->{STATE} >= _finished;
-    croak "Harness not finished running" unless $self->{STATE} == _finished;
-
     return map $_->{RESULT}, @{ $self->{KIDS} };
 }
 
@@ -4456,11 +4450,20 @@ sub new_appender($) {
 
 =item new_string_source
 
-TODO: Needs confirmation. Was previously undocumented. in this module.
+   my $filter = new_string_source( \$scalar );
+   my $filter = new_string_source( @strings );
 
-This is a filter which is exportable. Returns a sub which appends the data passed in to the output buffer and returns 1 if data was appended. 0 if it was an empty string and undef if no data was passed. 
+Returns a filter sub that feeds data into a filter chain.  In scalar-ref
+mode, the referent is appended to the output buffer on the first call, then
+the referent is set to C<undef> so subsequent calls return C<undef> (EOF).
+In list mode, one element is shifted from the list per call; C<undef> (EOF)
+is returned once the list is exhausted.
 
-NOTE: Any additional variables passed to new_string_source will be passed to the sub every time it's called and appended to the output. 
+Returns 1 when data was produced, 0 for an empty string, or C<undef> for
+EOF.
+
+This is primarily used internally by L<IPC::Run::Test/filter_tests> and
+other filter scaffolding.
 
 =cut
 
@@ -4501,9 +4504,16 @@ sub new_string_source {
 
 =item new_string_sink
 
-TODO: Needs confirmation. Was previously undocumented.
+   my $filter = new_string_sink( \$scalar );
 
-This is a filter which is exportable. Returns a sub which pops the data out of the input stream and pushes it onto the string.
+Returns a filter sub that collects data from a filter chain.  Each time
+the filter fires, it appends the contents of the input buffer to the
+scalar referenced by C<$scalar> and clears the input buffer.  Returns 1
+when data was consumed (via C<input_avail>), or 0/undef per the standard
+filter protocol.
+
+This is primarily used internally by L<IPC::Run::Test/filter_tests> and
+other filter scaffolding.
 
 =cut
 
@@ -4719,8 +4729,6 @@ Expose a list of child process objects.  When I do this,
 each child process is likely to be blessed into IPC::Run::Proc.
 
 $kid->abort(), $kid->kill(), $kid->signal( $num_or_name ).
-
-Write tests for /(full_)?results?/ subs.
 
 Currently, pump() and run() only work on systems where select() works on the
 filehandles returned by pipe().  This does *not* include ActiveState on Win32,
