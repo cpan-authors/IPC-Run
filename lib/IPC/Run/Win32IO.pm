@@ -321,28 +321,15 @@ sub _spawn_pumper {
         qq{"$^X"},
         @I_options,
         qw(-MIPC::Run::Win32Pump -e 1 ),
-## I'm using this clunky way of passing filehandles to the child process
-## in order to avoid some kind of premature closure of filehandles
-## problem I was having with VCP's test suite when passing them
-## via CreateProcess.  All of the ## REMOVE code is stuff I'd like
-## to be rid of and the ## ADD code is what I'd like to use.
-        FdGetOsFHandle($stdin_fd),     ## REMOVE
-        FdGetOsFHandle($stdout_fd),    ## REMOVE
-        FdGetOsFHandle($debug_fd),     ## REMOVE
+## Pass OS file handles to the pumper child process.  Using fds directly
+## caused premature closure issues in VCP's test suite.
+        FdGetOsFHandle($stdin_fd),
+        FdGetOsFHandle($stdout_fd),
+        FdGetOsFHandle($debug_fd),
         $binmode ? 1 : 0,
         $$, $^T, _debugging_level, qq{"$child_label"},
         @opts
     );
-
-    #   open SAVEIN,  "<&STDIN"  or croak "$! saving STDIN";       #### ADD
-    #   open SAVEOUT, ">&STDOUT" or croak "$! saving STDOUT";       #### ADD
-    #   open SAVEERR, ">&STDERR" or croak "$! saving STDERR";       #### ADD
-    #   _dont_inherit \*SAVEIN;       #### ADD
-    #   _dont_inherit \*SAVEOUT;       #### ADD
-    #   _dont_inherit \*SAVEERR;       #### ADD
-    #   open STDIN,  "<&$stdin_fd"  or croak "$! dup2()ing $stdin_fd (pumper's STDIN)";       #### ADD
-    #   open STDOUT, ">&$stdout_fd" or croak "$! dup2()ing $stdout_fd (pumper's STDOUT)";       #### ADD
-    #   open STDERR, ">&$debug_fd" or croak "$! dup2()ing $debug_fd (pumper's STDERR/debug_fd)";       #### ADD
 
     _debug "pump cmd line: ", $cmd_line if _debugging_details;
 
@@ -355,13 +342,6 @@ sub _spawn_pumper {
         NORMAL_PRIORITY_CLASS,
         ".",
     ) or croak "$!: Win32::Process::Create()";
-
-    #   open STDIN,  "<&SAVEIN"  or croak "$! restoring STDIN";       #### ADD
-    #   open STDOUT, ">&SAVEOUT" or croak "$! restoring STDOUT";       #### ADD
-    #   open STDERR, ">&SAVEERR" or croak "$! restoring STDERR";       #### ADD
-    #   close SAVEIN             or croak "$! closing SAVEIN";       #### ADD
-    #   close SAVEOUT            or croak "$! closing SAVEOUT";       #### ADD
-    #   close SAVEERR            or croak "$! closing SAVEERR";       #### ADD
 
     # In case of a sleep right here, need the IPC::Run::_close() treatment.
     IPC::Run::_close fileno($stdin);
