@@ -72,8 +72,8 @@ WriteMakefile(
             'Readonly' => 0,
         },
         build_requires => {
-            'Test::More'      => 0,    # For testing
-            'Readonly::Array' => 0,
+            'Test::More' => '0.47',
+            'Readonly'   => 0,
         },
         resources => {
             license    => 'https://dev.perl.org/licenses/',
