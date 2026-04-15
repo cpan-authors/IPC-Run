@@ -1,7 +1,7 @@
 # The cpanfile specification does not explicitly allow testing $^O or $].  cpanm
 # tolerates this, but other cpanfile consumers might not.
 if ( $^O ne 'MSWin32' ) {
-    requires 'IO::Pty', '1.08';    # not entirely required; see Makefile.PL
+    requires 'IO::Pty', '1.25';    # not entirely required; see Makefile.PL
 }
 else {
     requires 'Win32',          '0.27';
