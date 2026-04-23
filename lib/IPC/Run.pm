@@ -1202,9 +1202,6 @@ use Exporter;
 use Fcntl;
 use POSIX ();
 
-BEGIN {
-    if ( $] < 5.008 ) { require Symbol; }
-}
 use Carp;
 use File::Spec ();
 use IO::Handle;
@@ -2844,16 +2841,6 @@ sub _do_kid_and_exit {
     my ($kid) = @_;
 
     my ( $s1, $s2 );
-    if ( $] < 5.008 ) {
-        ## For unknown reasons, placing these two statements in the eval{}
-        ## causes the eval {} to not catch errors after they are executed in
-        ## perl 5.6.0, godforsaken version that it is...not sure about 5.6.1.
-        ## Part of this could be that these symbols get destructed when
-        ## exiting the eval, and that destruction might be what's (wrongly)
-        ## confusing the eval{}, allowing the exception to propagate.
-        $s1 = Symbol::gensym();
-        $s2 = Symbol::gensym();
-    }
 
     eval {
         local $cur_self = $self;

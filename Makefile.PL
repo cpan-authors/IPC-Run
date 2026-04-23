@@ -59,6 +59,7 @@ WriteMakefile(
     ABSTRACT     => 'system() and background procs w/ piping, redirs, ptys (Unix, Win32)',
     AUTHOR       => 'Barrie Slaymaker <barries@slaysys.com>',
     VERSION_FROM => 'lib/IPC/Run.pm',
+    ( $ExtUtils::MakeMaker::VERSION >= 6.48 ? ( 'MIN_PERL_VERSION' => '5.008001', ) : () ),
     ( $ExtUtils::MakeMaker::VERSION >= 6.3002 ? ( 'LICENSE' => 'perl', ) : () ),
     PREREQ_PM => {
         'Test::More' => '0.47',
