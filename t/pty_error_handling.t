@@ -24,11 +24,14 @@ BEGIN {
 use Test::More;
 
 BEGIN {
-    if ( eval { require IO::Pty; } ) {
-        plan tests => 3;
+    if ( !eval { require IO::Pty; } ) {
+        plan skip_all => "IO::Pty not installed";
+    }
+    elsif ( !eval { IO::Pty->VERSION('1.25'); 1 } ) {
+        plan skip_all => "IO::Pty >= 1.25 required (have $IO::Pty::VERSION)";
     }
     else {
-        plan skip_all => "IO::Pty not installed";
+        plan tests => 3;
     }
 }
 
