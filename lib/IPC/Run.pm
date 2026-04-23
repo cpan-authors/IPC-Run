@@ -3953,8 +3953,16 @@ sub finish {
     # We don't alter $self->{clear_ins}, start() and run() control it.
 
     if ( %{ $self->{PTYS} } || @{ $self->{PIPES} } || @{ $self->{TIMERS} } ) {
-        while ( $self->pumpable ) {
-            $self->_select_loop($options);
+        my $ok = eval {
+            while ( $self->pumpable ) {
+                $self->_select_loop($options);
+            }
+            1;
+        };
+        unless ($ok) {
+            my $err = $@;
+            $self->kill_kill;
+            die $err;
         }
     }
     $self->_cleanup;
