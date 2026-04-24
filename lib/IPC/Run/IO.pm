@@ -91,9 +91,17 @@ sub _empty($);
 
 =item new
 
-I think it takes >> or << along with some other data.
+   $io = IPC::Run::IO->new( $filename_or_handle, $operator, @filters, $dest_or_source );
 
-TODO: Needs more thorough documentation. Patches welcome.
+Constructs a new IO object for use with C<run()>, C<harness()>, or
+C<start()>.  The first argument is either a filename (string) or a
+filehandle (glob ref or L<IO::Handle> subclass).  The second argument is
+a redirection operator: C<< > >>, C<< >> >>, C<< < >>, or C<< << >>.
+Optional filter subrefs may appear in the middle.  The last argument is
+the source (for C<< < >>/C<< << >> writes) or destination (for
+C<< > >>/C<< >> >> reads) -- typically a scalar ref or code ref.
+
+Usually constructed via the C<io()> shortcut exported by L<IPC::Run>.
 
 =cut
 
@@ -539,9 +547,14 @@ sub _init_filters {
 
 =item poll
 
-TODO: Needs confirmation that this is correct. Was previously undocumented.
+   $r = $io->poll( $harness );
 
-I believe this is polling the IO for new input and then returns undef if there will never be any more input, 0 if there is none now, but there might be in the future, and TRUE if more input was gotten.
+Checks whether this IO channel's file descriptor is ready (readable for
+output channels, writable for input channels) according to the harness's
+most recent C<select()> results.  If ready, runs the filter chain via
+C<_do_filters()> and returns its result: C<undef> for EOF, 0 for
+"not ready / try again", or a true value when data was transferred.
+Returns 0 immediately if the descriptor is not ready or is undefined.
 
 =cut
 
