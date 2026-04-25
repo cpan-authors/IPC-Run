@@ -3474,6 +3474,12 @@ sub _select_loop {
         }
         last if !$nfound && $self->{non_blocking};
 
+        ## Reset the polling backoff whenever select() reports ready fds.
+        ## Without this, $not_forever stays at its cap (0.5s) across
+        ## alternating I/O-active and child-polling phases, adding latency
+        ## to reap detection after a burst of real I/O.
+        $not_forever = $min_select_timeout if $nfound > 0;
+
         if ( $nfound < 0 ) {
             if ( $!{EINTR} ) {
 
