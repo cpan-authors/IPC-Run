@@ -62,19 +62,7 @@ STUBS_END
     }
 }
 
-## For some reason these get created with binmode on.  AAargh, gotta       #### REMOVE
-## do it by hand below.       #### REMOVE
-if ($debug) {    #### REMOVE
-    close STDERR;    #### REMOVE
-    OsFHandleOpen( \*STDERR, $debug_fh, "w" )    #### REMOVE
-      or print "$! opening STDERR as Win32 handle $debug_fh in pumper $$";    #### REMOVE
-}               #### REMOVE
-close STDIN;    #### REMOVE
-OsFHandleOpen( \*STDIN, $stdin_fh, "r" )    #### REMOVE
-  or die "$! opening STDIN as Win32 handle $stdin_fh in pumper $$";    #### REMOVE
-close STDOUT;                                                          #### REMOVE
-OsFHandleOpen( \*STDOUT, $stdout_fh, "w" )                             #### REMOVE
-  or die "$! opening STDOUT as Win32 handle $stdout_fh in pumper $$";  #### REMOVE
+## For some reason these get created with binmode on.  AAargh, gotta   ## do it by hand below.   if ($debug) {    close STDERR;    OsFHandleOpen( \*STDERR, $debug_fh, "w" )      or print "$! opening STDERR as Win32 handle $debug_fh in pumper $$";}           close STDIN;OsFHandleOpen( \*STDIN, $stdin_fh, "r" )  or die "$! opening STDIN as Win32 handle $stdin_fh in pumper $$";close STDOUT;                                                      OsFHandleOpen( \*STDOUT, $stdout_fh, "w" )                           or die "$! opening STDOUT as Win32 handle $stdout_fh in pumper $$";  #### REMOVE
 
 binmode STDIN;
 binmode STDOUT;

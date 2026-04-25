@@ -73,31 +73,22 @@ sub _dont_inherit {
     }
 }
 
-sub _inherit {    #### REMOVE
-    for (@_) {    #### REMOVE
-        next unless defined $_;    #### REMOVE
-        my $fd = $_;               #### REMOVE
-        $fd = fileno $fd if ref $fd;    #### REMOVE
-        _debug "enabling inheritance of ", $fd if _debugging_details;    #### REMOVE
-        my $osfh = FdGetOsFHandle $fd;                                   #### REMOVE
+sub _inherit {
+    for (@_) {
+        next unless defined $_;
+        my $fd = $_;
+        $fd = fileno $fd if ref $fd;
+        _debug "enabling inheritance of ", $fd if _debugging_details;
+        my $osfh = FdGetOsFHandle $fd;
 
         # Contrary to documentation, $! has the failure reason
         # (https://github.com/chorny/Win32API-File/issues/14)
         croak "$!: FdGetOsFHandle( $fd )"
           if !defined $osfh || $osfh == C_ABI_INVALID_HANDLE_VALUE;
-        #### REMOVE
-        SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 1 );           #### REMOVE
-    }    #### REMOVE
-}    #### REMOVE
-#### REMOVE
-#sub _inherit {
-#   for ( @_ ) {
-#      next unless defined $_;
-#      my $osfh = GetOsFHandle $_;
-#      croak $^E if ! defined $osfh || $osfh == INVALID_HANDLE_VALUE;
-#      SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT );
-#   }
-#}
+
+        SetHandleInformation( $osfh, HANDLE_FLAG_INHERIT, 1 );
+    }
+}
 
 =pod
 
