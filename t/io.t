@@ -21,7 +21,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 16;
+use Test::More tests => 20;
 use IPC::Run qw( :filters run io );
 use IPC::Run::Debug qw( _map_fds );
 
@@ -75,6 +75,19 @@ ok $io->isa('IPC::Run::IO');
     my $bad_op = 'BOGUS';
     eval { io( 'foo', $bad_op, \$send ) };
     like( $@, qr/\Q$bad_op\E/, "invalid operator reported in error message" );
+}
+
+# Error messages for missing source/dest should reference the operator type,
+# not a stale $_ from the calling scope.
+{
+    local $_ = 'STALE_TOPIC';
+    eval { IPC::Run::IO->new( 'foo', '<' ) };
+    like( $@, qr/'<' missing a source/, "missing source error shows operator" );
+    unlike( $@, qr/STALE_TOPIC/, "missing source error does not use stale \$_" );
+
+    eval { IPC::Run::IO->new( 'foo', '>' ) };
+    like( $@, qr/'>' missing a destination/, "missing dest error shows operator" );
+    unlike( $@, qr/STALE_TOPIC/, "missing dest error does not use stale \$_" );
 }
 
 # io() should accept a GLOB reference (rt.cpan.org #111214)

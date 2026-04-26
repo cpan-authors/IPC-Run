@@ -361,8 +361,7 @@ and the time left if it's left running.
 
 sub check {
     my IPC::Run::Timer $self = shift;
-    return undef if !$self->is_running;
-    return 0     if $self->is_expired;
+    return undef unless $self->is_running;
 
     my ($now) = @_;
     $now = _parse_time($now);

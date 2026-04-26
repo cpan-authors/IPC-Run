@@ -147,7 +147,7 @@ sub _new_internal {
     ## Add an adapter to the end of the filter chain (which is usually just the
     ## read/writer sub pushed by IPC::Run) to the DEST or SOURCE, if need be.
     if ( $self->op =~ />/ ) {
-        croak "'$_' missing a destination" if _empty $internal;
+        croak "'$type' missing a destination" if _empty $internal;
         $self->{DEST} = $internal;
         if ( UNIVERSAL::isa( $self->{DEST}, 'CODE' ) ) {
             ## Put a filter on the end of the filter chain to pass the
@@ -170,7 +170,7 @@ sub _new_internal {
         }
     }
     else {
-        croak "'$_' missing a source" if _empty $internal;
+        croak "'$type' missing a source" if _empty $internal;
         $self->{SOURCE} = $internal;
         if ( UNIVERSAL::isa( $internal, 'CODE' ) ) {
             push(
