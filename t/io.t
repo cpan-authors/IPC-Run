@@ -21,7 +21,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use IPC::Run qw( :filters run io );
 use IPC::Run::Debug qw( _map_fds );
 
@@ -93,7 +93,7 @@ is( io( 'foo', '>>', \$recv )->mode, 'ra' );
 
 SKIP: {
     if ( IPC::Run::Win32_MODE() ) {
-        skip( "$^O does not allow select() on non-sockets", 9 );
+        skip( "$^O does not allow select() on non-sockets", 11 );
     }
 
     ##
@@ -129,4 +129,20 @@ SKIP: {
     is( _map_fds, $fd_map );
     is( $send,    $text );
     is( $recv,    $text );
+
+    ##
+    ## Filter exception propagation — error messages should not be corrupted
+    ##
+  SCOPE: {
+        spit $in_file, $text;
+        my $err_msg = "deliberate filter error for testing";
+        eval {
+            run io( $in_file, '>',
+                sub { die $err_msg },
+                \$recv );
+        };
+        wipe $in_file;
+        like( $@, qr/\Q$err_msg\E/, "filter exception propagated from io()" );
+        unlike( $@, qr/\back\b/,    "filter exception not prefixed with debug artifact" );
+    }
 }
