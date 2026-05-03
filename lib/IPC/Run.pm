@@ -2305,14 +2305,6 @@ sub harness {
                     ## was absorbed as a no-op.  See GH#124.
                 }
 
-                elsif ( $_ eq 'init' ) {
-                    croak "No command before '$_'" unless $cur_kid;
-                    push @{ $cur_kid->{OPS} }, {
-                        TYPE => 'init',
-                        SUB  => shift @args,
-                    };
-                }
-
                 elsif ( $succinct && $first_parse ) {
                     ## It's not an opcode, and no explicit opcodes have been
                     ## seen yet, so assume it's a file name.
@@ -2767,22 +2759,16 @@ sub _open_pipes {
                 }
                 _debug_desc_fd( 'writing to', $pipe ) if _debugging_details;
 
-                if ( length $$in_ref ) {
-                    my $c = _write( $pipe->{FD}, $$in_ref );
-                    unless ( defined $c ) {
-                        ## EPIPE: child closed stdin before reading all input.
-                        ## Treat this exactly like EOF on the pipe.
-                        _debug_desc_fd( 'broken pipe writing to', $pipe )
-                          if _debugging_details;
-                        $self->_clobber($pipe);
-                        return undef;
-                    }
-                    substr( $$in_ref, 0, $c, '' );
-                }
-                else {
+                my $c = _write( $pipe->{FD}, $$in_ref );
+                unless ( defined $c ) {
+                    ## EPIPE: child closed stdin before reading all input.
+                    ## Treat this exactly like EOF on the pipe.
+                    _debug_desc_fd( 'broken pipe writing to', $pipe )
+                      if _debugging_details;
                     $self->_clobber($pipe);
                     return undef;
                 }
+                substr( $$in_ref, 0, $c, '' );
 
                 return 1;
             };
