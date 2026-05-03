@@ -1946,6 +1946,23 @@ you.  You can't pass harness specifications to pump(), though.
 ##
 my $harness_id = 0;
 
+## Known option names accepted by harness()/start()/run().
+## Anything not in this list (and not underscore-prefixed) triggers a warning.
+my %VALID_HARNESS_OPTIONS = map { $_ => 1 } qw(
+    debug
+    noinherit
+    clear_ins
+    break_on_io
+    non_blocking
+);
+
+sub _check_harness_option {
+    my ($name) = @_;
+    return if $VALID_HARNESS_OPTIONS{$name};
+    return if $name =~ /^_/;    # internal test hooks
+    carp "Unknown option '$name' passed to harness(); typo?";
+}
+
 sub harness {
     my $options;
     if ( @_ && ref $_[-1] eq 'HASH' ) {
@@ -2011,7 +2028,10 @@ sub harness {
     $self->{STATE}  = _newed;
 
     if ($options) {
-        $self->{$_} = $options->{$_} for keys %$options;
+        for ( keys %$options ) {
+            _check_harness_option($_);
+            $self->{$_} = $options->{$_};
+        }
     }
 
     _debug "****** harnessing *****" if _debugging;
@@ -2296,6 +2316,7 @@ sub harness {
                 }
 
                 elsif ( !ref $_ ) {
+                    _check_harness_option($_);
                     $self->{$_} = shift @args;
                 }
 

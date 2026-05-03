@@ -21,7 +21,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 120;
+use Test::More tests => 125;
 use IPC::Run qw( harness );
 
 my $f;
@@ -140,3 +140,30 @@ expand_test(
         { TYPE => '>',     DEST   => \$f, KFD => 1, },
     ]
 );
+
+# Test unknown harness option warnings
+{
+    my @warnings;
+    local $SIG{__WARN__} = sub { push @warnings, $_[0] };
+
+    # Known option: no warning
+    @warnings = ();
+    my $h = IPC::Run::harness( ['true'], 'debug', 0 );
+    is( scalar @warnings, 0, 'debug option produces no warning' );
+
+    # Unknown option: should warn
+    @warnings = ();
+    $h = IPC::Run::harness( ['true'], 'debugg', 0 );
+    is( scalar @warnings, 1, 'typo option produces warning' );
+    like( $warnings[0], qr/Unknown option 'debugg'/, 'warning mentions the bad option name' );
+
+    # Internal test hook (_prefixed): no warning
+    @warnings = ();
+    $h = IPC::Run::harness( ['true'], '_simulate_open_failure', 1 );
+    is( scalar @warnings, 0, 'underscore-prefixed option produces no warning' );
+
+    # noinherit: no warning
+    @warnings = ();
+    $h = IPC::Run::harness( ['true'], 'noinherit', 1 );
+    is( scalar @warnings, 0, 'noinherit option produces no warning' );
+}
