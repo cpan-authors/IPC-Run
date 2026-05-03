@@ -3373,11 +3373,13 @@ sub _select_loop {
                 vec( $self->{PIN}, $file->{FD}, 1 ) = 0;
             }
             else {
-                ## This gets incremented occasionally when the IO channel
-                ## was actually closed.  That's a bug, but it seems mostly
-                ## harmless: it causes us to exit if break_on_io, or to set
-                ## the timeout to not be forever.  I need to fix it, though.
-                ++$paused;
+                ## Only count channels that are genuinely paused (still
+                ## open but waiting for more input).  Channels that were
+                ## closed by _do_filters have FD set to undef and will be
+                ## removed from PIPES by _clobber -- don't count those,
+                ## or $paused may overcount and cause premature loop exit
+                ## via break_on_io or an unnecessary timeout shortening.
+                ++$paused if defined $file->{FD};
             }
         }
 
@@ -3486,9 +3488,8 @@ sub _select_loop {
                 croak "$! in select";
             }
         }
-        ## TODO: Analyze the EINTR failure mode and see if this patch
-        ## is adequate and optimal.
-        ## TODO: Add an EINTR test to the test suite.
+        ## EINTR handling: t/eintr.t covers this path (select interrupted
+        ## by SIGUSR1, plus EINTR during sync-pipe read after fork).
 
         if (_debugging_details) {
             my $map = join(
