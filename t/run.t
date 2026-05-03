@@ -39,7 +39,7 @@ sub get_warnings {
 select STDERR;
 select STDOUT;
 
-use Test::More tests => 308;
+use Test::More tests => 312;
 use IPC::Run::Debug qw( _map_fds );
 use IPC::Run qw( :filters :filter_imp start harness timeout );
 
@@ -1104,6 +1104,22 @@ eval { $r = run \@perl, '>file', _simulate_open_failure => 1; };
 ok($@);
 ok( !$? );
 is( _map_fds, $fd_map );
+
+## GH#286: _open_pipes error cleanup pushed KFD (child fd number) instead
+## of TFD (actual pipe fd) to close_on_fail for SCALAR/CODE input pipes.
+## On error, _close(KFD) would close STDIN (fd 0) in the parent.
+{
+    my $in = "test data";
+    $fd_map = _map_fds;
+    eval { $r = run \@perl, \$in, '>file', _simulate_open_failure => 1; };
+    ok( $@, 'error propagates from SCALAR input + simulated open failure' );
+    is( _map_fds, $fd_map, 'no fd leak after SCALAR input pipe creation + open failure' );
+
+    $fd_map = _map_fds;
+    eval { $r = run \@perl, '<', sub { return }, '>file', _simulate_open_failure => 1; };
+    ok( $@, 'error propagates from CODE input + simulated open failure' );
+    is( _map_fds, $fd_map, 'no fd leak after CODE input pipe creation + open failure' );
+}
 
 ##
 ## harness, pump, run
