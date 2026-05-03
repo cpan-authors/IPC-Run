@@ -1644,8 +1644,28 @@ sub _spawn {
         ( $coderef_err_reader_fd, $self->{CODEREF_ERR_FD} ) = _pipe;
     }
 
-    $kid->{PID} = fork();
-    croak "$! during fork" unless defined $kid->{PID};
+    if ( $self->{_simulate_fork_failure} ) {
+        $kid->{PID} = undef;
+    }
+    else {
+        $kid->{PID} = fork();
+    }
+    unless ( defined $kid->{PID} ) {
+        my $fork_err = $self->{_simulate_fork_failure}
+          ? "Cannot allocate memory"
+          : "$!";
+        ## Clean up the pipe fds we just created — they would leak
+        ## since the caller has no reference to the local reader fds.
+        POSIX::close $sync_reader_fd;
+        POSIX::close $self->{SYNC_WRITER_FD};
+        $self->{SYNC_WRITER_FD} = undef;
+        if ( defined $coderef_err_reader_fd ) {
+            POSIX::close $coderef_err_reader_fd;
+            POSIX::close $self->{CODEREF_ERR_FD};
+            $self->{CODEREF_ERR_FD} = undef;
+        }
+        croak "$fork_err during fork";
+    }
 
     unless ( $kid->{PID} ) {
         if ( $self->{_sigusr1_after_fork} ) {
@@ -3136,10 +3156,6 @@ sub start {
             _debug "child: ", _debugstrings( $kid->{VAL} )
               if _debugging_details;
             eval {
-                if ( $self->{_simulate_fork_failure} ) {
-                    $kid->{PID} = undef;    # simulate fork() returning undef
-                    croak "Cannot allocate memory during fork";
-                }
                 unless (Win32_MODE) {
                     $self->_spawn($kid);
                 }
@@ -3825,8 +3841,6 @@ on perl5-porters).  Calling this (or doing any significant work) in a signal
 handler on older C<perl>s is asking for seg faults.
 
 =cut
-
-my $still_runnings;
 
 sub reap_nb {
     my IPC::Run $self = shift;
